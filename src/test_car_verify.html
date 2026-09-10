@@ -209,41 +209,43 @@
         .wheel-mover {
             position: absolute;
             left: 0;
-            bottom: 0;
-            width: 80px;
-            height: 80px;
+            bottom: 2px;
+            width: 84px;
+            height: 84px;
             z-index: 10;
             will-change: transform;
             pointer-events: none;
+            overflow: visible;
         }
 
         .wheel-svg-realistic {
-            width: 80px;
-            height: 80px;
-            filter: drop-shadow(0 8px 16px rgba(0,0,0,0.7));
+            width: 84px;
+            height: 84px;
+            filter: drop-shadow(0 8px 20px rgba(0,0,0,0.75));
             display: block;
+            overflow: visible;
         }
 
         /* Canvas Three.js procedimental */
         #threejsWheelCanvas {
-            width: 80px;
-            height: 80px;
+            width: 84px;
+            height: 84px;
             border-radius: 50%;
             display: none;
-            filter: drop-shadow(0 8px 16px rgba(0,0,0,0.7));
+            filter: drop-shadow(0 8px 20px rgba(0,0,0,0.75));
         }
 
         /* Sombra no chão que acompanha a roda */
         .wheel-contact-shadow {
             position: absolute;
-            bottom: -3px;
+            bottom: -2px;
             left: 50%;
             transform: translateX(-50%);
-            width: 56px;
-            height: 9px;
-            background: rgba(0, 0, 0, 0.9);
+            width: 62px;
+            height: 8px;
+            background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0) 75%);
             border-radius: 50%;
-            filter: blur(3px);
+            filter: blur(2px);
         }
 
         /* Texto CAR . VERIFY com tipografia automobilística de alto impacto */
@@ -371,18 +373,21 @@
             background: #101724;
             border: 1px solid #1E293B;
             border-radius: 12px;
-            padding: 12px 24px;
+            padding: 16px 24px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-top: 15px;
+            overflow: visible;
         }
 
         .header-mock-left {
             position: relative;
             display: flex;
             align-items: center;
-            min-height: 40px;
+            min-height: 52px;
+            padding: 6px 0;
+            overflow: visible;
             cursor: pointer;
             user-select: none;
         }
@@ -392,21 +397,39 @@
             left: 0;
             top: 50%;
             transform: translateY(-50%);
-            width: 36px;
-            height: 36px;
+            width: 38px;
+            height: 38px;
             z-index: 5;
+            overflow: visible;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-wheel-shadow {
+            position: absolute;
+            bottom: -1px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 28px;
+            height: 6px;
+            background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0) 75%);
+            border-radius: 50%;
+            filter: blur(1.5px);
+            pointer-events: none;
         }
 
         .header-wheel-svg {
-            width: 36px;
-            height: 36px;
+            width: 38px;
+            height: 38px;
+            overflow: visible;
         }
 
         .header-brand-text {
             display: flex;
             align-items: baseline;
             gap: 6px;
-            margin-left: 46px;
+            margin-left: 48px;
             clip-path: inset(0 100% 0 0);
         }
 
@@ -478,47 +501,57 @@
                     <!-- 1. RODA SVG HIPER-REALISTA (Inspirada na imagem de referência) -->
                     <svg class="wheel-svg-realistic" id="svgWheel" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                         <defs>
-                            <!-- Pneu de borracha vulcânica -->
+                            <!-- Pneu de borracha esportiva vulcanizada -->
                             <radialGradient id="tireGrad" cx="50%" cy="50%" r="50%">
-                                <stop offset="78%" stop-color="#12161f" />
+                                <stop offset="76%" stop-color="#141722" />
                                 <stop offset="88%" stop-color="#242b38" />
                                 <stop offset="94%" stop-color="#181c25" />
                                 <stop offset="100%" stop-color="#0a0c10" />
                             </radialGradient>
-                            <!-- Aro usinado diamantado com reflexo metálico -->
-                            <radialGradient id="rimGrad" cx="50%" cy="50%" r="50%">
-                                <stop offset="0%" stop-color="#64748b" />
-                                <stop offset="45%" stop-color="#334155" />
-                                <stop offset="75%" stop-color="#94a3b8" />
-                                <stop offset="88%" stop-color="#f8fafc" />
-                                <stop offset="95%" stop-color="#475569" />
+                            
+                            <!-- Garganta profunda (deep-dish) cromada escalonada -->
+                            <radialGradient id="deepDishGrad" cx="45%" cy="40%" r="55%">
+                                <stop offset="0%" stop-color="#1e293b" />
+                                <stop offset="45%" stop-color="#0f172a" />
+                                <stop offset="70%" stop-color="#475569" />
+                                <stop offset="85%" stop-color="#cbd5e1" />
+                                <stop offset="92%" stop-color="#f8fafc" />
+                                <stop offset="97%" stop-color="#475569" />
                                 <stop offset="100%" stop-color="#1e293b" />
                             </radialGradient>
-                            <!-- Disco de freio ventilado perfurado -->
-                            <radialGradient id="discGrad" cx="50%" cy="50%" r="50%">
-                                <stop offset="40%" stop-color="#334155" />
-                                <stop offset="75%" stop-color="#1e293b" />
+
+                            <!-- Prata líquida com alto brilho nas lâminas curvas -->
+                            <linearGradient id="bladeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#ffffff" />
+                                <stop offset="35%" stop-color="#cbd5e1" />
+                                <stop offset="75%" stop-color="#94a3b8" />
+                                <stop offset="100%" stop-color="#475569" />
+                            </linearGradient>
+
+                            <!-- Tampa central cromada polida -->
+                            <radialGradient id="capGrad" cx="38%" cy="35%" r="62%">
+                                <stop offset="0%" stop-color="#ffffff" />
+                                <stop offset="35%" stop-color="#e2e8f0" />
+                                <stop offset="70%" stop-color="#64748b" />
                                 <stop offset="100%" stop-color="#0f172a" />
                             </radialGradient>
-                            <!-- Gradiente dourado/âmbar nos raios -->
-                            <linearGradient id="amberSpokeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stop-color="#FFA000" />
-                                <stop offset="100%" stop-color="#F59E0B" />
-                            </linearGradient>
+
+                            <!-- Molde do Raio Curvo Aerodinâmico Turbina (Inspirado na foto de referência) -->
+                            <g id="heroTurbineBlade">
+                                <!-- Sombra de oclusão na garganta funda -->
+                                <path d="M 47,39 C 48,27 55,20 60,17 C 64,17 68,20 69,22 C 61,27 54,32 52,40 Z" fill="#060910" opacity="0.7"/>
+                                <!-- Lâmina esculpida em prata líquida com chanfro fluido -->
+                                <path d="M 48,39 C 49,27 56,20 60,17.5 C 64,17.5 67.5,19.5 68.5,21.5 C 62,26 55.5,31.5 53,39.5 Z" fill="url(#bladeGrad)" stroke="#475569" stroke-width="0.5"/>
+                                <!-- Crista de realce especular de luz (aerodynamic crest) -->
+                                <path d="M 50,38 C 52,28 57,22 63,18.5" fill="none" stroke="#ffffff" stroke-width="1.3" stroke-linecap="round" opacity="0.95"/>
+                                <!-- Filete âmbar esportivo sutil na borda de ataque -->
+                                <path d="M 53,39 C 55.5,32 61.5,26 67,22" fill="none" stroke="#FFA000" stroke-width="0.8" stroke-linecap="round" opacity="0.85"/>
+                            </g>
                         </defs>
 
-                        <!-- DISCO DE FREIO VENTILADO (Fundo fixo) -->
-                        <circle cx="50" cy="50" r="34" fill="url(#discGrad)" stroke="#475569" stroke-width="1.2" />
-                        <!-- Perfurações e ranhuras radiais de resfriamento do disco -->
-                        <g stroke="#64748b" stroke-width="0.8" opacity="0.6">
-                            <line x1="50" y1="20" x2="48" y2="28" />
-                            <line x1="72" y1="35" x2="65" y2="40" />
-                            <line x1="68" y1="65" x2="60" y2="60" />
-                            <line x1="35" y1="72" x2="40" y2="65" />
-                            <line x1="20" y1="45" x2="28" y2="48" />
-                        </g>
-                        <!-- Perfurações circulares do disco ventilado -->
-                        <g fill="#0f172a" opacity="0.8">
+                        <!-- DISCO DE FREIO VENTILADO PERFURADO (Fundo fixo) -->
+                        <circle cx="50" cy="50" r="34" fill="#1e293b" stroke="#334155" stroke-width="1.2" />
+                        <g fill="#0f172a" opacity="0.85">
                             <circle cx="50" cy="24" r="0.9" />
                             <circle cx="68" cy="38" r="0.9" />
                             <circle cx="64" cy="62" r="0.9" />
@@ -526,18 +559,17 @@
                             <circle cx="24" cy="47" r="0.9" />
                         </g>
 
-                        <!-- PINÇA DE FREIO ESPORTIVA VERMELHA DE ALTA PERFORMANCE -->
+                        <!-- PINÇA DE FREIO ESPORTIVA MONOBLOCO VERMELHA -->
                         <path d="M 21,30 Q 16,50 24,64 L 31,60 Q 25,48 28,34 Z" fill="#EF4444" stroke="#B91C1C" stroke-width="1" />
-                        <!-- Detalhe dos pistões da pinça -->
                         <circle cx="23" cy="42" r="2" fill="#7F1D1D" />
                         <circle cx="25" cy="52" r="2" fill="#7F1D1D" />
 
                         <!-- CONJUNTO ROTATIVO DA RODA (Pneu + Aro + Raios) -->
                         <g id="wheelSpinGroup">
-                            <!-- PNEU EXTERNO (Tire) com perfil esportivo -->
+                            <!-- PNEU EXTERNO (Tire) esportivo largo de alto desempenho -->
                             <circle cx="50" cy="50" r="46" fill="url(#tireGrad)" stroke="#090c12" stroke-width="2.2" />
 
-                            <!-- RANHURAS DA BANDA DE RODAGEM DO PNEU -->
+                            <!-- RANHURAS DIRECIONAIS DA BANDA DE RODAGEM DO PNEU -->
                             <g stroke="#374151" stroke-width="2" stroke-linecap="round">
                                 <line x1="50" y1="4" x2="50" y2="8" />
                                 <line x1="68" y1="9" x2="66" y2="13" />
@@ -555,45 +587,46 @@
                                 <line x1="33" y1="9" x2="35" y2="13" />
                             </g>
 
-                            <!-- FILETE CIRCULAR ÂMBAR NO LÁBIO DO ARO (Identidade visual da imagem) -->
-                            <circle cx="50" cy="50" r="37.5" fill="none" stroke="#FFA000" stroke-width="2.2" filter="drop-shadow(0 0 3px rgba(255,160,0,0.6))" />
-                            <!-- Tambor interno chanfrado da roda -->
-                            <circle cx="50" cy="50" r="35" fill="url(#rimGrad)" />
+                            <!-- ARO DEEP-DISH ESCALONADO EM CROMO ESPELHADO -->
+                            <circle cx="50" cy="50" r="37.5" fill="none" stroke="#f8fafc" stroke-width="1.8" />
+                            <!-- Prateleira escalonada da garganta com detalhe âmbar -->
+                            <circle cx="50" cy="50" r="35.5" fill="none" stroke="#FFA000" stroke-width="1.2" opacity="0.9" />
+                            <!-- Garganta profunda da roda com gradiente especular -->
+                            <circle cx="50" cy="50" r="34" fill="url(#deepDishGrad)" />
 
-                            <!-- 5 RAIOS DUPLOS ESPORTIVOS FORJADOS -->
-                            <g fill="#E2E8F0" stroke="#475569" stroke-width="0.8">
-                                <!-- Raio 1 (0 deg) -->
-                                <polygon points="47,50 44,17 56,17 53,50" />
-                                <!-- Raio 2 (72 deg) -->
-                                <polygon points="50,47 79,34 84,43 52,52" />
-                                <!-- Raio 3 (144 deg) -->
-                                <polygon points="50,51 69,78 61,84 48,53" />
-                                <!-- Raio 4 (216 deg) -->
-                                <polygon points="49,53 31,84 23,78 48,50" />
-                                <!-- Raio 5 (288 deg) -->
-                                <polygon points="48,49 16,43 21,34 50,47" />
-                            </g>
+                            <!-- VÁLVULA DE CALIBRAGEM CROMADA (Posição 7h) -->
+                            <rect x="18" y="66" width="3.4" height="1.8" rx="0.7" transform="rotate(-30 19.5 67)" fill="#cbd5e1" stroke="#475569" stroke-width="0.4"/>
 
-                            <!-- FILETE CENTRAL DOURADO/ÂMBAR NOS RAIOS -->
-                            <g stroke="url(#amberSpokeGrad)" stroke-width="1.8" stroke-linecap="round">
-                                <line x1="50" y1="48" x2="50" y2="19" />
-                                <line x1="51" y1="50" x2="80" y2="38" />
-                                <line x1="50" y1="51" x2="65" y2="80" />
-                                <line x1="49" y1="51" x2="27" y2="80" />
-                                <line x1="49" y1="50" x2="19" y2="38" />
-                            </g>
+                            <!-- 5 RAIOS EM LÂMINA CURVA AERODINÂMICA (Turbine Blades) -->
+                            <use href="#heroTurbineBlade" transform="rotate(0 50 50)" />
+                            <use href="#heroTurbineBlade" transform="rotate(72 50 50)" />
+                            <use href="#heroTurbineBlade" transform="rotate(144 50 50)" />
+                            <use href="#heroTurbineBlade" transform="rotate(216 50 50)" />
+                            <use href="#heroTurbineBlade" transform="rotate(288 50 50)" />
 
-                            <!-- CUBO CENTRAL COM ANEL ÂMBAR E 5 PARAFUSOS CROMADOS -->
-                            <circle cx="50" cy="50" r="11.5" fill="#0A0F1D" stroke="#FFA000" stroke-width="1.8" />
-                            <!-- 5 Parafusos cromados com oclusão -->
-                            <circle cx="50" cy="42.5" r="2" fill="#FFFFFF" stroke="#64748B" stroke-width="0.5" />
-                            <circle cx="57" cy="47.5" r="2" fill="#FFFFFF" stroke="#64748B" stroke-width="0.5" />
-                            <circle cx="54.5" cy="55.5" r="2" fill="#FFFFFF" stroke="#64748B" stroke-width="0.5" />
-                            <circle cx="45.5" cy="55.5" r="2" fill="#FFFFFF" stroke="#64748B" stroke-width="0.5" />
-                            <circle cx="43" cy="47.5" r="2" fill="#FFFFFF" stroke="#64748B" stroke-width="0.5" />
+                            <!-- REBAIXO CENTRAL PROFUNDO DO CUBO (Deep Conical Hub) -->
+                            <circle cx="50" cy="50" r="11.5" fill="#090c14" stroke="#1e293b" stroke-width="1.2" />
+
+                            <!-- 5 PARAFUSOS DE FIXAÇÃO EM REBAIXOS USINADOS -->
+                            <circle cx="55.17" cy="42.88" r="1.8" fill="#040609" />
+                            <circle cx="55.17" cy="42.88" r="1.0" fill="#cbd5e1" stroke="#64748b" stroke-width="0.3" />
+
+                            <circle cx="58.37" cy="52.72" r="1.8" fill="#040609" />
+                            <circle cx="58.37" cy="52.72" r="1.0" fill="#cbd5e1" stroke="#64748b" stroke-width="0.3" />
+
+                            <circle cx="50" cy="58.8" r="1.8" fill="#040609" />
+                            <circle cx="50" cy="58.8" r="1.0" fill="#cbd5e1" stroke="#64748b" stroke-width="0.3" />
+
+                            <circle cx="41.63" cy="52.72" r="1.8" fill="#040609" />
+                            <circle cx="41.63" cy="52.72" r="1.0" fill="#cbd5e1" stroke="#64748b" stroke-width="0.3" />
+
+                            <circle cx="44.83" cy="42.88" r="1.8" fill="#040609" />
+                            <circle cx="44.83" cy="42.88" r="1.0" fill="#cbd5e1" stroke="#64748b" stroke-width="0.3" />
                             
-                            <!-- ESTRELA CENTRAL DOURADA (Emblema central) -->
-                            <path d="M 50,46 L 51.2,48.8 L 54.2,49 L 51.8,51 L 52.6,54 L 50,52.4 L 47.4,54 L 48.2,51 L 45.8,49 L 48.8,48.8 Z" fill="#FFA000" />
+                            <!-- TAMPA CENTRAL CROMADA COM ARO ÂMBAR DA MARCA -->
+                            <circle cx="50" cy="50" r="5.6" fill="url(#capGrad)" stroke="#94a3b8" stroke-width="0.8" />
+                            <circle cx="50" cy="50" r="3.2" fill="none" stroke="#FFA000" stroke-width="0.8" opacity="0.9" />
+                            <circle cx="50" cy="50" r="1.2" fill="#FFA000" />
                         </g>
                     </svg>
 
@@ -647,6 +680,13 @@
                 <button class="btn-pill renderer-btn" data-renderer="threejs">3D Three.js (/img2threejs)</button>
             </div>
         </div>
+
+        <!-- Controles de Visão e Ângulo 3D (visível quando 3D está ativo) -->
+        <div id="threeViewControls" style="display: none; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 10px; font-size: 13px;">
+            <span style="color: #FFA000; font-weight: 600;">Ângulo 3D (/img2threejs):</span>
+            <button class="btn-pill active angle-btn" data-angle="front">Visão Frontal (Pista Rolante)</button>
+            <button class="btn-pill angle-btn" data-angle="isometric">Perspectiva 3/4 (Foto de Referência)</button>
+        </div>
     </div>
 
     <!-- CARD 2: SIMULAÇÃO NO HEADER EXATO DA APLICAÇÃO -->
@@ -658,26 +698,92 @@
 
         <div class="header-mock-bar">
             <div class="header-mock-left" id="headerMockBrand" title="Clique para testar!">
-                <!-- Rastro de pneu do header -->
-                <div style="position: absolute; bottom: 8px; left: 18px; width: 170px; height: 3px; background: #0A0F1D; overflow: hidden; pointer-events: none;">
+                <!-- Rastro de pneu do header (tangente ao fundo do pneu) -->
+                <div style="position: absolute; bottom: 8px; left: 18px; width: 175px; height: 3px; background: #0A0F1D; overflow: hidden; pointer-events: none; border-radius: 2px;">
                     <div id="headerTireTrack" style="width: 100%; height: 100%; background: repeating-linear-gradient(90deg, #182234 0px, #182234 5px, #0A0F1D 5px, #0A0F1D 7px); clip-path: inset(0 100% 0 0);"></div>
                 </div>
 
                 <div class="header-wheel-mover" id="headerWheelMover">
-                    <svg class="header-wheel-svg" viewBox="0 0 100 100">
-                        <circle cx="50" cy="50" r="46" fill="#141824" stroke="#090C12" stroke-width="2"/>
-                        <circle cx="50" cy="50" r="37.5" fill="none" stroke="#FFA000" stroke-width="2.2"/>
-                        <circle cx="50" cy="50" r="35" fill="#334155"/>
+                    <div class="header-wheel-shadow"></div>
+                    <svg class="header-wheel-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <radialGradient id="mockTireGrad" cx="50%" cy="50%" r="50%">
+                                <stop offset="76%" stop-color="#141722" />
+                                <stop offset="88%" stop-color="#242b38" />
+                                <stop offset="94%" stop-color="#181c25" />
+                                <stop offset="100%" stop-color="#0a0c10" />
+                            </radialGradient>
+                            <radialGradient id="mockDeepDishGrad" cx="45%" cy="40%" r="55%">
+                                <stop offset="0%" stop-color="#1e293b" />
+                                <stop offset="45%" stop-color="#0f172a" />
+                                <stop offset="70%" stop-color="#475569" />
+                                <stop offset="85%" stop-color="#cbd5e1" />
+                                <stop offset="92%" stop-color="#f8fafc" />
+                                <stop offset="97%" stop-color="#475569" />
+                                <stop offset="100%" stop-color="#1e293b" />
+                            </radialGradient>
+                            <linearGradient id="mockBladeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#ffffff" />
+                                <stop offset="35%" stop-color="#cbd5e1" />
+                                <stop offset="75%" stop-color="#94a3b8" />
+                                <stop offset="100%" stop-color="#475569" />
+                            </linearGradient>
+                            <radialGradient id="mockCapGrad" cx="38%" cy="35%" r="62%">
+                                <stop offset="0%" stop-color="#ffffff" />
+                                <stop offset="35%" stop-color="#e2e8f0" />
+                                <stop offset="70%" stop-color="#64748b" />
+                                <stop offset="100%" stop-color="#0f172a" />
+                            </radialGradient>
+                            <g id="mockTurbineBlade">
+                                <path d="M 47,39 C 48,27 55,20 60,17 C 64,17 68,20 69,22 C 61,27 54,32 52,40 Z" fill="#060910" opacity="0.7"/>
+                                <path d="M 48,39 C 49,27 56,20 60,17.5 C 64,17.5 67.5,19.5 68.5,21.5 C 62,26 55.5,31.5 53,39.5 Z" fill="url(#mockBladeGrad)" stroke="#475569" stroke-width="0.5"/>
+                                <path d="M 50,38 C 52,28 57,22 63,18.5" fill="none" stroke="#ffffff" stroke-width="1.3" stroke-linecap="round" opacity="0.95"/>
+                                <path d="M 53,39 C 55.5,32 61.5,26 67,22" fill="none" stroke="#FFA000" stroke-width="0.8" stroke-linecap="round" opacity="0.85"/>
+                            </g>
+                        </defs>
+                        <circle cx="50" cy="50" r="34" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+                        <path d="M 21,30 Q 16,50 24,64 L 31,60 Q 25,48 28,34 Z" fill="#EF4444" stroke="#B91C1C" stroke-width="0.8"/>
                         <g id="headerWheelSpinGroup">
-                            <line x1="50" y1="17" x2="50" y2="83" stroke="#CBD5E1" stroke-width="5" stroke-linecap="round"/>
-                            <line x1="17" y1="50" x2="83" y2="50" stroke="#CBD5E1" stroke-width="5" stroke-linecap="round"/>
-                            <line x1="26" y1="26" x2="74" y2="74" stroke="#CBD5E1" stroke-width="4" stroke-linecap="round"/>
-                            <line x1="74" y1="26" x2="26" y2="74" stroke="#CBD5E1" stroke-width="4" stroke-linecap="round"/>
-                            <!-- Destaques dourados nos raios -->
-                            <line x1="50" y1="18" x2="50" y2="82" stroke="#FFA000" stroke-width="1.8"/>
-                            <line x1="18" y1="50" x2="82" y2="50" stroke="#FFA000" stroke-width="1.8"/>
-                            <circle cx="50" cy="50" r="11" fill="#0A0F1D" stroke="#FFA000" stroke-width="1.5"/>
-                            <circle cx="50" cy="50" r="4" fill="#FFA000"/>
+                            <circle cx="50" cy="50" r="46" fill="url(#mockTireGrad)" stroke="#090c12" stroke-width="2"/>
+                            <g stroke="#374151" stroke-width="1.8" stroke-linecap="round">
+                                <line x1="50" y1="4" x2="50" y2="8" />
+                                <line x1="68" y1="9" x2="66" y2="13" />
+                                <line x1="82" y1="22" x2="79" y2="25" />
+                                <line x1="91" y1="39" x2="87" y2="40" />
+                                <line x1="92" y1="58" x2="88" y2="57" />
+                                <line x1="83" y1="76" x2="80" y2="73" />
+                                <line x1="67" y1="89" x2="65" y2="85" />
+                                <line x1="50" y1="94" x2="50" y2="90" />
+                                <line x1="32" y1="89" x2="34" y2="85" />
+                                <line x1="17" y1="76" x2="20" y2="73" />
+                                <line x1="8" y1="58" x2="12" y2="57" />
+                                <line x1="8" y1="39" x2="12" y2="40" />
+                                <line x1="18" y1="22" x2="21" y2="25" />
+                                <line x1="33" y1="9" x2="35" y2="13" />
+                            </g>
+                            <circle cx="50" cy="50" r="37.5" fill="none" stroke="#f8fafc" stroke-width="1.6"/>
+                            <circle cx="50" cy="50" r="35.5" fill="none" stroke="#FFA000" stroke-width="1" opacity="0.9"/>
+                            <circle cx="50" cy="50" r="34" fill="url(#mockDeepDishGrad)" />
+                            <rect x="18" y="66" width="3.2" height="1.8" rx="0.7" transform="rotate(-30 19.5 67)" fill="#cbd5e1" stroke="#475569" stroke-width="0.4"/>
+                            <use href="#mockTurbineBlade" transform="rotate(0 50 50)" />
+                            <use href="#mockTurbineBlade" transform="rotate(72 50 50)" />
+                            <use href="#mockTurbineBlade" transform="rotate(144 50 50)" />
+                            <use href="#mockTurbineBlade" transform="rotate(216 50 50)" />
+                            <use href="#mockTurbineBlade" transform="rotate(288 50 50)" />
+                            <circle cx="50" cy="50" r="11.5" fill="#090c14" stroke="#1e293b" stroke-width="1"/>
+                            <circle cx="55.17" cy="42.88" r="1.8" fill="#040609"/>
+                            <circle cx="55.17" cy="42.88" r="1.0" fill="#cbd5e1"/>
+                            <circle cx="58.37" cy="52.72" r="1.8" fill="#040609"/>
+                            <circle cx="58.37" cy="52.72" r="1.0" fill="#cbd5e1"/>
+                            <circle cx="50" cy="58.8" r="1.8" fill="#040609"/>
+                            <circle cx="50" cy="58.8" r="1.0" fill="#cbd5e1"/>
+                            <circle cx="41.63" cy="52.72" r="1.8" fill="#040609"/>
+                            <circle cx="41.63" cy="52.72" r="1.0" fill="#cbd5e1"/>
+                            <circle cx="44.83" cy="42.88" r="1.8" fill="#040609"/>
+                            <circle cx="44.83" cy="42.88" r="1.0" fill="#cbd5e1"/>
+                            <circle cx="50" cy="50" r="5.6" fill="url(#mockCapGrad)" stroke="#94a3b8" stroke-width="0.8"/>
+                            <circle cx="50" cy="50" r="3.2" fill="none" stroke="#FFA000" stroke-width="0.8" opacity="0.9"/>
+                            <circle cx="50" cy="50" r="1.2" fill="#FFA000"/>
                         </g>
                     </svg>
                 </div>
@@ -708,150 +814,261 @@
         // =========================================================================
         let threeScene, threeCamera, threeRenderer, threeWheelGroup;
         let isThreeInitialized = false;
+        let currentThreeAngle = 'front'; // 'front' | 'isometric'
 
         function initThreeJSWheel() {
             if (isThreeInitialized || typeof THREE === 'undefined') return;
 
             const canvas = document.getElementById('threejsWheelCanvas');
-            const size = 80;
+            const size = 84;
 
             threeScene = new THREE.Scene();
-            threeCamera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+            threeCamera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
             threeCamera.position.set(0, 0, 11);
 
             threeRenderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
             threeRenderer.setSize(size, size);
             threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-            // Iluminação automotiva
-            const ambient = new THREE.AmbientLight(0xffffff, 0.8);
+            // Iluminação automotiva multicamadas
+            const ambient = new THREE.AmbientLight(0xffffff, 0.75);
             threeScene.add(ambient);
 
-            const dirLight = new THREE.DirectionalLight(0xffffff, 1.4);
-            dirLight.position.set(5, 8, 6);
-            threeScene.add(dirLight);
+            const keyLight = new THREE.DirectionalLight(0xffffff, 1.8);
+            keyLight.position.set(6, 10, 8);
+            threeScene.add(keyLight);
 
-            const rimLight = new THREE.PointLight(0xffa000, 1.2, 20);
-            rimLight.position.set(-4, -4, 5);
-            threeScene.add(rimLight);
+            const fillLight = new THREE.DirectionalLight(0x94a3b8, 1.1);
+            fillLight.position.set(-6, -4, 6);
+            threeScene.add(fillLight);
 
-            // Conjunto da Roda Procedural
+            const rimAmber = new THREE.PointLight(0xffa000, 1.6, 25);
+            rimAmber.position.set(-4, -6, 4);
+            threeScene.add(rimAmber);
+
+            // Conjunto da Roda Procedural Rotativa
             threeWheelGroup = new THREE.Group();
             threeScene.add(threeWheelGroup);
 
-            // 1. Pneu de borracha preta fosca
-            const tireGeo = new THREE.TorusGeometry(3.3, 0.9, 20, 48);
+            // Materiais PBR Automotivos de Alto Desempenho
             const tireMat = new THREE.MeshStandardMaterial({
-                color: 0x111622,
-                roughness: 0.9,
-                metalness: 0.08
+                color: 0x12151e,
+                roughness: 0.88,
+                metalness: 0.05
             });
-            const tireMesh = new THREE.Mesh(tireGeo, tireMat);
-            threeWheelGroup.add(tireMesh);
 
-            // 2. Tambor da roda em liga de alumínio
-            const rimGeo = new THREE.CylinderGeometry(2.9, 2.9, 1.2, 32, 1, true);
-            const rimMat = new THREE.MeshStandardMaterial({
-                color: 0x334155,
-                metalness: 0.9,
-                roughness: 0.25
+            const chromeRimMat = new THREE.MeshStandardMaterial({
+                color: 0xf8fafc,
+                metalness: 0.98,
+                roughness: 0.08
             });
-            const rimMesh = new THREE.Mesh(rimGeo, rimMat);
-            rimMesh.rotation.x = Math.PI / 2;
-            threeWheelGroup.add(rimMesh);
 
-            // 3. Friso âmbar no lábio do aro (Marca visual)
-            const lipGeo = new THREE.TorusGeometry(3.0, 0.08, 16, 48);
-            const lipMat = new THREE.MeshStandardMaterial({
+            const deepDishMat = new THREE.MeshStandardMaterial({
+                color: 0x1e293b,
+                metalness: 0.92,
+                roughness: 0.18
+            });
+
+            const liquidSpokeMat = new THREE.MeshStandardMaterial({
+                color: 0xe2e8f0,
+                metalness: 0.95,
+                roughness: 0.12
+            });
+
+            const amberAccentMat = new THREE.MeshStandardMaterial({
                 color: 0xffa000,
                 metalness: 0.85,
                 roughness: 0.2
             });
-            const lipMesh = new THREE.Mesh(lipGeo, lipMat);
-            lipMesh.position.z = 0.55;
-            threeWheelGroup.add(lipMesh);
 
-            // 4. 5 Raios esportivos procedurais com detalhes dourados
-            const spokeMat = new THREE.MeshStandardMaterial({
-                color: 0xe2e8f0,
-                metalness: 0.95,
-                roughness: 0.15
+            const hubCavityMat = new THREE.MeshStandardMaterial({
+                color: 0x0a0e17,
+                metalness: 0.5,
+                roughness: 0.4
             });
-            const spokeAccentMat = new THREE.MeshStandardMaterial({
-                color: 0xffa000,
-                metalness: 0.8,
-                roughness: 0.25
+
+            const lugNutMat = new THREE.MeshStandardMaterial({
+                color: 0x94a3b8,
+                metalness: 0.9,
+                roughness: 0.2
             });
+
+            // 1. PNEU ESPORTIVO LARGO DE BAIXO PERFIL (Banda de rodagem e ombros curvos)
+            const treadGeo = new THREE.CylinderGeometry(3.38, 3.38, 1.4, 48, 1, true);
+            const treadMesh = new THREE.Mesh(treadGeo, tireMat);
+            treadMesh.rotation.x = Math.PI / 2;
+            threeWheelGroup.add(treadMesh);
+
+            const frontShoulderGeo = new THREE.TorusGeometry(3.08, 0.32, 16, 48);
+            const frontShoulder = new THREE.Mesh(frontShoulderGeo, tireMat);
+            frontShoulder.position.z = 0.5;
+            threeWheelGroup.add(frontShoulder);
+
+            const rearShoulderGeo = new THREE.TorusGeometry(3.08, 0.32, 16, 48);
+            const rearShoulder = new THREE.Mesh(rearShoulderGeo, tireMat);
+            rearShoulder.position.z = -0.5;
+            threeWheelGroup.add(rearShoulder);
+
+            // 4 Canais longitudinais da banda de rodagem (Circumferential Grooves)
+            const grooveMat = new THREE.MeshBasicMaterial({ color: 0x05070a });
+            [-0.42, -0.14, 0.14, 0.42].forEach(zPos => {
+                const grooveGeo = new THREE.TorusGeometry(3.4, 0.025, 8, 48);
+                const grooveMesh = new THREE.Mesh(grooveGeo, grooveMat);
+                grooveMesh.position.z = zPos;
+                threeWheelGroup.add(grooveMesh);
+            });
+
+            // 2. ARO DEEP-DISH ESCALONADO EM CROMO ESPELHADO
+            const outerFlangeGeo = new THREE.TorusGeometry(3.02, 0.1, 16, 48);
+            const outerFlange = new THREE.Mesh(outerFlangeGeo, chromeRimMat);
+            outerFlange.position.z = 0.65;
+            threeWheelGroup.add(outerFlange);
+
+            const stepShelfGeo = new THREE.CylinderGeometry(2.8, 2.98, 0.3, 48, 1, true);
+            const stepShelf = new THREE.Mesh(stepShelfGeo, chromeRimMat);
+            stepShelf.rotation.x = Math.PI / 2;
+            stepShelf.position.z = 0.5;
+            threeWheelGroup.add(stepShelf);
+
+            const stepAmberGeo = new THREE.TorusGeometry(2.82, 0.035, 12, 48);
+            const stepAmber = new THREE.Mesh(stepAmberGeo, amberAccentMat);
+            stepAmber.position.z = 0.52;
+            threeWheelGroup.add(stepAmber);
+
+            const barrelGeo = new THREE.CylinderGeometry(2.55, 2.8, 0.5, 48, 1, true);
+            const barrel = new THREE.Mesh(barrelGeo, deepDishMat);
+            barrel.rotation.x = Math.PI / 2;
+            barrel.position.z = 0.2;
+            threeWheelGroup.add(barrel);
+
+            // Válvula de calibragem cromada a 240 deg (posição 7h)
+            const valveGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.22, 12);
+            const valveMesh = new THREE.Mesh(valveGeo, chromeRimMat);
+            const valveAngle = 240 * (Math.PI / 180);
+            valveMesh.position.set(2.82 * Math.cos(valveAngle), 2.82 * Math.sin(valveAngle), 0.55);
+            valveMesh.rotation.z = valveAngle;
+            threeWheelGroup.add(valveMesh);
+
+            // 3. 5 RAIOS EM LÂMINA CURVA AERODINÂMICA (Turbine Fan Blades)
+            const bladeShape = new THREE.Shape();
+            bladeShape.moveTo(-0.25, 0.85);
+            bladeShape.bezierCurveTo(0.1, 1.4, 0.55, 2.0, 0.72, 2.68);
+            bladeShape.quadraticCurveTo(1.22, 2.58, 1.42, 2.3);
+            bladeShape.bezierCurveTo(1.0, 1.7, 0.52, 1.25, 0.28, 0.82);
+            bladeShape.closePath();
+
+            const bladeGeo = new THREE.ExtrudeGeometry(bladeShape, {
+                depth: 0.22,
+                bevelEnabled: true,
+                bevelSegments: 3,
+                steps: 1,
+                bevelSize: 0.04,
+                bevelThickness: 0.04
+            });
+
+            // Sombra da lâmina na garganta funda
+            const shadowShape = new THREE.Shape();
+            shadowShape.moveTo(-0.28, 0.82);
+            shadowShape.bezierCurveTo(0.08, 1.35, 0.52, 1.95, 0.7, 2.65);
+            shadowShape.quadraticCurveTo(1.3, 2.55, 1.5, 2.25);
+            shadowShape.bezierCurveTo(1.05, 1.65, 0.55, 1.2, 0.25, 0.8);
+            shadowShape.closePath();
+
+            const shadowGeo = new THREE.ShapeGeometry(shadowShape);
+            const bladeShadowMat = new THREE.MeshBasicMaterial({ color: 0x050810, opacity: 0.7, transparent: true });
 
             for (let i = 0; i < 5; i++) {
                 const angle = (i * 2 * Math.PI) / 5;
                 const spokeArm = new THREE.Group();
 
-                // Corpo do raio
-                const spokeGeo = new THREE.BoxGeometry(0.5, 2.6, 0.25);
-                const spokeMesh = new THREE.Mesh(spokeGeo, spokeMat);
-                spokeMesh.position.y = 1.4;
+                const shadowMesh = new THREE.Mesh(shadowGeo, bladeShadowMat);
+                shadowMesh.position.z = 0.35;
+                spokeArm.add(shadowMesh);
+
+                const spokeMesh = new THREE.Mesh(bladeGeo, liquidSpokeMat);
+                spokeMesh.position.z = 0.38;
                 spokeArm.add(spokeMesh);
 
-                // Filete âmbar
-                const accentGeo = new THREE.BoxGeometry(0.12, 2.3, 0.28);
-                const accentMesh = new THREE.Mesh(accentGeo, spokeAccentMat);
-                accentMesh.position.y = 1.4;
-                accentMesh.position.z = 0.05;
-                spokeArm.add(accentMesh);
+                const accentCrestGeo = new THREE.CylinderGeometry(0.03, 0.03, 1.8, 8);
+                const accentCrest = new THREE.Mesh(accentCrestGeo, amberAccentMat);
+                accentCrest.position.set(0.65, 1.75, 0.62);
+                accentCrest.rotation.z = -0.32;
+                spokeArm.add(accentCrest);
 
                 spokeArm.rotation.z = angle;
-                spokeArm.position.z = 0.45;
                 threeWheelGroup.add(spokeArm);
             }
 
-            // 5. Cubo central e parafusos
-            const hubGeo = new THREE.CylinderGeometry(1.0, 1.0, 0.5, 24);
-            const hubMat = new THREE.MeshStandardMaterial({
-                color: 0x0a0f1d,
-                metalness: 0.6,
-                roughness: 0.4
-            });
-            const hubMesh = new THREE.Mesh(hubGeo, hubMat);
+            // 4. REBAIXO CENTRAL PROFUNDO DO CUBO COM 5 PARAFUSOS
+            const hubGeo = new THREE.CylinderGeometry(0.85, 0.72, 0.32, 32);
+            const hubMesh = new THREE.Mesh(hubGeo, hubCavityMat);
             hubMesh.rotation.x = Math.PI / 2;
-            hubMesh.position.z = 0.5;
+            hubMesh.position.z = 0.38;
             threeWheelGroup.add(hubMesh);
 
-            // Estrela central
-            const starGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.6, 5);
-            const starMat = new THREE.MeshStandardMaterial({
-                color: 0xffa000,
-                metalness: 0.9,
-                roughness: 0.2
-            });
-            const starMesh = new THREE.Mesh(starGeo, starMat);
-            starMesh.rotation.x = Math.PI / 2;
-            starMesh.position.z = 0.6;
-            threeWheelGroup.add(starMesh);
+            const boltNutGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.12, 6);
+            for (let i = 0; i < 5; i++) {
+                const angle = ((i * 2 * Math.PI) / 5) + (36 * Math.PI / 180);
+                const boltMesh = new THREE.Mesh(boltNutGeo, lugNutMat);
+                boltMesh.rotation.x = Math.PI / 2;
+                boltMesh.position.set(0.62 * Math.cos(angle), 0.62 * Math.sin(angle), 0.44);
+                threeWheelGroup.add(boltMesh);
+            }
 
-            // 6. Disco de freio perfurado e pinça vermelha (Fundo estático)
+            // Tampa central cromada polida com anel âmbar
+            const capGeo = new THREE.CylinderGeometry(0.38, 0.38, 0.36, 32);
+            const capMesh = new THREE.Mesh(capGeo, chromeRimMat);
+            capMesh.rotation.x = Math.PI / 2;
+            capMesh.position.z = 0.44;
+            threeWheelGroup.add(capMesh);
+
+            const capAmberRingGeo = new THREE.TorusGeometry(0.24, 0.025, 12, 32);
+            const capAmberRing = new THREE.Mesh(capAmberRingGeo, amberAccentMat);
+            capAmberRing.position.z = 0.63;
+            threeWheelGroup.add(capAmberRing);
+
+            // 5. DISCO DE FREIO VENTILADO E PINÇA VERMELHA (Fundo Estático)
             const discGeo = new THREE.CylinderGeometry(2.6, 2.6, 0.1, 32);
             const discMat = new THREE.MeshStandardMaterial({
-                color: 0x475569,
-                metalness: 0.8,
-                roughness: 0.3
+                color: 0x334155,
+                metalness: 0.85,
+                roughness: 0.25
             });
             const discMesh = new THREE.Mesh(discGeo, discMat);
             discMesh.rotation.x = Math.PI / 2;
-            discMesh.position.z = -0.1;
+            discMesh.position.z = -0.15;
             threeScene.add(discMesh);
 
-            const caliperGeo = new THREE.BoxGeometry(1.2, 2.2, 0.8);
+            const caliperGeo = new THREE.BoxGeometry(1.2, 2.3, 0.85);
             const caliperMat = new THREE.MeshStandardMaterial({
                 color: 0xef4444,
                 roughness: 0.3,
                 metalness: 0.2
             });
             const caliperMesh = new THREE.Mesh(caliperGeo, caliperMat);
-            caliperMesh.position.set(-2.0, 0.6, 0.1);
+            caliperMesh.position.set(-2.0, 0.6, 0.05);
             threeScene.add(caliperMesh);
 
             isThreeInitialized = true;
+            setThreeCameraMode(currentThreeAngle);
+            renderThreeJS();
+        }
+
+        function setThreeCameraMode(mode) {
+            currentThreeAngle = mode;
+            if (!threeCamera || !threeWheelGroup) return;
+
+            if (mode === 'isometric') {
+                threeCamera.position.set(2.4, 1.2, 9.8);
+                threeCamera.lookAt(0, 0, 0);
+                threeWheelGroup.rotation.y = -0.42;
+                threeWheelGroup.rotation.x = 0.18;
+            } else {
+                threeCamera.position.set(0, 0, 11);
+                threeCamera.lookAt(0, 0, 0);
+                threeWheelGroup.rotation.y = 0;
+                threeWheelGroup.rotation.x = 0;
+            }
             renderThreeJS();
         }
 
@@ -1063,17 +1280,29 @@
 
                 const svgWheel = document.getElementById('svgWheel');
                 const canvasWheel = document.getElementById('threejsWheelCanvas');
+                const viewControls = document.getElementById('threeViewControls');
 
                 if (currentRenderer === 'threejs') {
                     svgWheel.style.display = 'none';
                     canvasWheel.style.display = 'block';
+                    if (viewControls) viewControls.style.display = 'flex';
                     initThreeJSWheel();
                 } else {
                     svgWheel.style.display = 'block';
                     canvasWheel.style.display = 'none';
+                    if (viewControls) viewControls.style.display = 'none';
                 }
 
                 createBigAnimation().restart();
+            });
+        });
+
+        // Alternador de ângulo de visão 3D (Frontal vs 3/4 Foto)
+        document.querySelectorAll('.angle-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.angle-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                setThreeCameraMode(btn.dataset.angle);
             });
         });
 

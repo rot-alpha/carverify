@@ -38,66 +38,126 @@
                     <div class="logo-wheel-shadow"></div>
                     <svg class="logo-wheel-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                         <defs>
+                            <!-- Pneu de borracha esportiva vulcanizada -->
                             <radialGradient id="mainTireGrad" cx="50%" cy="50%" r="50%">
-                                <stop offset="80%" stop-color="#181c24" />
-                                <stop offset="92%" stop-color="#282f3d" />
-                                <stop offset="100%" stop-color="#0c0e13" />
+                                <stop offset="76%" stop-color="#141722" />
+                                <stop offset="88%" stop-color="#242b38" />
+                                <stop offset="94%" stop-color="#181c25" />
+                                <stop offset="100%" stop-color="#0a0c10" />
                             </radialGradient>
-                            <radialGradient id="mainRimGrad" cx="50%" cy="50%" r="50%">
-                                <stop offset="0%" stop-color="#475569" />
-                                <stop offset="60%" stop-color="#334155" />
-                                <stop offset="85%" stop-color="#94a3b8" />
+                            
+                            <!-- Garganta profunda (deep-dish) cromada escalonada -->
+                            <radialGradient id="mainDeepDishGrad" cx="45%" cy="40%" r="55%">
+                                <stop offset="0%" stop-color="#1e293b" />
+                                <stop offset="45%" stop-color="#0f172a" />
+                                <stop offset="70%" stop-color="#475569" />
+                                <stop offset="85%" stop-color="#cbd5e1" />
+                                <stop offset="92%" stop-color="#f8fafc" />
+                                <stop offset="97%" stop-color="#475569" />
                                 <stop offset="100%" stop-color="#1e293b" />
                             </radialGradient>
+
+                            <!-- Prata líquida com alto brilho nas lâminas curvas -->
+                            <linearGradient id="mainBladeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#ffffff" />
+                                <stop offset="35%" stop-color="#cbd5e1" />
+                                <stop offset="75%" stop-color="#94a3b8" />
+                                <stop offset="100%" stop-color="#475569" />
+                            </linearGradient>
+
+                            <!-- Tampa central cromada polida -->
+                            <radialGradient id="mainCapGrad" cx="38%" cy="35%" r="62%">
+                                <stop offset="0%" stop-color="#ffffff" />
+                                <stop offset="35%" stop-color="#e2e8f0" />
+                                <stop offset="70%" stop-color="#64748b" />
+                                <stop offset="100%" stop-color="#0f172a" />
+                            </radialGradient>
+
+                            <!-- Molde do Raio Curvo Aerodinâmico Turbina (Inspirado na foto de referência) -->
+                            <g id="mainTurbineBlade">
+                                <!-- Sombra de oclusão na garganta funda -->
+                                <path d="M 47,39 C 48,27 55,20 60,17 C 64,17 68,20 69,22 C 61,27 54,32 52,40 Z" fill="#060910" opacity="0.7"/>
+                                <!-- Lâmina esculpida em prata líquida com chanfro fluido -->
+                                <path d="M 48,39 C 49,27 56,20 60,17.5 C 64,17.5 67.5,19.5 68.5,21.5 C 62,26 55.5,31.5 53,39.5 Z" fill="url(#mainBladeGrad)" stroke="#475569" stroke-width="0.5"/>
+                                <!-- Crista de realce especular de luz (aerodynamic crest) -->
+                                <path d="M 50,38 C 52,28 57,22 63,18.5" fill="none" stroke="#ffffff" stroke-width="1.3" stroke-linecap="round" opacity="0.95"/>
+                                <!-- Filete âmbar esportivo sutil na borda de ataque -->
+                                <path d="M 53,39 C 55.5,32 61.5,26 67,22" fill="none" stroke="#FFA000" stroke-width="0.8" stroke-linecap="round" opacity="0.85"/>
+                            </g>
                         </defs>
-                        <!-- Disco de freio ventilado (fundo fixo) -->
-                        <circle cx="50" cy="50" r="34" fill="#1e293b" stroke="#475569" stroke-width="1"/>
-                        <!-- Pinça de freio esportiva vermelha -->
-                        <path d="M 22,33 Q 18,50 25,62 L 31,58 Q 26,48 29,37 Z" fill="#EF4444"/>
+
+                        <!-- Disco de freio perfurado em aço (fundo estático) -->
+                        <circle cx="50" cy="50" r="34" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+                        <circle cx="50" cy="24" r="0.8" fill="#0f172a"/>
+                        <circle cx="68" cy="38" r="0.8" fill="#0f172a"/>
+                        <circle cx="64" cy="62" r="0.8" fill="#0f172a"/>
+                        <circle cx="38" cy="68" r="0.8" fill="#0f172a"/>
+                        <circle cx="24" cy="47" r="0.8" fill="#0f172a"/>
+                        <!-- Pinça de freio esportiva monobloco vermelha -->
+                        <path d="M 21,30 Q 16,50 24,64 L 31,60 Q 25,48 28,34 Z" fill="#EF4444" stroke="#B91C1C" stroke-width="0.8"/>
+
                         <!-- Conjunto rotativo da roda -->
                         <g id="mainWheelSpinGroup">
-                            <!-- Pneu com perfil esportivo -->
-                            <circle cx="50" cy="50" r="46" fill="url(#mainTireGrad)" stroke="#0f172a" stroke-width="2"/>
-                            <!-- Ranhuras do pneu -->
-                            <g stroke="#374151" stroke-width="2" stroke-linecap="round">
+                            <!-- Pneu de alto desempenho com perfil esportivo largo -->
+                            <circle cx="50" cy="50" r="46" fill="url(#mainTireGrad)" stroke="#090c12" stroke-width="2"/>
+                            <!-- Ranhuras direcionais da banda de rodagem (tread sipes) -->
+                            <g stroke="#374151" stroke-width="1.8" stroke-linecap="round">
                                 <line x1="50" y1="4" x2="50" y2="8" />
-                                <line x1="75" y1="13" x2="72" y2="17" />
+                                <line x1="68" y1="9" x2="66" y2="13" />
+                                <line x1="82" y1="22" x2="79" y2="25" />
                                 <line x1="91" y1="39" x2="87" y2="40" />
-                                <line x1="88" y1="67" x2="84" y2="65" />
+                                <line x1="92" y1="58" x2="88" y2="57" />
+                                <line x1="83" y1="76" x2="80" y2="73" />
                                 <line x1="67" y1="89" x2="65" y2="85" />
                                 <line x1="50" y1="94" x2="50" y2="90" />
-                                <line x1="28" y1="88" x2="30" y2="84" />
-                                <line x1="10" y1="64" x2="14" y2="62" />
+                                <line x1="32" y1="89" x2="34" y2="85" />
+                                <line x1="17" y1="76" x2="20" y2="73" />
+                                <line x1="8" y1="58" x2="12" y2="57" />
                                 <line x1="8" y1="39" x2="12" y2="40" />
-                                <line x1="22" y1="15" x2="25" y2="18" />
+                                <line x1="18" y1="22" x2="21" y2="25" />
+                                <line x1="33" y1="9" x2="35" y2="13" />
                             </g>
-                            <!-- Aro diamantado com friso âmbar da marca -->
-                            <circle cx="50" cy="50" r="37.5" fill="none" stroke="#FFA000" stroke-width="2" opacity="0.95"/>
-                            <circle cx="50" cy="50" r="35" fill="url(#mainRimGrad)"/>
-                            <!-- 5 Raios esportivos duplos -->
-                            <g fill="#CBD5E1" stroke="#475569" stroke-width="0.8">
-                                <polygon points="48,50 45,18 55,18 52,50"/>
-                                <polygon points="50,48 78,35 83,43 51,52"/>
-                                <polygon points="50,51 68,77 60,83 48,52"/>
-                                <polygon points="49,52 32,83 24,77 48,50"/>
-                                <polygon points="48,49 17,43 22,35 50,48"/>
-                            </g>
-                            <!-- Destaque dourado nos raios -->
-                            <g stroke="#FFA000" stroke-width="1.6" stroke-linecap="round">
-                                <line x1="50" y1="48" x2="50" y2="20"/>
-                                <line x1="51" y1="50" x2="79" y2="39"/>
-                                <line x1="50" y1="51" x2="64" y2="79"/>
-                                <line x1="49" y1="51" x2="28" y2="79"/>
-                                <line x1="49" y1="50" x2="20" y2="39"/>
-                            </g>
-                            <!-- Centro e parafusos cromados com estrela âmbar -->
-                            <circle cx="50" cy="50" r="11" fill="#0A0F1D" stroke="#FFA000" stroke-width="1.6"/>
-                            <circle cx="50" cy="43" r="1.8" fill="#FFFFFF"/>
-                            <circle cx="56" cy="48" r="1.8" fill="#FFFFFF"/>
-                            <circle cx="54" cy="55" r="1.8" fill="#FFFFFF"/>
-                            <circle cx="46" cy="55" r="1.8" fill="#FFFFFF"/>
-                            <circle cx="44" cy="48" r="1.8" fill="#FFFFFF"/>
-                            <path d="M 50,47 L 50.8,49 L 53,49.2 L 51.3,50.7 L 51.9,52.8 L 50,51.6 L 48.1,52.8 L 48.7,50.7 L 47,49.2 L 49.2,49 Z" fill="#FFA000"/>
+
+                            <!-- Aro deep-dish escalonado em cromo polido espelhado -->
+                            <circle cx="50" cy="50" r="37.5" fill="none" stroke="#f8fafc" stroke-width="1.6"/>
+                            <!-- Prateleira em degrau da garganta (step-shelf) -->
+                            <circle cx="50" cy="50" r="35.5" fill="none" stroke="#FFA000" stroke-width="1" opacity="0.9"/>
+                            <!-- Garganta profunda da roda com gradiente especular -->
+                            <circle cx="50" cy="50" r="34" fill="url(#mainDeepDishGrad)" />
+
+                            <!-- Válvula de calibragem cromada (posição 7h no degrau do aro) -->
+                            <rect x="18" y="66" width="3.2" height="1.8" rx="0.7" transform="rotate(-30 19.5 67)" fill="#cbd5e1" stroke="#475569" stroke-width="0.4"/>
+
+                            <!-- 5 Raios aerodinâmicos curvados em leque (Turbine Blades) -->
+                            <use href="#mainTurbineBlade" transform="rotate(0 50 50)" />
+                            <use href="#mainTurbineBlade" transform="rotate(72 50 50)" />
+                            <use href="#mainTurbineBlade" transform="rotate(144 50 50)" />
+                            <use href="#mainTurbineBlade" transform="rotate(216 50 50)" />
+                            <use href="#mainTurbineBlade" transform="rotate(288 50 50)" />
+
+                            <!-- Rebaixo central profundo do cubo (Deep Conical Hub) -->
+                            <circle cx="50" cy="50" r="11.5" fill="#090c14" stroke="#1e293b" stroke-width="1"/>
+
+                            <!-- 5 Parafusos de fixação em rebaixos circulares usinados -->
+                            <circle cx="55.17" cy="42.88" r="1.8" fill="#040609"/>
+                            <circle cx="55.17" cy="42.88" r="1.0" fill="#cbd5e1"/>
+                            
+                            <circle cx="58.37" cy="52.72" r="1.8" fill="#040609"/>
+                            <circle cx="58.37" cy="52.72" r="1.0" fill="#cbd5e1"/>
+                            
+                            <circle cx="50" cy="58.8" r="1.8" fill="#040609"/>
+                            <circle cx="50" cy="58.8" r="1.0" fill="#cbd5e1"/>
+                            
+                            <circle cx="41.63" cy="52.72" r="1.8" fill="#040609"/>
+                            <circle cx="41.63" cy="52.72" r="1.0" fill="#cbd5e1"/>
+                            
+                            <circle cx="44.83" cy="42.88" r="1.8" fill="#040609"/>
+                            <circle cx="44.83" cy="42.88" r="1.0" fill="#cbd5e1"/>
+
+                            <!-- Tampa central cromada com friso âmbar da marca -->
+                            <circle cx="50" cy="50" r="5.6" fill="url(#mainCapGrad)" stroke="#94a3b8" stroke-width="0.8"/>
+                            <circle cx="50" cy="50" r="3.2" fill="none" stroke="#FFA000" stroke-width="0.8" opacity="0.9"/>
+                            <circle cx="50" cy="50" r="1.2" fill="#FFA000"/>
                         </g>
                     </svg>
                 </div>

@@ -186,11 +186,14 @@ button {
     display: flex;
     align-items: center;
     gap: 8px;
+    min-height: 52px;
+    padding: 6px 0;
+    overflow: visible;
 }
 
 .header-tire-track {
     position: absolute;
-    bottom: 4px;
+    bottom: 8px;
     left: 18px;
     width: 175px;
     height: 3px;
@@ -208,6 +211,9 @@ button {
     position: relative;
     display: flex;
     align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
     flex-shrink: 0;
     overflow: visible;
     z-index: 2;
@@ -215,26 +221,28 @@ button {
 
 .logo-wheel-shadow {
     position: absolute;
-    bottom: -4px;
+    bottom: -1px;
     left: 50%;
     transform: translateX(-50%);
-    width: 24px;
+    width: 28px;
     height: 6px;
-    background: rgba(0, 0, 0, 0.2);
+    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0) 75%);
     border-radius: 50%;
-    filter: blur(2px);
+    filter: blur(1.5px);
     will-change: transform, opacity;
+    pointer-events: none;
 }
 
 [data-theme="dark"] .logo-wheel-shadow {
-    background: rgba(0, 0, 0, 0.6);
+    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 75%);
 }
 
 .logo-wheel-svg {
     position: relative;
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     flex-shrink: 0;
+    overflow: visible;
     transform-origin: 50% 50%;
     will-change: transform, opacity;
 }
