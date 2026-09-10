@@ -18,9 +18,5 @@
   "license": "ISC",
   "dependencies": {
     "html-validator": "^6.0.1"
-  },
-  "devDependencies": {
-    "jpeg-js": "^0.4.4",
-    "pngjs": "^7.0.0"
   }
 }
