@@ -10,7 +10,7 @@
     <link rel="apple-touch-icon" href="assets/favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,700;0,800;0,900;1,800;1,900&family=Chakra+Petch:ital,wght@0,600;0,700;1,700&family=Orbitron:wght@700;800;900&family=Russo+One&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,700;0,800;0,900;1,800;1,900&family=Noto+Sans+Canadian+Aboriginal:wght@700;900&family=Chakra+Petch:ital,wght@0,600;0,700;1,700&family=Orbitron:wght@700;800;900&family=Russo+One&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
@@ -257,15 +257,15 @@
             /* Inicia 100% oculto; é revelado no RETORNO da roda */
             clip-path: inset(0 100% 0 0);
             will-change: clip-path, filter;
-            font-family: 'Montserrat', sans-serif;
+            font-family: 'Montserrat', 'Noto Sans Canadian Aboriginal', 'Gadugi', sans-serif;
             font-weight: 900;
         }
 
         /* Seletores de fonte de alta performance */
-        .font-montserrat { font-family: 'Montserrat', sans-serif !important; }
-        .font-chakra { font-family: 'Chakra Petch', sans-serif !important; letter-spacing: 1.5px !important; }
-        .font-orbitron { font-family: 'Orbitron', sans-serif !important; letter-spacing: 2px !important; }
-        .font-russo { font-family: 'Russo One', sans-serif !important; }
+        .font-montserrat { font-family: 'Montserrat', 'Noto Sans Canadian Aboriginal', 'Gadugi', sans-serif !important; }
+        .font-chakra { font-family: 'Chakra Petch', 'Noto Sans Canadian Aboriginal', sans-serif !important; letter-spacing: 1.5px !important; }
+        .font-orbitron { font-family: 'Orbitron', 'Noto Sans Canadian Aboriginal', sans-serif !important; letter-spacing: 2px !important; }
+        .font-russo { font-family: 'Russo One', 'Noto Sans Canadian Aboriginal', sans-serif !important; }
 
         .brand-word-car {
             font-size: 42px;
@@ -601,11 +601,11 @@
                     <canvas id="threejsWheelCanvas"></canvas>
                 </div>
 
-                <!-- TEXTO DO PROJETO: "CAR . VERIFY" (Revelado no retorno da roda) -->
+                <!-- TEXTO DO PROJETO: "ᑕᗩᖇ . ᐯᕮᖇIᖴY" (Revelado no retorno da roda) -->
                 <div class="brand-text-wrapper font-montserrat" id="brandTextWrapper">
-                    <span class="brand-word-car" id="brandWordCar">CAR</span>
+                    <span class="brand-word-car" id="brandWordCar">ᑕᗩᖇ</span>
                     <span class="brand-dot" id="brandDot"></span>
-                    <span class="brand-word-verify" id="brandWordVerify">VERIFY</span>
+                    <span class="brand-word-verify" id="brandWordVerify">ᐯᕮᖇIᖴY</span>
                 </div>
             </div>
         </div>
@@ -681,10 +681,10 @@
                         </g>
                     </svg>
                 </div>
-                <div class="header-brand-text font-montserrat" id="headerBrandText" style="font-family: 'Montserrat', sans-serif; font-weight: 900;">
-                    <span class="header-car" style="color: #FFA000; font-size: 19px; font-weight: 900; letter-spacing: 0.5px;">CAR</span>
+                <div class="header-brand-text font-montserrat" id="headerBrandText" style="font-family: 'Montserrat', 'Noto Sans Canadian Aboriginal', 'Gadugi', sans-serif; font-weight: 900;">
+                    <span class="header-car" style="color: #FFA000; font-size: 19px; font-weight: 900; letter-spacing: 0.5px;">ᑕᗩᖇ</span>
                     <span class="header-dot" style="width: 5px; height: 5px; background: #FFA000; border-radius: 50%; margin-bottom: 2px;"></span>
-                    <span class="header-verify" style="color: #FFFFFF; font-size: 19px; font-weight: 900; letter-spacing: 1.2px;">VERIFY</span>
+                    <span class="header-verify" style="color: #FFFFFF; font-size: 19px; font-weight: 900; letter-spacing: 1.2px;">ᐯᕮᖇIᖴY</span>
                 </div>
             </div>
 

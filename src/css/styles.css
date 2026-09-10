@@ -240,7 +240,7 @@ button {
 }
 
 .logo-text {
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Montserrat', 'Noto Sans Canadian Aboriginal', 'Gadugi', 'Segoe UI Historic', sans-serif;
     font-weight: 900;
     display: inline-flex;
     align-items: baseline;
@@ -259,7 +259,7 @@ button {
 
 .logo-char {
     display: inline-block;
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Montserrat', 'Noto Sans Canadian Aboriginal', 'Gadugi', 'Segoe UI Historic', sans-serif;
     font-size: var(--font-size-md);
     font-weight: 900;
     color: var(--clr-text);
