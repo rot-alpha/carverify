@@ -11,7 +11,7 @@
     <link rel="apple-touch-icon" href="assets/favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,800;0,900;1,900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
@@ -30,6 +30,9 @@
     <header class="header" id="header">
         <div class="header-inner">
             <div class="header-left" id="headerBrand" role="button" tabindex="0" title="Voltar à tela inicial">
+                <!-- Rastro de pneu dinâmico (desenha na ida) -->
+                <div class="header-tire-track" id="headerTireTrack"></div>
+
                 <!-- Animated realistic car wheel SVG + shadow -->
                 <div class="logo-wheel-wrapper" aria-hidden="true">
                     <div class="logo-wheel-shadow"></div>
@@ -68,8 +71,8 @@
                                 <line x1="8" y1="39" x2="12" y2="40" />
                                 <line x1="22" y1="15" x2="25" y2="18" />
                             </g>
-                            <!-- Aro diamantado dourado -->
-                            <circle cx="50" cy="50" r="37" fill="none" stroke="#F59E0B" stroke-width="1.8" opacity="0.9"/>
+                            <!-- Aro diamantado com friso âmbar da marca -->
+                            <circle cx="50" cy="50" r="37.5" fill="none" stroke="#FFA000" stroke-width="2" opacity="0.95"/>
                             <circle cx="50" cy="50" r="35" fill="url(#mainRimGrad)"/>
                             <!-- 5 Raios esportivos duplos -->
                             <g fill="#CBD5E1" stroke="#475569" stroke-width="0.8">
@@ -80,26 +83,26 @@
                                 <polygon points="48,49 17,43 22,35 50,48"/>
                             </g>
                             <!-- Destaque dourado nos raios -->
-                            <g stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round">
+                            <g stroke="#FFA000" stroke-width="1.6" stroke-linecap="round">
                                 <line x1="50" y1="48" x2="50" y2="20"/>
                                 <line x1="51" y1="50" x2="79" y2="39"/>
                                 <line x1="50" y1="51" x2="64" y2="79"/>
                                 <line x1="49" y1="51" x2="28" y2="79"/>
                                 <line x1="49" y1="50" x2="20" y2="39"/>
                             </g>
-                            <!-- Centro e parafusos -->
-                            <circle cx="50" cy="50" r="11" fill="#0F172A" stroke="#F59E0B" stroke-width="1.5"/>
+                            <!-- Centro e parafusos cromados com estrela âmbar -->
+                            <circle cx="50" cy="50" r="11" fill="#0A0F1D" stroke="#FFA000" stroke-width="1.6"/>
                             <circle cx="50" cy="43" r="1.8" fill="#FFFFFF"/>
                             <circle cx="56" cy="48" r="1.8" fill="#FFFFFF"/>
                             <circle cx="54" cy="55" r="1.8" fill="#FFFFFF"/>
                             <circle cx="46" cy="55" r="1.8" fill="#FFFFFF"/>
                             <circle cx="44" cy="48" r="1.8" fill="#FFFFFF"/>
-                            <circle cx="50" cy="50" r="4.5" fill="#F59E0B"/>
+                            <path d="M 50,47 L 50.8,49 L 53,49.2 L 51.3,50.7 L 51.9,52.8 L 50,51.6 L 48.1,52.8 L 48.7,50.7 L 47,49.2 L 49.2,49 Z" fill="#FFA000"/>
                         </g>
                     </svg>
                 </div>
                 <!-- Letter-by-letter brand name -->
-                <span class="logo-text" aria-label="Car Verify">
+                <span class="logo-text font-montserrat" aria-label="Car Verify">
                     <span class="logo-word" id="logoWordCar">
                         <span class="logo-char">C</span><span class="logo-char">A</span><span class="logo-char">R</span>
                     </span>
@@ -504,53 +507,62 @@
             const wheelSpinner = document.querySelector('#headerBrand #mainWheelSpinGroup');
             const shadow       = document.querySelector('#headerBrand .logo-wheel-shadow');
             const logoText     = document.querySelector('#headerBrand .logo-text');
+            const tireTrack    = document.querySelector('#headerBrand #headerTireTrack');
 
             if (!wheelWrapper || !logoText) return;
 
-            // Posição inicial: roda fora da área à esquerda, texto mascarado
+            // Posição inicial: roda fora à esquerda, texto e rastro mascarados
             gsap.set(wheelWrapper, { x: -65, opacity: 0 });
             if (wheelSpinner) gsap.set(wheelSpinner, { rotation: 0, transformOrigin: "50px 50px" });
             if (shadow) gsap.set(shadow, { scaleX: 0.3, opacity: 0 });
-            gsap.set(logoText, { clipPath: "inset(0 100% 0 0)", opacity: 1 });
+            if (tireTrack) gsap.set(tireTrack, { clipPath: "inset(0 100% 0 0)" });
+            gsap.set(logoText, { clipPath: "inset(0 100% 0 0)", opacity: 1, filter: "brightness(1)" });
 
             logoTimeline = gsap.timeline({ delay: 0.15 });
 
             logoTimeline
+                // 1. Ida (Esquerda -> Direita): a roda passa em alta velocidade deixando o rastro de borracha
                 .to(wheelWrapper, { opacity: 1, duration: 0.1 }, 0)
-                .to(shadow, { opacity: 0.8, scaleX: 1, duration: 0.3 }, 0)
-                // A roda rola da esquerda passando por cima do texto e revelando-o dinamicamente
+                .to(shadow, { opacity: 0.85, scaleX: 1, duration: 0.25 }, 0)
                 .fromTo(wheelWrapper,
                     { x: -65 },
                     {
                         x: 180,
-                        duration: 0.95,
+                        duration: 0.85,
                         ease: "power2.inOut",
                         onUpdate: function() {
                             const p = this.progress();
-                            // Conforme a roda avança entre 20% e 80%, desmascara o texto "CAR VERIFY"
-                            let revealPercent = gsap.utils.clamp(0, 100, (p - 0.20) / 0.65 * 100);
-                            logoText.style.clipPath = `inset(0 ${100 - revealPercent}% 0 0)`;
+                            if (tireTrack) {
+                                tireTrack.style.clipPath = `inset(0 ${100 - (p * 100)}% 0 0)`;
+                            }
                         }
                     }, 0)
-                // Rotação física sincronizada (720 graus = 2 voltas para ~245px)
+                // Rotação física sincronizada
                 .fromTo(wheelSpinner,
                     { rotation: 0 },
-                    { rotation: 720, duration: 0.95, ease: "power2.inOut" }, 0)
-                // A roda retorna estacionando na posição oficial de logo
+                    { rotation: 720, duration: 0.85, ease: "power2.inOut" }, 0)
+
+                // 2. Volta (Direita -> Esquerda): a roda retorna rolando para trás e revela "CAR . VERIFY"
                 .to(wheelWrapper, {
                     x: 0,
                     duration: 0.65,
-                    ease: "power3.out"
+                    ease: "power2.out",
+                    onUpdate: function() {
+                        const p = this.progress(); // 0 a 1
+                        // Conforme a roda volta da direita para a esquerda, o nome do projeto aparece:
+                        logoText.style.clipPath = `inset(0 ${100 - (p * 100)}% 0 0)`;
+                    }
                 }, "+=0.08")
                 .to(wheelSpinner, {
                     rotation: 180,
                     duration: 0.65,
-                    ease: "power3.out"
+                    ease: "power2.out"
                 }, "<")
-                // Brilho dourado de finalização na tipografia
+
+                // 3. Brilho e flash de finalização automobilístico
                 .fromTo(logoText,
-                    { filter: "brightness(1.5)" },
-                    { filter: "brightness(1)", duration: 0.4, ease: "power1.out" }
+                    { filter: "brightness(1.8) drop-shadow(0 0 12px rgba(255,160,0,0.6))" },
+                    { filter: "brightness(1) drop-shadow(0 0 0px transparent)", duration: 0.45, ease: "power1.out" }
                 );
         };
 

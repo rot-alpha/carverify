@@ -19,8 +19,4 @@
 - [x] Filtro mensal posicionado acima dos cartões da frota com sincronização e recálculo dinâmico da conformidade, KM e motoristas por veículo.
 - [x] Gerador de Apresentação PowerPoint (.pptx) com seleção de tema (Dark/Light), período, slide compilado e/ou páginas mensais, engajamento em porcentagem e análise executiva de 5 linhas com IA.
 - [x] Correção da persistência do histórico de motoristas recentes nos cartões da frota independente da alteração/virada de mês.
-
-
-
-
-
+- [x] Nova identidade visual automobilística **CAR . VERIFY**: tipografia Google Fonts `Montserrat Black (900)` com kerning esportivo, roda hiper-realista com friso âmbar e estrela central, rastro de borracha/pneu na passagem de ida, revelação do nome ao voltar com GSAP e módulo Three.js procedimental 3D (/img2threejs).
