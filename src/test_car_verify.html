@@ -230,7 +230,6 @@
         #threejsWheelCanvas {
             width: 84px;
             height: 84px;
-            border-radius: 50%;
             display: none;
             filter: drop-shadow(0 8px 20px rgba(0,0,0,0.75));
         }
@@ -812,7 +811,7 @@
         // =========================================================================
         // MÓDULO THREE.JS PROCEDURAL (/img2threejs)
         // =========================================================================
-        let threeScene, threeCamera, threeRenderer, threeWheelGroup;
+        let threeScene, threeCamera, threeRenderer, threeWheelGroup, threeSpinningGroup;
         let isThreeInitialized = false;
         let currentThreeAngle = 'front'; // 'front' | 'isometric'
 
@@ -846,9 +845,14 @@
             rimAmber.position.set(-4, -6, 4);
             threeScene.add(rimAmber);
 
-            // Conjunto da Roda Procedural Rotativa
+            // Conjunto da Roda Procedural:
+            // threeWheelGroup gerencia a inclinação de perspectiva
+            // threeSpinningGroup gerencia a rolagem axial pura (eixo Z)
             threeWheelGroup = new THREE.Group();
             threeScene.add(threeWheelGroup);
+
+            threeSpinningGroup = new THREE.Group();
+            threeWheelGroup.add(threeSpinningGroup);
 
             // Materiais PBR Automotivos de Alto Desempenho
             const tireMat = new THREE.MeshStandardMaterial({
@@ -897,17 +901,17 @@
             const treadGeo = new THREE.CylinderGeometry(3.38, 3.38, 1.4, 48, 1, true);
             const treadMesh = new THREE.Mesh(treadGeo, tireMat);
             treadMesh.rotation.x = Math.PI / 2;
-            threeWheelGroup.add(treadMesh);
+            threeSpinningGroup.add(treadMesh);
 
             const frontShoulderGeo = new THREE.TorusGeometry(3.08, 0.32, 16, 48);
             const frontShoulder = new THREE.Mesh(frontShoulderGeo, tireMat);
             frontShoulder.position.z = 0.5;
-            threeWheelGroup.add(frontShoulder);
+            threeSpinningGroup.add(frontShoulder);
 
             const rearShoulderGeo = new THREE.TorusGeometry(3.08, 0.32, 16, 48);
             const rearShoulder = new THREE.Mesh(rearShoulderGeo, tireMat);
             rearShoulder.position.z = -0.5;
-            threeWheelGroup.add(rearShoulder);
+            threeSpinningGroup.add(rearShoulder);
 
             // 4 Canais longitudinais da banda de rodagem (Circumferential Grooves)
             const grooveMat = new THREE.MeshBasicMaterial({ color: 0x05070a });
@@ -915,31 +919,31 @@
                 const grooveGeo = new THREE.TorusGeometry(3.4, 0.025, 8, 48);
                 const grooveMesh = new THREE.Mesh(grooveGeo, grooveMat);
                 grooveMesh.position.z = zPos;
-                threeWheelGroup.add(grooveMesh);
+                threeSpinningGroup.add(grooveMesh);
             });
 
             // 2. ARO DEEP-DISH ESCALONADO EM CROMO ESPELHADO
             const outerFlangeGeo = new THREE.TorusGeometry(3.02, 0.1, 16, 48);
             const outerFlange = new THREE.Mesh(outerFlangeGeo, chromeRimMat);
             outerFlange.position.z = 0.65;
-            threeWheelGroup.add(outerFlange);
+            threeSpinningGroup.add(outerFlange);
 
             const stepShelfGeo = new THREE.CylinderGeometry(2.8, 2.98, 0.3, 48, 1, true);
             const stepShelf = new THREE.Mesh(stepShelfGeo, chromeRimMat);
             stepShelf.rotation.x = Math.PI / 2;
             stepShelf.position.z = 0.5;
-            threeWheelGroup.add(stepShelf);
+            threeSpinningGroup.add(stepShelf);
 
             const stepAmberGeo = new THREE.TorusGeometry(2.82, 0.035, 12, 48);
             const stepAmber = new THREE.Mesh(stepAmberGeo, amberAccentMat);
             stepAmber.position.z = 0.52;
-            threeWheelGroup.add(stepAmber);
+            threeSpinningGroup.add(stepAmber);
 
             const barrelGeo = new THREE.CylinderGeometry(2.55, 2.8, 0.5, 48, 1, true);
             const barrel = new THREE.Mesh(barrelGeo, deepDishMat);
             barrel.rotation.x = Math.PI / 2;
             barrel.position.z = 0.2;
-            threeWheelGroup.add(barrel);
+            threeSpinningGroup.add(barrel);
 
             // Válvula de calibragem cromada a 240 deg (posição 7h)
             const valveGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.22, 12);
@@ -947,7 +951,7 @@
             const valveAngle = 240 * (Math.PI / 180);
             valveMesh.position.set(2.82 * Math.cos(valveAngle), 2.82 * Math.sin(valveAngle), 0.55);
             valveMesh.rotation.z = valveAngle;
-            threeWheelGroup.add(valveMesh);
+            threeSpinningGroup.add(valveMesh);
 
             // 3. 5 RAIOS EM LÂMINA CURVA AERODINÂMICA (Turbine Fan Blades)
             const bladeShape = new THREE.Shape();
@@ -996,7 +1000,7 @@
                 spokeArm.add(accentCrest);
 
                 spokeArm.rotation.z = angle;
-                threeWheelGroup.add(spokeArm);
+                threeSpinningGroup.add(spokeArm);
             }
 
             // 4. REBAIXO CENTRAL PROFUNDO DO CUBO COM 5 PARAFUSOS
@@ -1004,7 +1008,7 @@
             const hubMesh = new THREE.Mesh(hubGeo, hubCavityMat);
             hubMesh.rotation.x = Math.PI / 2;
             hubMesh.position.z = 0.38;
-            threeWheelGroup.add(hubMesh);
+            threeSpinningGroup.add(hubMesh);
 
             const boltNutGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.12, 6);
             for (let i = 0; i < 5; i++) {
@@ -1012,7 +1016,7 @@
                 const boltMesh = new THREE.Mesh(boltNutGeo, lugNutMat);
                 boltMesh.rotation.x = Math.PI / 2;
                 boltMesh.position.set(0.62 * Math.cos(angle), 0.62 * Math.sin(angle), 0.44);
-                threeWheelGroup.add(boltMesh);
+                threeSpinningGroup.add(boltMesh);
             }
 
             // Tampa central cromada polida com anel âmbar
@@ -1020,14 +1024,14 @@
             const capMesh = new THREE.Mesh(capGeo, chromeRimMat);
             capMesh.rotation.x = Math.PI / 2;
             capMesh.position.z = 0.44;
-            threeWheelGroup.add(capMesh);
+            threeSpinningGroup.add(capMesh);
 
             const capAmberRingGeo = new THREE.TorusGeometry(0.24, 0.025, 12, 32);
             const capAmberRing = new THREE.Mesh(capAmberRingGeo, amberAccentMat);
             capAmberRing.position.z = 0.63;
-            threeWheelGroup.add(capAmberRing);
+            threeSpinningGroup.add(capAmberRing);
 
-            // 5. DISCO DE FREIO VENTILADO E PINÇA VERMELHA (Fundo Estático)
+            // 5. DISCO DE FREIO VENTILADO E PINÇA VERMELHA (Fundo Estático no threeWheelGroup)
             const discGeo = new THREE.CylinderGeometry(2.6, 2.6, 0.1, 32);
             const discMat = new THREE.MeshStandardMaterial({
                 color: 0x334155,
@@ -1037,7 +1041,7 @@
             const discMesh = new THREE.Mesh(discGeo, discMat);
             discMesh.rotation.x = Math.PI / 2;
             discMesh.position.z = -0.15;
-            threeScene.add(discMesh);
+            threeWheelGroup.add(discMesh);
 
             const caliperGeo = new THREE.BoxGeometry(1.2, 2.3, 0.85);
             const caliperMat = new THREE.MeshStandardMaterial({
@@ -1047,7 +1051,7 @@
             });
             const caliperMesh = new THREE.Mesh(caliperGeo, caliperMat);
             caliperMesh.position.set(-2.0, 0.6, 0.05);
-            threeScene.add(caliperMesh);
+            threeWheelGroup.add(caliperMesh);
 
             isThreeInitialized = true;
             setThreeCameraMode(currentThreeAngle);
@@ -1091,21 +1095,29 @@
             const shadow = document.querySelector('.wheel-contact-shadow');
             const smoke = document.querySelector('#skidSmoke');
 
+            gsap.killTweensOf([mover, spinner, textWrap, tracksInner, shadow, smoke]);
+
             // 1. Reset e estados iniciais:
-            // Roda fora à esquerda, texto oculto, rastro oculto
+            // Roda fora à esquerda, texto oculto (da esquerda à direita), rastro oculto
             gsap.set(mover, { x: -80, y: 0, opacity: 0 });
-            gsap.set(spinner, { rotation: 0, transformOrigin: "50px 50px" });
+            gsap.set(spinner, { rotation: 0, transformOrigin: "50% 50%" });
             gsap.set(tracksInner, { clipPath: "inset(0 100% 0 0)" });
-            gsap.set(textWrap, { clipPath: "inset(0 100% 0 0)", opacity: 1, filter: "brightness(1)" });
+            gsap.set(textWrap, { clipPath: "inset(0 0 0 100%)", opacity: 1, filter: "brightness(1)" });
             gsap.set(shadow, { scaleX: 0.2, opacity: 0 });
             gsap.set(smoke, { opacity: 0, scale: 0.5 });
 
-            if (threeWheelGroup) {
-                threeWheelGroup.rotation.z = 0;
+            if (threeSpinningGroup) {
+                threeSpinningGroup.rotation.z = 0;
                 renderThreeJS();
             }
 
-            bigTimeline = gsap.timeline({ timeScale: currentSpeed });
+            bigTimeline = gsap.timeline({
+                timeScale: currentSpeed,
+                onComplete: () => {
+                    // Libera totalmente o clipPath no final para nitidez total
+                    if (textWrap) textWrap.style.clipPath = 'none';
+                }
+            });
 
             // FASE 1: IDA (Esquerda -> Direita)
             // A roda passa em alta velocidade gerando o rastro de borracha no asfalto!
@@ -1125,9 +1137,9 @@
                             const trackReveal = gsap.utils.clamp(0, 100, (p * 100));
                             tracksInner.style.clipPath = `inset(0 ${100 - trackReveal}% 0 0)`;
 
-                            // Sincroniza Three.js se ativo
-                            if (currentRenderer === 'threejs' && threeWheelGroup) {
-                                threeWheelGroup.rotation.z = -gsap.getProperty(spinner, "rotation") * (Math.PI / 180);
+                            // Sincroniza Three.js rotacionando no eixo Z
+                            if (currentRenderer === 'threejs' && threeSpinningGroup) {
+                                threeSpinningGroup.rotation.z = -gsap.getProperty(spinner, "rotation") * (Math.PI / 180);
                                 renderThreeJS();
                             }
                         }
@@ -1142,19 +1154,18 @@
                 .to(mover, { x: 483, duration: 0.12, yoyo: true, repeat: 1, ease: "sine.inOut" }, 1.05)
 
                 // FASE 3: VOLTA (Direita -> Esquerda) E REVELAÇÃO DE "CAR . VERIFY"
-                // A roda inverte o sentido de rolagem e, AO VOLTAR, o nome do projeto aparece!
+                // A roda inverte o sentido de rolagem e desmascara o texto na direção física correta (da direita para esquerda)
                 .to(mover, {
                     x: 0,
                     duration: 0.85,
                     ease: "power2.out",
                     onUpdate: function() {
                         const p = this.progress(); // 0 (em 480px) a 1 (em 0px)
-                        // Conforme a roda volta da direita para a esquerda, ela desmascara o texto "CAR . VERIFY"
-                        let textReveal = gsap.utils.clamp(0, 100, (p * 100));
-                        textWrap.style.clipPath = `inset(0 ${100 - textReveal}% 0 0)`;
+                        const unmaskLeft = gsap.utils.clamp(0, 100, (1 - p) * 100);
+                        textWrap.style.clipPath = `inset(0 0 0 ${unmaskLeft}%)`;
 
-                        if (currentRenderer === 'threejs' && threeWheelGroup) {
-                            threeWheelGroup.rotation.z = -gsap.getProperty(spinner, "rotation") * (Math.PI / 180);
+                        if (currentRenderer === 'threejs' && threeSpinningGroup) {
+                            threeSpinningGroup.rotation.z = -gsap.getProperty(spinner, "rotation") * (Math.PI / 180);
                             renderThreeJS();
                         }
                     }
@@ -1191,15 +1202,22 @@
             const textWrap = document.querySelector('#headerBrandText');
             const track = document.querySelector('#headerTireTrack');
 
-            gsap.set(mover, { x: -50, opacity: 0 });
-            gsap.set(spinner, { rotation: 0, transformOrigin: "50px 50px" });
-            gsap.set(track, { clipPath: "inset(0 100% 0 0)" });
-            gsap.set(textWrap, { clipPath: "inset(0 100% 0 0)", filter: "brightness(1)" });
+            gsap.killTweensOf([mover, spinner, textWrap, track]);
 
-            headerTimeline = gsap.timeline({ timeScale: currentSpeed });
+            gsap.set(mover, { x: -50, opacity: 0 });
+            gsap.set(spinner, { rotation: 0, transformOrigin: "50% 50%" });
+            gsap.set(track, { clipPath: "inset(0 100% 0 0)", opacity: 1 });
+            gsap.set(textWrap, { clipPath: "inset(0 0 0 100%)", filter: "brightness(1)" });
+
+            headerTimeline = gsap.timeline({
+                timeScale: currentSpeed,
+                onComplete: () => {
+                    if (textWrap) textWrap.style.clipPath = 'none';
+                }
+            });
 
             headerTimeline
-                // Ida: roda passa até 170px deixando rastro; texto oculto
+                // Ida: roda passa até 175px deixando rastro; texto oculto
                 .to(mover, { opacity: 1, duration: 0.1 }, 0)
                 .fromTo(mover,
                     { x: -50 },
@@ -1222,7 +1240,8 @@
                     ease: "power2.out",
                     onUpdate: function() {
                         const p = this.progress();
-                        textWrap.style.clipPath = `inset(0 ${100 - (p * 100)}% 0 0)`;
+                        const unmaskLeft = gsap.utils.clamp(0, 100, (1 - p) * 100);
+                        textWrap.style.clipPath = `inset(0 0 0 ${unmaskLeft}%)`;
                     }
                 }, "+=0.08")
                 .to(spinner, {
@@ -1233,7 +1252,8 @@
                 .fromTo(textWrap,
                     { filter: "brightness(1.8)" },
                     { filter: "brightness(1)", duration: 0.4 }
-                );
+                )
+                .to(track, { opacity: 0.25, duration: 0.4 }, "-=0.2");
         }
 
         // =========================================================================
@@ -1311,11 +1331,17 @@
             playHeaderAnimation();
         });
 
-        // Inicialização automática
-        window.addEventListener('DOMContentLoaded', () => {
+        // Inicialização automática robusta
+        function startLaboratoryAnimations() {
             createBigAnimation().play();
-            setTimeout(playHeaderAnimation, 1500);
-        });
+            setTimeout(playHeaderAnimation, 2600);
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', startLaboratoryAnimations);
+        } else {
+            startLaboratoryAnimations();
+        }
     </script>
 </body>
 </html>

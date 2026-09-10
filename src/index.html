@@ -162,7 +162,7 @@
                     </svg>
                 </div>
                 <!-- Letter-by-letter brand name -->
-                <span class="logo-text font-montserrat" aria-label="Car Verify">
+                <span class="logo-text font-montserrat" role="img" aria-label="Car Verify">
                     <span class="logo-word" id="logoWordCar">
                         <span class="logo-char">ᑕ</span><span class="logo-char">ᗩ</span><span class="logo-char">ᖇ</span>
                     </span>
@@ -571,14 +571,22 @@
 
             if (!wheelWrapper || !logoText) return;
 
-            // Posição inicial: roda fora à esquerda, texto e rastro mascarados
-            gsap.set(wheelWrapper, { x: -65, opacity: 0 });
-            if (wheelSpinner) gsap.set(wheelSpinner, { rotation: 0, transformOrigin: "50px 50px" });
-            if (shadow) gsap.set(shadow, { scaleX: 0.3, opacity: 0 });
-            if (tireTrack) gsap.set(tireTrack, { clipPath: "inset(0 100% 0 0)" });
-            gsap.set(logoText, { clipPath: "inset(0 100% 0 0)", opacity: 1, filter: "brightness(1)" });
+            gsap.killTweensOf([wheelWrapper, wheelSpinner, shadow, logoText, tireTrack]);
 
-            logoTimeline = gsap.timeline({ delay: 0.15 });
+            // Posição inicial: roda fora à esquerda (-65px), texto e rastro totalmente mascarados
+            gsap.set(wheelWrapper, { x: -65, opacity: 0 });
+            if (wheelSpinner) gsap.set(wheelSpinner, { rotation: 0, transformOrigin: "50% 50%" });
+            if (shadow) gsap.set(shadow, { scaleX: 0.3, opacity: 0 });
+            if (tireTrack) gsap.set(tireTrack, { clipPath: "inset(0 100% 0 0)", opacity: 1 });
+            gsap.set(logoText, { clipPath: "inset(0 0 0 100%)", opacity: 1, filter: "brightness(1)" });
+
+            logoTimeline = gsap.timeline({
+                delay: 0.1,
+                onComplete: () => {
+                    // Remove clipPath para garantir nitidez total e sem cortes em fontes e sombras
+                    if (logoText) logoText.style.clipPath = 'none';
+                }
+            });
 
             logoTimeline
                 // 1. Ida (Esquerda -> Direita): a roda passa em alta velocidade deixando o rastro de borracha
@@ -597,20 +605,23 @@
                             }
                         }
                     }, 0)
-                // Rotação física sincronizada
+                // Rotação sincronizada no centro do aro
                 .fromTo(wheelSpinner,
                     { rotation: 0 },
                     { rotation: 720, duration: 0.85, ease: "power2.inOut" }, 0)
 
-                // 2. Volta (Direita -> Esquerda): a roda retorna rolando para trás e revela "CAR . VERIFY"
+                // 2. Volta (Direita -> Esquerda): a roda retorna rolando de ré e desmascara o texto na direção física correta
                 .to(wheelWrapper, {
                     x: 0,
                     duration: 0.65,
                     ease: "power2.out",
                     onUpdate: function() {
                         const p = this.progress(); // 0 a 1
-                        // Conforme a roda volta da direita para a esquerda, o nome do projeto aparece:
-                        logoText.style.clipPath = `inset(0 ${100 - (p * 100)}% 0 0)`;
+                        // À medida que a roda volta (180 -> 0), desmascara da direita para a esquerda
+                        const unmaskLeft = gsap.utils.clamp(0, 100, (1 - p) * 100);
+                        if (logoText) {
+                            logoText.style.clipPath = `inset(0 0 0 ${unmaskLeft}%)`;
+                        }
                     }
                 }, "+=0.08")
                 .to(wheelSpinner, {
@@ -619,11 +630,12 @@
                     ease: "power2.out"
                 }, "<")
 
-                // 3. Brilho e flash de finalização automobilístico
+                // 3. Brilho automobilístico e fade out sutil do rastro de pneu sob a marca
                 .fromTo(logoText,
-                    { filter: "brightness(1.8) drop-shadow(0 0 12px rgba(255,160,0,0.6))" },
+                    { filter: "brightness(1.8) drop-shadow(0 0 14px rgba(255,160,0,0.7))" },
                     { filter: "brightness(1) drop-shadow(0 0 0px transparent)", duration: 0.45, ease: "power1.out" }
-                );
+                )
+                .to(tireTrack, { opacity: 0.2, duration: 0.4 }, "-=0.3");
         };
 
         // Permite clicar na marca no header para rever a animação
@@ -634,15 +646,20 @@
             });
         }
 
-        // Executa ao carregar a página (respeitando acessibilidade)
-        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-            window.addEventListener('DOMContentLoaded', () => {
-                setTimeout(window.playCarVerifyLogoAnimation, 200);
-            });
+        // Executa ao carregar a página (respeitando acessibilidade e garantindo execução caso DOM já esteja pronto)
+        function initLogoAnimation() {
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                setTimeout(window.playCarVerifyLogoAnimation, 150);
+            } else {
+                const logoText = document.querySelector('#headerBrand .logo-text');
+                if (logoText) logoText.style.clipPath = "none";
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initLogoAnimation);
         } else {
-            // Se o usuário tiver preferência por menos movimento, mostra direto
-            const logoText = document.querySelector('#headerBrand .logo-text');
-            if (logoText) logoText.style.clipPath = "none";
+            initLogoAnimation();
         }
     })();
     </script>

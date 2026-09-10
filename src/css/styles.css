@@ -163,32 +163,23 @@ button {
     gap: var(--space-md);
 }
 
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    flex-shrink: 0;
-    cursor: pointer;
-    user-select: none;
-    transition: opacity var(--transition-fast), transform var(--transition-fast);
-}
-
-.header-left:hover {
-    opacity: 0.85;
-    transform: translateY(-1px);
-}
-
 /* ── Animated CAR VERIFY logo ─────────────────────────────────── */
 .header-left {
     position: relative;
-    cursor: pointer;
-    user-select: none;
     display: flex;
     align-items: center;
     gap: 8px;
     min-height: 52px;
     padding: 6px 0;
+    flex-shrink: 0;
+    cursor: pointer;
+    user-select: none;
     overflow: visible;
+    transition: opacity var(--transition-fast);
+}
+
+.header-left:hover {
+    opacity: 0.9;
 }
 
 .header-tire-track {
@@ -201,6 +192,7 @@ button {
     clip-path: inset(0 100% 0 0);
     pointer-events: none;
     z-index: 1;
+    transition: opacity 0.4s ease;
 }
 
 [data-theme="light"] .header-tire-track {
