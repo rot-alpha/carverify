@@ -571,29 +571,63 @@ function navigateTo(screen) {
     state.screen = screen;
     const homeEl = document.getElementById('homeScreen');
     const dashEl = document.getElementById('dashboardScreen');
+    const driversEl = document.getElementById('driversScreen');
     const tabsEl = document.getElementById('vehicleTabs');
     const navHome = document.getElementById('navHome');
     const navDash = document.getElementById('navDashboard');
+    const navDrivers = document.getElementById('navDrivers');
+
+    // Hide all screens
+    homeEl.style.display = 'none';
+    dashEl.style.display = 'none';
+    if (driversEl) driversEl.style.display = 'none';
+    tabsEl.style.display = 'none';
+    navHome.classList.remove('active');
+    navDash.classList.remove('active');
+    if (navDrivers) navDrivers.classList.remove('active');
 
     if (screen === 'home') {
         homeEl.style.display = '';
-        dashEl.style.display = 'none';
-        tabsEl.style.display = 'none';
         navHome.classList.add('active');
-        navDash.classList.remove('active');
         charts.destroyAll();
         renderHome();
-    } else {
-        homeEl.style.display = 'none';
+    } else if (screen === 'dashboard') {
         dashEl.style.display = '';
         tabsEl.style.display = '';
-        navHome.classList.remove('active');
         navDash.classList.add('active');
         charts.destroyAll();
         renderTabs();
         updateDashboard();
+    } else if (screen === 'drivers') {
+        if (driversEl) driversEl.style.display = '';
+        if (navDrivers) navDrivers.classList.add('active');
+        charts.destroyAll();
+        // Populate driver name select from known drivers
+        const driverNameSelect = document.getElementById('driverNameSelect');
+        if (driverNameSelect) {
+            const currentVal = driverNameSelect.value;
+            driverNameSelect.innerHTML = '<option value="">Selecione um motorista...</option>';
+            DriversModule.KNOWN_DRIVERS.forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.textContent = name;
+                driverNameSelect.appendChild(opt);
+            });
+            if (currentVal) driverNameSelect.value = currentVal;
+        }
+        // Set date input to today
+        const dateInput = document.getElementById('driverDateInput');
+        if (dateInput && !dateInput.value) {
+            const today = new Date();
+            const y = today.getFullYear();
+            const m = String(today.getMonth() + 1).padStart(2, '0');
+            const d = String(today.getDate()).padStart(2, '0');
+            dateInput.value = `${y}-${m}-${d}`;
+        }
+        DriversModule.init();
     }
 }
+
 
 // ─── HOME SCREEN ───────────────────────────
 const MONTH_NAMES_SHORT = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
@@ -1437,6 +1471,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (navHome) navHome.addEventListener('click', () => navigateTo('home'));
     if (navDash) navDash.addEventListener('click', () => navigateTo('dashboard'));
+    const navDrivers = document.getElementById('navDrivers');
+    if (navDrivers) navDrivers.addEventListener('click', () => navigateTo('drivers'));
 
     if (headerBrand) {
         headerBrand.addEventListener('click', () => navigateTo('home'));

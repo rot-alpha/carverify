@@ -183,6 +183,10 @@
                     <span class="material-icons-round">directions_car</span>
                     <span>Veículos</span>
                 </button>
+                <button class="nav-btn" id="navDrivers" data-screen="drivers">
+                    <span class="material-icons-round">badge</span>
+                    <span>Motoristas</span>
+                </button>
             </div>
 
             <div class="header-right">
@@ -431,6 +435,230 @@
         </section>
     </main>
 
+    <!-- ====== DRIVERS SCREEN (Controle de Atividades) ====== -->
+    <section class="drivers-screen" id="driversScreen" style="display:none;">
+        <div class="drivers-content">
+            <!-- Title -->
+            <div class="drivers-section-header">
+                <div class="drivers-title-wrapper">
+                    <div class="drivers-title-group">
+                        <span class="material-icons-round drivers-icon">badge</span>
+                        <h1>Controle de Atividades dos Colaboradores</h1>
+                    </div>
+                    <span class="drivers-subtitle">Gestão diária de presenças, banco de horas, faltas, atestados e férias</span>
+                </div>
+                <div class="drivers-header-actions">
+                    <div class="select-wrapper">
+                        <select id="driversMonthSelect" class="conformity-month-select" aria-label="Filtrar por mês"></select>
+                        <span class="material-icons-round select-arrow">expand_more</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Master-Detail Layout: Sidebar (Left) + Main Panel (Right) -->
+            <div class="drivers-layout-container">
+                <!-- Sidebar: Collaborator List -->
+                <aside class="drivers-sidebar card">
+                    <div class="drivers-sidebar-header">
+                        <div class="card-title-group">
+                            <span class="material-icons-round card-icon icon-blue">groups</span>
+                            <h3>Colaboradores</h3>
+                        </div>
+                        <div class="drivers-search-box">
+                            <span class="material-icons-round search-icon">search</span>
+                            <input type="text" id="driverSearchInput" placeholder="Buscar colaborador..." autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="drivers-nav-list" id="driversNavList">
+                        <!-- Gerado dinamicamente via JS (Visão Geral + Lista de Colaboradores) -->
+                    </div>
+                </aside>
+
+                <!-- Main Panel: Views Switcher -->
+                <div class="drivers-main-panel">
+                    <!-- VIEW 1: Visão Geral / Histórico Diário Gradativo -->
+                    <div id="driversOverviewView" class="drivers-view-content">
+                        <!-- Top Row: Form + KPIs + Top 3 -->
+                        <div class="drivers-top-row">
+                            <!-- Form Card -->
+                            <div class="card drivers-form-card">
+                                <div class="card-header">
+                                    <div class="card-title-group">
+                                        <span class="material-icons-round card-icon icon-green">add_circle</span>
+                                        <h2>Registrar Status</h2>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <form id="driverActivityForm" class="driver-form">
+                                        <div class="driver-form-row">
+                                            <div class="driver-form-field">
+                                                <label for="driverNameSelect">Colaborador</label>
+                                                <select id="driverNameSelect" class="driver-select" required>
+                                                    <option value="">Selecione...</option>
+                                                </select>
+                                            </div>
+                                            <div class="driver-form-field">
+                                                <label for="driverStatusSelect">Status</label>
+                                                <select id="driverStatusSelect" class="driver-select" required>
+                                                    <option value="ativo">✅ Ativo</option>
+                                                    <option value="banco_horas">🕐 Banco de Horas</option>
+                                                    <option value="falta">❌ Falta</option>
+                                                    <option value="atestado">🏥 Atestado</option>
+                                                    <option value="ferias">🏖️ Férias</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="driver-form-row">
+                                            <div class="driver-form-field" id="driverSingleDateField">
+                                                <label for="driverDateInput">Data</label>
+                                                <input type="date" id="driverDateInput" required>
+                                            </div>
+                                            <div class="driver-vacation-fields" id="driverVacationFields" style="display:none;">
+                                                <div class="driver-form-field">
+                                                    <label for="driverVacStartInput">Início das Férias</label>
+                                                    <input type="date" id="driverVacStartInput">
+                                                </div>
+                                                <div class="driver-form-field">
+                                                    <label for="driverVacEndInput">Fim das Férias</label>
+                                                    <input type="date" id="driverVacEndInput">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="driver-submit-btn">
+                                            <span class="material-icons-round">save</span>
+                                            Registrar
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- KPI Cards -->
+                            <div class="card drivers-kpi-card">
+                                <div class="card-header">
+                                    <div class="card-title-group">
+                                        <span class="material-icons-round card-icon icon-blue">analytics</span>
+                                        <h2>Distribuição Mensal</h2>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="driver-kpi-grid" id="driversKpiGrid">
+                                        <!-- Generated by JS -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Top 3 Card -->
+                            <div class="card drivers-top3-card">
+                                <div class="card-header">
+                                    <div class="card-title-group">
+                                        <span class="material-icons-round card-icon icon-red">trending_down</span>
+                                        <h2>Top 3 Ausências</h2>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="driver-top3-list" id="driversTop3List">
+                                        <!-- Generated by JS -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Daily Records Table with Gradual Replacement -->
+                        <div class="card drivers-table-card">
+                            <div class="card-header">
+                                <div class="card-title-group">
+                                    <span class="material-icons-round card-icon icon-purple">today</span>
+                                    <div>
+                                        <h2>Histórico de Registros do Dia</h2>
+                                        <span class="drivers-table-subtitle" id="dailyTableSubtitle">Exibindo registros de hoje com substituição gradativa do dia anterior</span>
+                                    </div>
+                                </div>
+                                <div class="drivers-table-sync-badge" id="dailySyncBadge">
+                                    <span class="material-icons-round">sync</span>
+                                    <span id="dailySyncText">0/17 hoje</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="drivers-table-wrapper">
+                                    <table class="drivers-table" id="driversTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Colaborador</th>
+                                                <th>Status</th>
+                                                <th>Data de Referência</th>
+                                                <th>Origem</th>
+                                                <th class="col-actions">Ação Rápida</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="driversTableBody">
+                                            <!-- Generated by JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- VIEW 2: Perfil Individual do Colaborador + Calendário Mensal -->
+                    <div id="driverProfileView" class="drivers-view-content" style="display:none;">
+                        <!-- Driver Profile Header Banner -->
+                        <div class="card driver-profile-banner">
+                            <div class="driver-banner-left">
+                                <button type="button" class="driver-banner-back-btn" id="btnBackToOverview" title="Voltar à visão geral">
+                                    <span class="material-icons-round">arrow_back</span>
+                                    <span>Visão Geral</span>
+                                </button>
+                                <div class="driver-banner-avatar" id="driverBannerAvatar">--</div>
+                                <div class="driver-banner-details">
+                                    <h2 id="driverBannerName">Nome do Colaborador</h2>
+                                    <span class="driver-banner-role" id="driverBannerRole">Colaborador da Frota</span>
+                                </div>
+                            </div>
+                            <div class="driver-banner-right">
+                                <div class="driver-cal-month-stepper">
+                                    <button type="button" class="stepper-btn" id="btnCalPrevMonth" title="Mês anterior">
+                                        <span class="material-icons-round">chevron_left</span>
+                                    </button>
+                                    <span class="stepper-label" id="calCurrentMonthLabel">Setembro 2026</span>
+                                    <button type="button" class="stepper-btn" id="btnCalNextMonth" title="Próximo mês">
+                                        <span class="material-icons-round">chevron_right</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Individual Collaborator KPIs -->
+                        <div class="driver-individual-kpi-grid" id="driverIndividualKpis">
+                            <!-- Generated by JS -->
+                        </div>
+
+                        <!-- Monthly Calendar Card -->
+                        <div class="card driver-calendar-card">
+                            <div class="card-header">
+                                <div class="card-title-group">
+                                    <span class="material-icons-round card-icon icon-blue">calendar_month</span>
+                                    <h2>Calendário de Atividades do Mês</h2>
+                                </div>
+                                <div class="calendar-legend">
+                                    <span class="legend-badge status-ativo"><span class="legend-dot"></span> Ativo</span>
+                                    <span class="legend-badge status-banco"><span class="legend-dot"></span> Banco</span>
+                                    <span class="legend-badge status-falta"><span class="legend-dot"></span> Falta</span>
+                                    <span class="legend-badge status-atestado"><span class="legend-dot"></span> Atestado</span>
+                                    <span class="legend-badge status-ferias"><span class="legend-dot"></span> Férias</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="calendar-grid-container" id="driverCalendarContainer">
+                                    <!-- Calendar Generated by JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- ====== PPTX EXPORT MODAL ====== -->
     <div class="modal-backdrop" id="pptxModalBackdrop" style="display:none;">
         <div class="pptx-modal" id="pptxModal" role="dialog" aria-modal="true" aria-labelledby="pptxModalTitle">
@@ -552,6 +780,7 @@
     <script src="js/calendar.js"></script>
     <script src="js/charts.js"></script>
     <script src="js/pptx-export.js"></script>
+    <script src="js/drivers.js"></script>
     <script src="js/app.js"></script>
 
     <!-- CAR VERIFY — Logo entrance animation (GSAP + Motion Design) -->
