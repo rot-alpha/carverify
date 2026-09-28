@@ -346,12 +346,27 @@ const RAW_CSV = `Carimbo de data/hora,Modelo do Veículo,Placa do Veículo,KM At
 24/08/2026 13:30:40,FIORINO,SVJ3H89,140749,Evaldo Aparecido,Sem Ajudante,24/08/2026,ALPHA CANDIES,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NOK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,Sim,Sim,Fazer alinhamento e balanceamento,Gabriel,Sim,Sim
 24/08/2026 13:59:31,FIORINO,STA0F48,145152,Anderson Luiz,Sem Ajudante,24/08/2026,ALPHA CANDIES,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NOK,Sim,Sim,Câmbio escorrendo óleo,Julio,Sim,Talvez`;
 
+// ─── DATE HELPERS ──────────────────────────
+function getCurrentYearMonth() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    return {
+        year: y,
+        month: now.getMonth(),
+        ym: `${y}-${m}`
+    };
+}
+
 // ─── STATE ─────────────────────────────────
+const initialCurrentYm = getCurrentYearMonth();
+
 let state = {
     screen: 'home',
     activeVehicle: 0,
     selectedDate: null,
-    conformityMonth: 'all',
+    conformityMonth: initialCurrentYm.ym,
+    overallMonth: initialCurrentYm.ym,
     data: {}
 };
 
@@ -558,6 +573,9 @@ function renderTabs() {
     tabsContainer.querySelectorAll('.vehicle-tab').forEach(tab => {
         tab.addEventListener('click', () => {
             state.activeVehicle = parseInt(tab.dataset.index);
+            try {
+                localStorage.setItem('carverify_active_vehicle', String(state.activeVehicle));
+            } catch (e) {}
             state.selectedDate = null;
             charts.destroyAll();
             renderTabs();
@@ -572,9 +590,60 @@ function renderTabs() {
     }
 }
 
+// ─── SCREEN MAP & PERSISTENCE ──────────────
+const SCREEN_MAP = {
+    'home': 'home',
+    'inicio': 'home',
+    '#home': 'home',
+    '#inicio': 'home',
+    'dashboard': 'dashboard',
+    'veiculos': 'dashboard',
+    '#dashboard': 'dashboard',
+    '#veiculos': 'dashboard',
+    'drivers': 'drivers',
+    'motoristas': 'drivers',
+    '#drivers': 'drivers',
+    '#motoristas': 'drivers'
+};
+
+const SCREEN_HASH_MAP = {
+    'home': '#inicio',
+    'dashboard': '#veiculos',
+    'drivers': '#motoristas'
+};
+
+function getActiveScreenFromUrlOrStorage() {
+    const hash = window.location.hash.toLowerCase().trim();
+    if (hash && SCREEN_MAP[hash]) {
+        return SCREEN_MAP[hash];
+    }
+    try {
+        const saved = localStorage.getItem('carverify_active_screen');
+        if (saved && SCREEN_MAP[saved]) {
+            return SCREEN_MAP[saved];
+        }
+    } catch (e) {}
+    return 'home';
+}
+
 // ─── NAVIGATION ────────────────────────────
-function navigateTo(screen) {
-    state.screen = screen;
+function navigateTo(screen, updateHistory = true) {
+    const validScreen = SCREEN_MAP[screen] || 'home';
+    state.screen = validScreen;
+
+    // Persist active screen
+    try {
+        localStorage.setItem('carverify_active_screen', validScreen);
+    } catch (e) {}
+
+    // Update URL hash without reload
+    if (updateHistory) {
+        const targetHash = SCREEN_HASH_MAP[validScreen] || '#inicio';
+        if (window.location.hash !== targetHash) {
+            history.pushState(null, '', targetHash);
+        }
+    }
+
     const homeEl = document.getElementById('homeScreen');
     const dashEl = document.getElementById('dashboardScreen');
     const driversEl = document.getElementById('driversScreen');
@@ -585,35 +654,35 @@ function navigateTo(screen) {
     const navDrivers = document.getElementById('navDrivers');
 
     // Hide all screens
-    homeEl.style.display = 'none';
-    dashEl.style.display = 'none';
+    if (homeEl) homeEl.style.display = 'none';
+    if (dashEl) dashEl.style.display = 'none';
     if (driversEl) driversEl.style.display = 'none';
-    tabsEl.style.display = 'none';
+    if (tabsEl) tabsEl.style.display = 'none';
     if (toolbarEl) toolbarEl.style.display = 'none';
-    navHome.classList.remove('active');
-    navDash.classList.remove('active');
+    if (navHome) navHome.classList.remove('active');
+    if (navDash) navDash.classList.remove('active');
     if (navDrivers) navDrivers.classList.remove('active');
 
-    if (screen === 'home') {
-        homeEl.style.display = '';
-        navHome.classList.add('active');
-        charts.destroyAll();
+    if (validScreen === 'home') {
+        if (homeEl) homeEl.style.display = '';
+        if (navHome) navHome.classList.add('active');
+        if (charts) charts.destroyAll();
         renderHome();
-    } else if (screen === 'dashboard') {
-        dashEl.style.display = '';
-        tabsEl.style.display = '';
+    } else if (validScreen === 'dashboard') {
+        if (dashEl) dashEl.style.display = '';
+        if (tabsEl) tabsEl.style.display = '';
         if (toolbarEl) toolbarEl.style.display = '';
-        navDash.classList.add('active');
-        charts.destroyAll();
+        if (navDash) navDash.classList.add('active');
+        if (charts) charts.destroyAll();
         renderTabs();
         updateDashboard();
-    } else if (screen === 'drivers') {
+    } else if (validScreen === 'drivers') {
         if (driversEl) driversEl.style.display = '';
         if (navDrivers) navDrivers.classList.add('active');
-        charts.destroyAll();
+        if (charts) charts.destroyAll();
         // Populate driver name select from known drivers
         const driverNameSelect = document.getElementById('driverNameSelect');
-        if (driverNameSelect) {
+        if (driverNameSelect && window.DriversModule) {
             const currentVal = driverNameSelect.value;
             driverNameSelect.innerHTML = '<option value="">Selecione um motorista...</option>';
             DriversModule.KNOWN_DRIVERS.forEach(name => {
@@ -633,7 +702,9 @@ function navigateTo(screen) {
             const d = String(today.getDate()).padStart(2, '0');
             dateInput.value = `${y}-${m}-${d}`;
         }
-        DriversModule.init();
+        if (window.DriversModule) {
+            DriversModule.init();
+        }
     }
 }
 
@@ -755,6 +826,9 @@ function renderFleetCards() {
             if (e.target.closest('.vehicle-card__tooltip')) return;
             const idx = parseInt(card.dataset.vehicleIndex);
             state.activeVehicle = idx;
+            try {
+                localStorage.setItem('carverify_active_vehicle', String(state.activeVehicle));
+            } catch (e) {}
             state.selectedDate = null;
             if (state.overallMonth && state.overallMonth !== 'all') {
                 const [y, m] = state.overallMonth.split('-');
@@ -792,14 +866,18 @@ function initOverallMonthSelect() {
         });
     });
 
+    // Ensure current month is always present in available months
+    const current = getCurrentYearMonth();
+    months.add(current.ym);
+
     const sortedMonths = Array.from(months).sort().reverse();
     const monthNames = [
         'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
         'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
     ];
 
-    if (!state.overallMonth && sortedMonths.length > 0) {
-        state.overallMonth = sortedMonths[0];
+    if (!state.overallMonth) {
+        state.overallMonth = current.ym;
     }
 
     let optionsHtml = `<option value="all">Todos os Meses</option>`;
@@ -810,7 +888,7 @@ function initOverallMonthSelect() {
     });
 
     select.innerHTML = optionsHtml;
-    select.value = state.overallMonth || 'all';
+    select.value = state.overallMonth || current.ym;
 
     select.onchange = () => {
         state.overallMonth = select.value;
@@ -948,14 +1026,18 @@ function initConformityMonthSelect() {
         });
     });
 
+    // Ensure current month is always present in available months
+    const current = getCurrentYearMonth();
+    months.add(current.ym);
+
     const sortedMonths = Array.from(months).sort().reverse();
     const monthNames = [
         'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
         'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
     ];
 
-    if (!state.conformityMonth && sortedMonths.length > 0) {
-        state.conformityMonth = sortedMonths[0];
+    if (!state.conformityMonth) {
+        state.conformityMonth = current.ym;
     }
 
     let optionsHtml = `<option value="all">Todos os Meses</option>`;
@@ -966,7 +1048,7 @@ function initConformityMonthSelect() {
     });
 
     select.innerHTML = optionsHtml;
-    select.value = state.conformityMonth || 'all';
+    select.value = state.conformityMonth || current.ym;
 
     select.onchange = () => {
         state.conformityMonth = select.value;
@@ -1381,7 +1463,9 @@ async function syncWithRemote() {
     if (fetchedCSV) {
         state.data = parseCSV(fetchedCSV);
         initConformityMonthSelect();
-        updateDashboard();
+        if (state.screen === 'dashboard') {
+            updateDashboard();
+        }
     }
 
     if (btn) {
@@ -1434,10 +1518,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // Init chart manager
     charts = new ChartManager();
 
-    // Determine initial month based on available data
-    const initialMonth = findLatestMonthWithData(state.data);
-    state.conformityMonth = `${initialMonth.year}-${String(initialMonth.month + 1).padStart(2, '0')}`;
+    // Determine initial month: ALWAYS current real month on load/refresh
+    const currentCal = getCurrentYearMonth();
+    state.conformityMonth = currentCal.ym;
+    state.overallMonth = currentCal.ym;
     initConformityMonthSelect();
+
+    // Restore saved active vehicle
+    try {
+        const savedVehicle = localStorage.getItem('carverify_active_vehicle');
+        if (savedVehicle !== null) {
+            const parsedIdx = parseInt(savedVehicle, 10);
+            if (!isNaN(parsedIdx) && parsedIdx >= 0 && parsedIdx < VEHICLES.length) {
+                state.activeVehicle = parsedIdx;
+            }
+        }
+    } catch (e) {}
 
     // Init calendar (needed for dashboard, set up now)
     calendar = new CalendarComponent({
@@ -1456,8 +1552,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Navigate to latest month with data
-    calendar.goTo(initialMonth.year, initialMonth.month);
+    // Navigate calendar to current real month
+    calendar.goTo(currentCal.year, currentCal.month);
 
     // Setup sync button
     const btnSync = document.getElementById('btnSync');
@@ -1468,6 +1564,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (state.screen === 'home') {
                 charts.destroyAll();
                 renderHome();
+            } else if (state.screen === 'dashboard') {
+                charts.destroyAll();
+                updateDashboard();
             }
         });
     }
@@ -1509,6 +1608,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (state.screen === 'home') {
                 charts.destroyAll();
                 renderHome();
+            } else if (state.screen === 'dashboard') {
+                charts.destroyAll();
+                updateDashboard();
             }
         });
     }
@@ -1521,8 +1623,21 @@ document.addEventListener('DOMContentLoaded', () => {
         window.VehicleReportModule.init();
     }
 
-    // Start on Home screen
-    renderHome();
+    // Listen for hashchange (browser forward/back)
+    window.addEventListener('hashchange', () => {
+        const targetScreen = getActiveScreenFromUrlOrStorage();
+        if (state.screen !== targetScreen) {
+            navigateTo(targetScreen, false);
+        }
+    });
+
+    // Start on saved or requested screen
+    const initialScreen = getActiveScreenFromUrlOrStorage();
+    const targetHash = SCREEN_HASH_MAP[initialScreen] || '#inicio';
+    if (window.location.hash !== targetHash) {
+        history.replaceState(null, '', targetHash);
+    }
+    navigateTo(initialScreen, false);
 });
 
 // ─── PPTX EXPORT MODAL LOGIC ───────────────
