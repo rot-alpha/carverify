@@ -545,7 +545,7 @@ const DriversModule = (function() {
                         <span class="driver-nav-status-sub">
                             ${isVac 
                                 ? '<span class="dot-online" style="background:#f59e0b;"></span> Em Férias'
-                                : hasToday 
+                                : (hasToday && statusMeta) 
                                 ? `<span class="dot-online" style="background:${statusMeta.color};"></span> ${statusMeta.label}` 
                                 : '<span class="dot-offline"></span> Aguardando hoje'}
                         </span>
@@ -1233,3 +1233,7 @@ const DriversModule = (function() {
     };
 
 })();
+
+// Exporta globalmente no window
+window.DriversModule = DriversModule;
+

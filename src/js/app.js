@@ -682,10 +682,11 @@ function navigateTo(screen, updateHistory = true) {
         if (charts) charts.destroyAll();
         // Populate driver name select from known drivers
         const driverNameSelect = document.getElementById('driverNameSelect');
-        if (driverNameSelect && window.DriversModule) {
+        const driversMod = window.DriversModule || (typeof DriversModule !== 'undefined' ? DriversModule : null);
+        if (driverNameSelect && driversMod) {
             const currentVal = driverNameSelect.value;
             driverNameSelect.innerHTML = '<option value="">Selecione um motorista...</option>';
-            DriversModule.KNOWN_DRIVERS.forEach(name => {
+            driversMod.KNOWN_DRIVERS.forEach(name => {
                 const opt = document.createElement('option');
                 opt.value = name;
                 opt.textContent = name;
@@ -702,8 +703,8 @@ function navigateTo(screen, updateHistory = true) {
             const d = String(today.getDate()).padStart(2, '0');
             dateInput.value = `${y}-${m}-${d}`;
         }
-        if (window.DriversModule) {
-            DriversModule.init();
+        if (driversMod) {
+            driversMod.init();
         }
     }
 }
