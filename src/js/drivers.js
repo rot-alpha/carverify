@@ -245,18 +245,45 @@ const DriversModule = (function() {
     // ─── KPI COMPUTATIONS ──────────────────────
     function computeKPIs(filterMonth) {
         const data = loadActivities();
+        const vacs = loadVacations();
         const counts = { ativo: 0, banco_horas: 0, falta: 0, atestado: 0, ferias: 0 };
+        const vacationDrivers = new Set();
         let total = 0;
 
         Object.entries(data).forEach(([driver, days]) => {
+            if (DELETED_DRIVERS.includes(driver)) return;
             Object.entries(days).forEach(([dateStr, status]) => {
                 if (filterMonth && !dateStr.startsWith(filterMonth)) return;
-                if (counts.hasOwnProperty(status)) {
+                if (status === 'ferias') {
+                    vacationDrivers.add(driver);
+                } else if (counts.hasOwnProperty(status)) {
                     counts[status]++;
                     total++;
                 }
             });
         });
+
+        // Complementa com períodos de férias cadastrados no mês
+        Object.entries(vacs).forEach(([driver, periods]) => {
+            if (DELETED_DRIVERS.includes(driver)) return;
+            if (!Array.isArray(periods)) return;
+            periods.forEach(p => {
+                if (!p.start || !p.end) return;
+                if (filterMonth) {
+                    const monthStart = `${filterMonth}-01`;
+                    const monthEnd = `${filterMonth}-31`;
+                    if (p.start <= monthEnd && p.end >= monthStart) {
+                        vacationDrivers.add(driver);
+                    }
+                } else {
+                    vacationDrivers.add(driver);
+                }
+            });
+        });
+
+        // Contagem de férias: quantidade de colaboradores de férias no mês (não por dias)
+        counts.ferias = vacationDrivers.size;
+        total += counts.ferias;
 
         const percentages = {};
         Object.keys(counts).forEach(k => {
@@ -268,13 +295,15 @@ const DriversModule = (function() {
 
     function computeTop3Absent(filterMonth) {
         const data = loadActivities();
-        const absences = {}; // driver -> count of non-ativo days
+        const absences = {}; // driver -> count of non-ativo days (excluindo férias)
 
         Object.entries(data).forEach(([driver, days]) => {
+            if (DELETED_DRIVERS.includes(driver)) return;
             let count = 0;
             Object.entries(days).forEach(([dateStr, status]) => {
                 if (filterMonth && !dateStr.startsWith(filterMonth)) return;
-                if (status !== 'ativo') count++;
+                // Férias não deve ser considerado como ausência
+                if (status !== 'ativo' && status !== 'ferias') count++;
             });
             if (count > 0) absences[driver] = count;
         });
