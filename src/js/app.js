@@ -374,8 +374,10 @@ function parseCSV(csv) {
         const plate = (values[2] || '').trim();
         const km = parseInt((values[3] || '0').replace(/\D/g, '')) || 0;
         const driver = (values[4] || '').trim();
+        const helper = (values[5] || '').trim();
         const rawDate = (values[6] || '').trim(); // DD/MM/YYYY
         const comment = (values[39] || '').trim();
+        const leader = (values[40] || '').trim();
 
         if (!data[plate]) continue;
 
@@ -410,10 +412,14 @@ function parseCSV(csv) {
                 }
             }
             if (km > existing.km) existing.km = km;
+            if (!existing.helper && helper) existing.helper = helper;
+            if (!existing.leader && leader) existing.leader = leader;
         } else {
             data[plate].days[dateStr] = {
                 km: km,
                 driver: driver,
+                helper: helper,
+                leader: leader,
                 questions: answers,
                 comment: (comment && comment.length > 2) ? comment : null
             };
@@ -573,6 +579,7 @@ function navigateTo(screen) {
     const dashEl = document.getElementById('dashboardScreen');
     const driversEl = document.getElementById('driversScreen');
     const tabsEl = document.getElementById('vehicleTabs');
+    const toolbarEl = document.getElementById('vehicleToolbar');
     const navHome = document.getElementById('navHome');
     const navDash = document.getElementById('navDashboard');
     const navDrivers = document.getElementById('navDrivers');
@@ -582,6 +589,7 @@ function navigateTo(screen) {
     dashEl.style.display = 'none';
     if (driversEl) driversEl.style.display = 'none';
     tabsEl.style.display = 'none';
+    if (toolbarEl) toolbarEl.style.display = 'none';
     navHome.classList.remove('active');
     navDash.classList.remove('active');
     if (navDrivers) navDrivers.classList.remove('active');
@@ -594,6 +602,7 @@ function navigateTo(screen) {
     } else if (screen === 'dashboard') {
         dashEl.style.display = '';
         tabsEl.style.display = '';
+        if (toolbarEl) toolbarEl.style.display = '';
         navDash.classList.add('active');
         charts.destroyAll();
         renderTabs();
@@ -1506,6 +1515,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize PPTX Export Modal
     initPptxModal();
+
+    // Initialize Vehicle Report Module
+    if (window.VehicleReportModule) {
+        window.VehicleReportModule.init();
+    }
 
     // Start on Home screen
     renderHome();

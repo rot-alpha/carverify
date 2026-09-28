@@ -3452,3 +3452,715 @@ button {
         align-items: flex-start;
     }
 }
+
+/* ============================
+   VEHICLE TOOLBAR & REPORT BUTTON
+   ============================ */
+.vehicle-toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    width: 100%;
+}
+
+.vehicle-toolbar .vehicle-tabs {
+    flex: 1;
+    min-width: 0;
+}
+
+.btn-vehicle-report {
+    flex-shrink: 0;
+    height: 48px;
+    padding: 0 16px;
+    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    border: 1.5px solid var(--clr-primary);
+    color: var(--clr-primary);
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-vehicle-report:hover {
+    background: var(--clr-primary);
+    color: #FFFFFF;
+    box-shadow: 0 4px 14px rgba(217, 119, 6, 0.35);
+    transform: translateY(-1px);
+}
+
+.btn-vehicle-report .material-icons-round {
+    font-size: 20px;
+}
+
+/* ============================
+   VEHICLE REPORT MODAL & A4 PREVIEW
+   ============================ */
+.vehicle-report-modal {
+    background: var(--bg-card);
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 24px 50px rgba(0, 0, 0, 0.45);
+    width: 100%;
+    max-width: 900px;
+    max-height: 94vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: modalSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.vehicle-report-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--clr-border-light);
+    background: var(--bg-card);
+    z-index: 10;
+}
+
+.vehicle-report-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.report-header-icon {
+    font-size: 26px;
+    color: var(--clr-primary);
+}
+
+.vehicle-report-title-group h2 {
+    font-size: var(--font-size-md);
+    font-weight: 700;
+    color: var(--clr-text);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.vehicle-report-subtitle {
+    font-size: var(--font-size-xs);
+    color: var(--clr-text-secondary);
+}
+
+.vehicle-report-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-report-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-report-print {
+    background: var(--clr-primary-light);
+    color: var(--clr-primary);
+    border: 1px solid var(--clr-primary);
+}
+
+.btn-report-print:hover {
+    background: var(--clr-primary);
+    color: #FFFFFF;
+}
+
+.btn-report-download {
+    background: #10b981;
+    color: #FFFFFF;
+    border: 1px solid #10b981;
+}
+
+.btn-report-download:hover {
+    background: #059669;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+}
+
+.vehicle-report-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    background: #f1f5f9;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+[data-theme="dark"] .vehicle-report-modal-body {
+    background: #0b0f19;
+}
+
+.vehicle-report-preview-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+/* ============================
+   A4 SHEET COMPONENT (SCREEN & PRINT)
+   ============================ */
+.printable-vehicle-report {
+    width: 100%;
+    max-width: 800px;
+    background: #FFFFFF;
+    color: #0f172a;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    border-radius: 4px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    box-sizing: border-box;
+}
+
+.report-sheet {
+    padding: 22px 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Header */
+.report-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid #0f172a;
+    padding-bottom: 10px;
+}
+
+.report-logo-text {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 900;
+    font-size: 18px;
+    letter-spacing: 2px;
+    color: #0f172a;
+}
+
+.report-brand-sub {
+    font-size: 9px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.report-header-center {
+    text-align: center;
+}
+
+.report-main-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: #0f172a;
+    margin: 0;
+}
+
+.report-emission-tag {
+    font-size: 9px;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+.report-efx-img {
+    height: 32px;
+    width: auto;
+    object-fit: contain;
+}
+
+/* Meta Grid */
+.report-meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px 12px;
+}
+
+.report-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.report-meta-label {
+    font-size: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    letter-spacing: 0.5px;
+}
+
+.report-meta-val {
+    font-size: 11px;
+    color: #1e293b;
+    line-height: 1.3;
+}
+
+.highlight-plate {
+    background: #fef3c7;
+    color: #b45309;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: 800;
+    font-size: 12px;
+}
+
+/* Summary Bar with Donut Chart */
+.report-summary-bar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 8px 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+}
+
+.report-donut-container {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.report-donut-svg {
+    display: block;
+}
+
+.report-kpi-blocks {
+    display: flex;
+    flex: 1;
+    gap: 8px;
+}
+
+.report-kpi-block {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #FFFFFF;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 6px 4px;
+}
+
+.report-kpi-block .kpi-num {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    line-height: 1.1;
+    color: #0f172a;
+}
+
+.report-kpi-block.kpi-conformity .kpi-num { color: #059669; }
+.report-kpi-block.kpi-ok .kpi-num { color: #10b981; }
+.report-kpi-block.kpi-nok.alert .kpi-num { color: #ef4444; }
+.report-kpi-block.kpi-total .kpi-num { color: #3b82f6; }
+
+.report-kpi-block .kpi-desc {
+    font-size: 8px;
+    font-weight: 600;
+    color: #64748b;
+    margin-top: 2px;
+    text-align: center;
+}
+
+.report-status-seal {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.seal-success {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+}
+
+.seal-warning {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+}
+
+.seal-icon {
+    font-size: 20px;
+}
+
+.seal-text {
+    display: flex;
+    flex-direction: column;
+    font-size: 8.5px;
+    line-height: 1.2;
+}
+
+.seal-text strong {
+    font-size: 10px;
+    font-weight: 800;
+}
+
+/* Section Common */
+.report-section {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.report-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f1f5f9;
+    padding: 5px 10px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.report-section-title {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: #1e293b;
+}
+
+.report-section-title .material-icons-round {
+    font-size: 14px;
+    color: var(--clr-primary);
+}
+
+.report-section-badge {
+    font-size: 8px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #e2e8f0;
+    color: #475569;
+}
+
+/* Non-Conformity Section */
+.header-nok-alert {
+    background: #fee2e2;
+    border-bottom-color: #fca5a5;
+}
+
+.header-nok-alert .report-section-title {
+    color: #b91c1c;
+}
+
+.header-nok-alert .report-section-title .material-icons-round {
+    color: #ef4444;
+}
+
+.header-nok-alert .report-section-badge {
+    background: #ef4444;
+    color: #FFFFFF;
+}
+
+.header-nok-ok {
+    background: #ecfdf5;
+}
+
+.header-nok-ok .report-section-title {
+    color: #065f46;
+}
+
+.header-nok-ok .report-section-title .material-icons-round {
+    color: #10b981;
+}
+
+.report-nok-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9px;
+}
+
+.report-nok-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 700;
+    text-align: left;
+    padding: 4px 8px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.report-nok-table td {
+    padding: 4px 8px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.col-nok-name strong {
+    color: #b91c1c;
+}
+
+.report-badge-nok {
+    display: inline-block;
+    background: #fee2e2;
+    color: #dc2626;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 8px;
+    border: 1px solid #fca5a5;
+}
+
+.report-badge-ok {
+    display: inline-block;
+    background: #dcfce7;
+    color: #15803d;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 8px;
+    border: 1px solid #86efac;
+}
+
+.report-badge-mixed {
+    display: inline-block;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 8px;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+}
+
+.report-badge-mixed .txt-ok { color: #15803d; }
+.report-badge-mixed .txt-nok { color: #dc2626; }
+
+.report-clean-state {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    color: #065f46;
+    font-size: 9.5px;
+    font-weight: 600;
+    background: #ecfdf5;
+}
+
+.report-clean-state .material-icons-round {
+    font-size: 18px;
+    color: #10b981;
+}
+
+/* Matrix 29 Questions (3 columns) */
+.report-matrix-summary {
+    font-size: 8px;
+    color: #64748b;
+}
+
+.report-matrix-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0 10px;
+    padding: 6px 10px;
+    background: #FFFFFF;
+}
+
+.report-matrix-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.report-matrix-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2.5px 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 8.5px;
+}
+
+.report-matrix-row.row-has-nok {
+    background: #fff5f5;
+    padding-left: 2px;
+    padding-right: 2px;
+    border-radius: 2px;
+}
+
+.report-matrix-qname {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 155px;
+    color: #334155;
+    font-weight: 500;
+}
+
+/* Observations Box */
+.report-recurrence-pill {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    color: #92400e;
+    font-size: 8px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.report-recurrence-pill .material-icons-round {
+    font-size: 11px;
+    color: #d97706;
+}
+
+.report-comments-box {
+    padding: 5px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: #FFFFFF;
+}
+
+.report-comment-entry {
+    font-size: 8.5px;
+    line-height: 1.3;
+    color: #334155;
+}
+
+.comment-author-badge {
+    font-weight: 700;
+    color: #475569;
+}
+
+.comment-content {
+    font-style: italic;
+    color: #1e293b;
+}
+
+/* Footer & Signatures */
+.report-footer {
+    margin-top: 14px;
+    padding-top: 10px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.report-signatures {
+    display: flex;
+    justify-content: space-between;
+    gap: 48px;
+    margin-top: 4px;
+    margin-bottom: 8px;
+}
+
+.report-sig-field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 50px; /* Espaço amplo e generoso para assinatura física e rubrica */
+}
+
+.sig-line {
+    width: 85%;
+    height: 1px;
+    background: #475569;
+    margin-bottom: 5px;
+}
+
+.sig-label {
+    font-size: 8.5px;
+    color: #475569;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.report-footer-sub {
+    display: flex;
+    justify-content: space-between;
+    font-size: 7.5px;
+    color: #94a3b8;
+}
+
+/* ============================
+   @MEDIA PRINT — 1 PÁGINA A4 PERFEITA
+   ============================ */
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 6mm 8mm;
+    }
+
+    body {
+        background: #FFFFFF !important;
+        color: #000000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Oculta tudo que não faz parte do relatório */
+    body > * {
+        display: none !important;
+    }
+
+    #vehicleReportModalBackdrop {
+        display: block !important;
+        position: static !important;
+        width: 100% !important;
+        height: auto !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: transparent !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    .vehicle-report-modal {
+        box-shadow: none !important;
+        border: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: transparent !important;
+        overflow: visible !important;
+        animation: none !important;
+    }
+
+    .vehicle-report-modal-header {
+        display: none !important;
+    }
+
+    .vehicle-report-modal-body {
+        padding: 0 !important;
+        background: transparent !important;
+        overflow: visible !important;
+    }
+
+    .printable-vehicle-report {
+        max-width: 100% !important;
+        box-shadow: none !important;
+        border: none !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    .report-sheet {
+        padding: 0 !important;
+        gap: 8px !important;
+    }
+}
