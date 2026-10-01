@@ -193,11 +193,7 @@ const DriversModule = (function() {
         saveActivities(data);
 
         if (window.CarVerifySupabase) {
-            if (status === 'ativo') {
-                window.CarVerifySupabase.deleteDriverActivity(driverName, dateStr);
-            } else {
-                window.CarVerifySupabase.upsertDriverActivity(driverName, dateStr, status);
-            }
+            window.CarVerifySupabase.upsertDriverActivity(driverName, dateStr, status);
         }
     }
 
@@ -535,7 +531,7 @@ const DriversModule = (function() {
             Object.entries(localActs).forEach(([driver, days]) => {
                 if (DELETED_DRIVERS.includes(driver) || typeof days !== 'object' || !days) return;
                 Object.entries(days).forEach(([dateStr, status]) => {
-                    if (status && status !== 'ativo') {
+                    if (status) {
                         const key = `${driver}_${dateStr}`;
                         if (!remoteActsSet.has(key)) {
                             toUploadActs.push({
