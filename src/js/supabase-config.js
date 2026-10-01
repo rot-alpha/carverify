@@ -170,6 +170,48 @@
         },
 
         /**
+         * Envia múltiplas atividades de uma vez (usado na migração/sincronização de dados locais para a nuvem)
+         */
+        async bulkUpsertActivities(records) {
+            if (!client || !records || records.length === 0) return true;
+            try {
+                const { error } = await client
+                    .from('atividades_motoristas')
+                    .upsert(records, { onConflict: 'motorista_nome,data' });
+
+                if (error) {
+                    console.error('[SUPABASE] Erro no bulkUpsertActivities:', error);
+                    return false;
+                }
+                return true;
+            } catch (err) {
+                console.error('[SUPABASE] Exceção no bulkUpsertActivities:', err);
+                return false;
+            }
+        },
+
+        /**
+         * Envia múltiplos períodos de férias de uma vez
+         */
+        async bulkInsertVacations(records) {
+            if (!client || !records || records.length === 0) return true;
+            try {
+                const { error } = await client
+                    .from('ferias_motoristas')
+                    .insert(records);
+
+                if (error) {
+                    console.error('[SUPABASE] Erro no bulkInsertVacations:', error);
+                    return false;
+                }
+                return true;
+            } catch (err) {
+                console.error('[SUPABASE] Exceção no bulkInsertVacations:', err);
+                return false;
+            }
+        },
+
+        /**
          * Exclui um período de férias no Supabase
          */
         async deleteDriverVacations(motoristaNome, dataInicio, dataFim) {

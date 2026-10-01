@@ -491,6 +491,8 @@ const DriversModule = (function() {
             ]);
 
             let hasChanges = false;
+
+            // ── 1. RECEBE DA NUVEM (PULL PARA O LOCAL) ──
             if (vacs && Array.isArray(vacs) && vacs.length > 0) {
                 const currentVacs = loadVacations();
                 vacs.forEach(v => {
@@ -521,6 +523,60 @@ const DriversModule = (function() {
                     }
                 });
                 if (hasChanges) saveActivities(currentActs);
+            }
+
+            // ── 2. ENVIA HISTÓRICO LOCAL PARA A NUVEM (PUSH AUTO-MIGRAÇÃO) ──
+            const localActs = loadActivities();
+            const localVacs = loadVacations();
+
+            const remoteActsSet = new Set((acts || []).map(a => `${a.motorista_nome}_${a.data}`));
+            const toUploadActs = [];
+
+            Object.entries(localActs).forEach(([driver, days]) => {
+                if (DELETED_DRIVERS.includes(driver) || typeof days !== 'object' || !days) return;
+                Object.entries(days).forEach(([dateStr, status]) => {
+                    if (status && status !== 'ativo') {
+                        const key = `${driver}_${dateStr}`;
+                        if (!remoteActsSet.has(key)) {
+                            toUploadActs.push({
+                                motorista_nome: driver,
+                                data: dateStr,
+                                status: status
+                            });
+                        }
+                    }
+                });
+            });
+
+            if (toUploadActs.length > 0) {
+                console.log(`[SUPABASE] Enviando ${toUploadActs.length} registros locais de motoristas para a nuvem...`);
+                await window.CarVerifySupabase.bulkUpsertActivities(toUploadActs);
+                console.log(`[SUPABASE] ✅ ${toUploadActs.length} registros de motoristas salvos na nuvem com sucesso!`);
+            }
+
+            const remoteVacsSet = new Set((vacs || []).map(v => `${v.motorista_nome}_${v.data_inicio}_${v.data_fim}`));
+            const toUploadVacs = [];
+
+            Object.entries(localVacs).forEach(([driver, list]) => {
+                if (DELETED_DRIVERS.includes(driver) || !Array.isArray(list)) return;
+                list.forEach(p => {
+                    if (p.start && p.end) {
+                        const key = `${driver}_${p.start}_${p.end}`;
+                        if (!remoteVacsSet.has(key)) {
+                            toUploadVacs.push({
+                                motorista_nome: driver,
+                                data_inicio: p.start,
+                                data_fim: p.end
+                            });
+                        }
+                    }
+                });
+            });
+
+            if (toUploadVacs.length > 0) {
+                console.log(`[SUPABASE] Enviando ${toUploadVacs.length} períodos de férias locais para a nuvem...`);
+                await window.CarVerifySupabase.bulkInsertVacations(toUploadVacs);
+                console.log(`[SUPABASE] ✅ ${toUploadVacs.length} períodos de férias salvos na nuvem com sucesso!`);
             }
 
             if (hasChanges) {
@@ -1304,6 +1360,7 @@ const DriversModule = (function() {
     return {
         init,
         render,
+        sync: syncFromSupabase,
         KNOWN_DRIVERS,
         STATUS_MAP
     };

@@ -1705,6 +1705,11 @@ async function syncWithRemote() {
     const btn = document.getElementById('btnSync');
     if (btn) btn.classList.add('spinning');
 
+    // Sincroniza também as atividades e férias dos motoristas na nuvem
+    if (window.DriversModule && typeof window.DriversModule.sync === 'function') {
+        window.DriversModule.sync().catch(e => console.warn('Drivers sync error:', e));
+    }
+
     // 1. Tenta carregar dados em tempo real direto do Supabase
     let loadedFromSupabase = false;
     if (window.CarVerifySupabase) {
