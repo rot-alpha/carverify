@@ -27,4 +27,11 @@
 - [x] Tela de Veículos: botão e modal de Relatório de Conformidade (1 página A4), adaptável ao filtro ativo (dia específico ou compilado do mês com contagem 'Nome Xx' dos motoristas), destaque de não conformidades, gráfico donut vetorial SVG, matriz dos 29 itens, espaço ampliado para assinatura e opções de Imprimir e Baixar PDF.
 - [x] Navegação e Inicialização: persistência de tela ativa (`#inicio`, `#veiculos`, `#motoristas`) e veículo selecionado no reload/F5 via URL hash e localStorage; inicialização garantida no mês atual do sistema (em vez do último mês com dados gravados no CSV) em todos os seletores e no calendário, permitindo navegação para meses anteriores quando desejado.
 - [x] Correção de Carregamento dos Motoristas: exportação explícita de `window.DriversModule = DriversModule` e fallback de escopo no `navigateTo('drivers')`, restaurando imediatamente a inicialização e exibição de todos os dados e colaboradores persistidos no `localStorage`.
+- [x] Saneamento de Odômetro (FPF8A23): diagnóstico e correção de erro de digitação de KM em 29/09/2026 (ajustado de 269.966 para 279.966 km), sincronizando a base local e o fallback embutido, normalizando o compilado de setembro para +2.908 km.
+- [x] Estudo Arquitetural de Armazenamento de Dados: diagnóstico de gargalos do localStorage e Sheets vs Firebase vs Supabase em `diagnostico_armazenamento_dados.md`.
+- [x] Passo 1 da Migração Supabase: criação do `database/schema.sql`, diretiva `directives/setup_supabase.md` e script de seed `execution/seed_supabase.js`.
+- [x] Passo 2 e 3 da Migração: criação do projeto no Supabase pelo usuário, execução do schema no SQL Editor e configuração das chaves no `.env`.
+- [x] Passo 4 da Migração: execução da carga inicial de dados via `node execution/seed_supabase.js` (435 checklists migrados) e integração do Supabase JS no front-end (`supabase-config.js`, `app.js` e `drivers.js` com persistência em nuvem).
+
+
 

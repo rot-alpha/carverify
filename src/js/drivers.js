@@ -191,6 +191,14 @@ const DriversModule = (function() {
         if (!data[driverName]) data[driverName] = {};
         data[driverName][dateStr] = status;
         saveActivities(data);
+
+        if (window.CarVerifySupabase) {
+            if (status === 'ativo') {
+                window.CarVerifySupabase.deleteDriverActivity(driverName, dateStr);
+            } else {
+                window.CarVerifySupabase.upsertDriverActivity(driverName, dateStr, status);
+            }
+        }
     }
 
     function registerVacation(driverName, startStr, endStr) {
@@ -219,10 +227,17 @@ const DriversModule = (function() {
         while (cursor <= end) {
             const key = formatDateKey(cursor);
             data[driverName][key] = 'ferias';
+            if (window.CarVerifySupabase) {
+                window.CarVerifySupabase.upsertDriverActivity(driverName, key, 'ferias');
+            }
             cursor.setDate(cursor.getDate() + 1);
         }
 
         saveActivities(data);
+
+        if (window.CarVerifySupabase) {
+            window.CarVerifySupabase.saveDriverVacation(driverName, startStr, endStr);
+        }
     }
 
     function deleteActivity(driverName, dateStr) {
@@ -237,8 +252,19 @@ const DriversModule = (function() {
         // Se a data apagada fazia parte de férias cadastradas, ajusta/remove o período de férias
         const vacs = loadVacations();
         if (vacs[driverName]) {
+            const removedPeriods = vacs[driverName].filter(p => p.start <= dateStr && p.end >= dateStr);
             vacs[driverName] = vacs[driverName].filter(p => !(p.start <= dateStr && p.end >= dateStr));
             saveVacations(vacs);
+
+            if (window.CarVerifySupabase && removedPeriods.length > 0) {
+                removedPeriods.forEach(p => {
+                    window.CarVerifySupabase.deleteDriverVacations(driverName, p.start, p.end);
+                });
+            }
+        }
+
+        if (window.CarVerifySupabase) {
+            window.CarVerifySupabase.deleteDriverActivity(driverName, dateStr);
         }
     }
 
@@ -456,6 +482,55 @@ const DriversModule = (function() {
     let driverSearchTerm = '';
     let isInitialized = false;
 
+    async function syncFromSupabase() {
+        if (!window.CarVerifySupabase) return;
+        try {
+            const [acts, vacs] = await Promise.all([
+                window.CarVerifySupabase.fetchDriverActivities(),
+                window.CarVerifySupabase.fetchDriverVacations()
+            ]);
+
+            let hasChanges = false;
+            if (vacs && Array.isArray(vacs) && vacs.length > 0) {
+                const currentVacs = loadVacations();
+                vacs.forEach(v => {
+                    const driver = v.motorista_nome;
+                    if (!currentVacs[driver]) currentVacs[driver] = [];
+                    const exists = currentVacs[driver].some(p => p.start === v.data_inicio && p.end === v.data_fim);
+                    if (!exists) {
+                        currentVacs[driver].push({
+                            start: v.data_inicio,
+                            end: v.data_fim,
+                            createdAt: v.created_at ? v.created_at.split('T')[0] : todayKey()
+                        });
+                        hasChanges = true;
+                    }
+                });
+                if (hasChanges) saveVacations(currentVacs);
+            }
+
+            if (acts && Array.isArray(acts) && acts.length > 0) {
+                const currentActs = loadActivities();
+                acts.forEach(a => {
+                    const driver = a.motorista_nome;
+                    const d = a.data;
+                    if (!currentActs[driver]) currentActs[driver] = {};
+                    if (currentActs[driver][d] !== a.status) {
+                        currentActs[driver][d] = a.status;
+                        hasChanges = true;
+                    }
+                });
+                if (hasChanges) saveActivities(currentActs);
+            }
+
+            if (hasChanges) {
+                render();
+            }
+        } catch (e) {
+            console.warn('[SUPABASE] Falha na sincronização de motoristas:', e);
+        }
+    }
+
     function init() {
         loadActivities();
         currentFilter = todayKey().substring(0, 7);
@@ -465,6 +540,7 @@ const DriversModule = (function() {
             bindEvents();
             isInitialized = true;
         }
+        syncFromSupabase();
     }
 
     function render() {
