@@ -18,7 +18,7 @@ class CalendarComponent {
         this.currentYear = this.today.getFullYear();
         this.currentMonth = this.today.getMonth();
         this.selectedDate = null;
-        this.datesWithData = new Set();
+        this.datesWithData = new Map();
 
         this._bindEvents();
         this.render();
