@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS public.checklists (
     pneus VARCHAR(10) DEFAULT 'OK',
     estepe VARCHAR(10) DEFAULT 'OK',
     macaco_triangulo_chave VARCHAR(10) DEFAULT 'OK',
-    extintor VARCHAR(10) DEFAULT 'OK',
+    extintor VARCHAR(10) DEFAULT 'OK', -- Pergunta atualizada no formulário: "Limpeza do Veículo (Cabine e Baú)". Migração opcional: ALTER TABLE checklists RENAME COLUMN extintor TO limpeza_cabine_bau;
     cnh_compativel VARCHAR(10) DEFAULT 'OK',
     crlv_atualizado VARCHAR(10) DEFAULT 'OK',
     parabrisa VARCHAR(10) DEFAULT 'OK',

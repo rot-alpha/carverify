@@ -33,7 +33,7 @@ const QUESTIONS = [
     'Pneus (condições gerais)',
     'Estepe (existência e condições)',
     'Macaco / triângulo / chave de roda',
-    'Extintor (validade e condições)',
+    'Limpeza do Veículo (Cabine e Baú)',
     'CNH compatível com categoria',
     'CRLV atualizado',
     'Para-brisa',
@@ -69,7 +69,7 @@ const PT_STOPWORDS = new Set([
 ]);
 
 // ─── RAW CSV DATA (embedded from Google Sheets) ──
-const RAW_CSV = `Carimbo de data/hora,Modelo do Veículo  ,Placa do Veículo,KM Atual do veículo,Motorista  ,Ajudante,Data  ,Empresa,Sistema de freio  ,Freio de Mão/Estacionamento,Nível de óleo hidráulico (freio/direção) ,Nível de óleo do motor ,Nível de água do radiador ,"Luz de freio, ré, setas e alerta ",Faróis e lanternas ,Setas e pisca-alerta ,Buzina ,Cinto de segurança ,Pneus (condições gerais) ,Estepe (existência e condições) ,  Macaco / triângulo / chave de roda  ,  Extintor (validade e condições)  ,CNH compatível com categoria ,CRLV atualizado ,  Para-brisa  ,  Limpador e palhetas  ,Retrovisores ,Vidros laterais ,Luzes do painel ,Pedais ,Fechaduras das portas ,Tampas dos tanques ,Bateria (fixação e condição) ,  Estrutura do baú  ,  Portas do baú  ,Funcionamento do Thermo King ,Carrinho de carga ,  Possui celular da empresa?  ,O veículo esta devidamente limpo? (Parte interna e externa),Há alguma observação a ser mencionada?,Nome do Líder de atual,Declaro que o checklist foi realizado corretamente ,  Declaro ciência das condições do veículo  
+const RAW_CSV = `Carimbo de data/hora,Modelo do Veículo  ,Placa do Veículo,KM Atual do veículo,Motorista  ,Ajudante,Data  ,Empresa,Sistema de freio  ,Freio de Mão/Estacionamento,Nível de óleo hidráulico (freio/direção) ,Nível de óleo do motor ,Nível de água do radiador ,"Luz de freio, ré, setas e alerta ",Faróis e lanternas ,Setas e pisca-alerta ,Buzina ,Cinto de segurança ,Pneus (condições gerais) ,Estepe (existência e condições) ,  Macaco / triângulo / chave de roda  ,Limpeza do Veiculo (Cabine e Baú),CNH compatível com categoria ,CRLV atualizado ,  Para-brisa  ,  Limpador e palhetas  ,Retrovisores ,Vidros laterais ,Luzes do painel ,Pedais ,Fechaduras das portas ,Tampas dos tanques ,Bateria (fixação e condição) ,  Estrutura do baú  ,  Portas do baú  ,Funcionamento do Thermo King ,Carrinho de carga ,  Possui celular da empresa?  ,O veículo esta devidamente limpo? (Parte interna e externa),Há alguma observação a ser mencionada?,Nome do Líder de atual,Declaro que o checklist foi realizado corretamente ,  Declaro ciência das condições do veículo  
 13/05/2026 10:04:59,IVECO,FRG7C31,268979,Alex Schuermann,Luis Gustavo,13/05/2026,ALPHA CANDIES,NOK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NOK,OK,NOK,OK,OK,OK,OK,NOK,OK,OK,OK,OK,OK,OK,OK,OK,Sim,Sim,"A suspensão esta fazendo barulho quando ser manobrada ,e o freio esta fazendo barulho, 1000 km pra revisão da troca de oleo,trocar filtro de ar do veiculo",Júlio ,Sim,Sim
 14/05/2026 05:39:10,IVECO,FRG7C31,269081,Alex Schuermann,Luis Gustavo,14/05/2026,ALPHA CANDIES,NOK,OK,NOK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NOK,OK,OK,OK,OK,NOK,OK,OK,OK,OK,OK,OK,OK,OK,Sim,Sim,Vazamento de oleo da direção ,Julio,Sim,Sim
 21/05/2026 15:15:55,IVECO,ECF3235,370133,Alex Schuermann,Cristofer Moraes,21/05/2026,ALPHA CANDIES,NOK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NOK,OK,NOK,OK,OK,OK,OK,NOK,NOK,OK,OK,OK,OK,OK,OK,OK,Sim,Não,Luz de freio acesa no painel,Julio,Sim,Sim
@@ -561,17 +561,87 @@ let charts;
 
 // ─── CSV PARSER ────────────────────────────
 function parseCSV(csv) {
-    const lines = csv.trim().split('\n').filter(l => l.trim().length > 0);
-    const headers = lines[0].split(',');
+    // Parser que respeita quebras de linha dentro de campos entre aspas
+    const rows = [];
+    let row = [];
+    let field = '';
+    let inQuotes = false;
+    for (let i = 0; i < csv.length; i++) {
+        const c = csv[i];
+        if (c === '"') {
+            if (inQuotes && csv[i + 1] === '"') {
+                field += '"';
+                i++;
+            } else {
+                inQuotes = !inQuotes;
+            }
+        } else if (c === ',' && !inQuotes) {
+            row.push(field);
+            field = '';
+        } else if ((c === '\r' || c === '\n') && !inQuotes) {
+            if (c === '\r' && csv[i + 1] === '\n') i++;
+            row.push(field);
+            if (row.length > 1) rows.push(row);
+            row = [];
+            field = '';
+        } else {
+            field += c;
+        }
+    }
+    if (field || row.length > 0) {
+        row.push(field);
+        if (row.length > 1) rows.push(row);
+    }
+
+// ─── RESOLUÇÃO INTELIGENTE DE DATA ─────────
+// Respeita a data informada pelo motorista, mas se houver erro de digitação (ex: ano inválido, 0021, 0026),
+// utiliza automaticamente a data registrada no carimbo oficial de envio do formulário.
+function resolveChecklistDate(rawManualDate, rawCarimbo) {
+    let carimboDateStr = null;
+    if (rawCarimbo) {
+        if (rawCarimbo.includes('/')) {
+            const [cDate] = rawCarimbo.trim().split(' ');
+            const [cdd, cmm, cyy] = (cDate || '').split('/');
+            if (cdd && cmm && cyy && cyy.length === 4) {
+                carimboDateStr = `${cyy}-${cmm.padStart(2, '0')}-${cdd.padStart(2, '0')}`;
+            }
+        } else if (rawCarimbo.includes('-')) {
+            carimboDateStr = rawCarimbo.slice(0, 10);
+        }
+    }
+
+    if (!rawManualDate) return carimboDateStr;
+
+    const dateParts = rawManualDate.trim().split('/');
+    if (dateParts.length !== 3) return carimboDateStr;
+
+    const [ddStr, mmStr, yyyyStr] = dateParts;
+    const dd = parseInt(ddStr, 10);
+    const mm = parseInt(mmStr, 10);
+    const yyyy = parseInt(yyyyStr, 10);
+
+    const isDayValid = !isNaN(dd) && dd >= 1 && dd <= 31;
+    const isMonthValid = !isNaN(mm) && mm >= 1 && mm <= 12;
+    // Ano plausível (2024-2030) e com 4 dígitos reais (rejeita 0021, 0026, 21, etc.)
+    const isYearValid = !isNaN(yyyy) && yyyy >= 2024 && yyyy <= 2030 && yyyyStr.trim().length === 4 && !yyyyStr.trim().startsWith('00');
+
+    if (isDayValid && isMonthValid && isYearValid) {
+        return `${yyyy}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+    }
+
+    return carimboDateStr;
+}
+
     const data = {};
 
     // Init vehicle buckets
     VEHICLES.forEach(v => { data[v.plate] = { days: {} }; });
 
-    for (let i = 1; i < lines.length; i++) {
-        const values = smartSplitCSV(lines[i]);
+    for (let i = 1; i < rows.length; i++) {
+        const values = rows[i];
         if (values.length < 35) continue;
 
+        const carimboStr = (values[0] || '').trim();
         const plate = (values[2] || '').trim();
         const km = parseInt((values[3] || '0').replace(/\D/g, '')) || 0;
         const driver = (values[4] || '').trim();
@@ -582,14 +652,9 @@ function parseCSV(csv) {
 
         if (!data[plate]) continue;
 
-        // Parse date to YYYY-MM-DD
-        const dateParts = rawDate.split('/');
-        if (dateParts.length !== 3) continue;
-        let [dd, mm, yyyy] = dateParts;
-        // Fix typos in year (e.g., 0026 → 2026)
-        if (yyyy.length === 4 && parseInt(yyyy) < 100) yyyy = '2026';
-        if (yyyy === '2025') yyyy = '2026'; // fix obvious typo
-        const dateStr = `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`;
+        // Parse date com fallback seguro para o carimbo
+        const dateStr = resolveChecklistDate(rawDate, carimboStr);
+        if (!dateStr) continue;
 
         // Parse question answers (columns 8-36, 29 questions)
         const answers = {};
@@ -598,9 +663,10 @@ function parseCSV(csv) {
             answers[q] = (val === 'OK' || val === 'NOK') ? val : 'OK';
         });
 
-        // If same plate+date already exists, keep the one with more NOKs or merge
+        // Se já existe checklist para o mesmo dia e placa, incrementa contagem e unifica
         const existing = data[plate].days[dateStr];
         if (existing) {
+            existing.count = (existing.count || 1) + 1;
             // Merge: keep NOK if either entry has NOK
             QUESTIONS.forEach(q => {
                 if (answers[q] === 'NOK') existing.questions[q] = 'NOK';
@@ -615,8 +681,12 @@ function parseCSV(csv) {
             if (km > existing.km) existing.km = km;
             if (!existing.helper && helper) existing.helper = helper;
             if (!existing.leader && leader) existing.leader = leader;
+            if (existing.driver && driver && existing.driver !== driver && !existing.driver.includes(driver)) {
+                existing.driver += ` / ${driver}`;
+            }
         } else {
             data[plate].days[dateStr] = {
+                count: 1,
                 km: km,
                 driver: driver,
                 helper: helper,
@@ -665,7 +735,8 @@ const SUPABASE_ITEM_MAP = {
     'Pneus (condições gerais)': 'pneus',
     'Estepe (existência e condições)': 'estepe',
     'Macaco / triângulo / chave de roda': 'macaco_triangulo_chave',
-    'Extintor (validade e condições)': 'extintor',
+    'Limpeza do Veículo (Cabine e Baú)': 'extintor',
+    'Extintor (validade e condições)': 'extintor', // retrocompatibilidade histórica
     'CNH compatível com categoria': 'cnh_compativel',
     'CRLV atualizado': 'crlv_atualizado',
     'Para-brisa': 'parabrisa',
@@ -698,7 +769,9 @@ function parseSupabaseChecklists(rows) {
         const answers = {};
         QUESTIONS.forEach(q => {
             const field = SUPABASE_ITEM_MAP[q];
-            const val = (r[field] || 'OK').trim().toUpperCase();
+            // Suporta coluna 'extintor' ou 'limpeza_cabine_bau' caso tenha sido renomeada no Supabase
+            const rawVal = r[field] !== undefined ? r[field] : (r.limpeza_cabine_bau || r.extintor);
+            const val = (rawVal || 'OK').trim().toUpperCase();
             answers[q] = val === 'NOK' ? 'NOK' : 'OK';
         });
 
@@ -707,6 +780,7 @@ function parseSupabaseChecklists(rows) {
         const km = Number(r.km_atual) || 0;
 
         if (existing) {
+            existing.count = (existing.count || 1) + 1;
             QUESTIONS.forEach(q => {
                 if (answers[q] === 'NOK') existing.questions[q] = 'NOK';
             });
@@ -716,8 +790,12 @@ function parseSupabaseChecklists(rows) {
             if (km > existing.km) existing.km = km;
             if (!existing.helper && r.ajudante) existing.helper = r.ajudante;
             if (!existing.leader && r.lider_responsavel) existing.leader = r.lider_responsavel;
+            if (existing.driver && r.motorista && existing.driver !== r.motorista && !existing.driver.includes(r.motorista)) {
+                existing.driver += ` / ${r.motorista}`;
+            }
         } else {
             data[plate].days[dateStr] = {
+                count: 1,
                 km: km,
                 driver: r.motorista || '',
                 helper: r.ajudante || '',
@@ -1369,7 +1447,8 @@ function updateVehicleConformity(vehicleData, monthDays, selectedDate) {
             const footer = document.getElementById('conformityFooter');
             if (footer) {
                 const [, m, d] = selectedDate.split('-');
-                footer.textContent = `Placa ${plate} · Vistoria em ${parseInt(d)}/${parseInt(m)}`;
+                const countSuffix = (dayData.count && dayData.count > 1) ? ` · ${dayData.count}x vistorias realizadas` : ` · Vistoria em ${parseInt(d)}/${parseInt(m)}`;
+                footer.textContent = `Placa ${plate}${countSuffix}`;
             }
         } else {
             charts.updateConformity(0, 0);
@@ -1409,7 +1488,8 @@ function updateDashboard() {
     const monthDays = getFilteredDays(vehicleData);
     const selectedDate = state.selectedDate;
 
-    calendar.setDatesWithData(Object.keys(monthDays));
+    // Passa o objeto completo de dias com contagens para o calendário exibir selos '2x'
+    calendar.setDatesWithData(monthDays);
 
     updateVehicleConformity(vehicleData, monthDays, selectedDate);
 
@@ -1471,8 +1551,13 @@ function renderSingleDay(date, dayData, allMonthDays) {
         ? `<span class="meta-driver-badge"><span class="material-icons-round">person</span> Motorista: <strong>${driverName}</strong></span>` 
         : '';
 
+    const multBadgeHtml = (dayData.count && dayData.count > 1) 
+        ? `<span class="badge-multiple-checklists" title="${dayData.count} checklists registrados neste mesmo dia"><span class="material-icons-round" style="font-size:14px">content_copy</span> ${dayData.count}x Checklists</span>` 
+        : '';
+
     document.getElementById('checklistMeta').innerHTML = `
         <span>${formatDateLong(date)}</span>
+        ${multBadgeHtml}
         ${driverBadgeHtml}
     `;
     renderChecklistTableSingleDay(dayData.questions);
@@ -1751,8 +1836,23 @@ async function syncWithRemote() {
         }
     }
 
-    if (!loadedFromSupabase && fetchedCSV) {
-        state.data = parseCSV(fetchedCSV);
+    if (fetchedCSV) {
+        const csvData = parseCSV(fetchedCSV);
+        if (!loadedFromSupabase) {
+            state.data = csvData;
+        } else {
+            // Mescla registros recentes da planilha caso ainda não tenham sido sincronizados no Supabase
+            VEHICLES.forEach(v => {
+                if (!state.data[v.plate]) state.data[v.plate] = { days: {} };
+                const sDays = state.data[v.plate].days;
+                const cDays = (csvData[v.plate] && csvData[v.plate].days) ? csvData[v.plate].days : {};
+                Object.keys(cDays).forEach(dateStr => {
+                    if (!sDays[dateStr]) {
+                        sDays[dateStr] = cDays[dateStr];
+                    }
+                });
+            });
+        }
         initConformityMonthSelect();
         if (state.screen === 'dashboard') {
             updateDashboard();
@@ -1923,6 +2023,24 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (state.screen === 'dashboard') {
                 charts.destroyAll();
                 updateDashboard();
+            }
+            
+            // Ativa o Realtime logo após a primeira carga
+            if (window.CarVerifySupabase && typeof window.CarVerifySupabase.subscribeToChecklists === 'function') {
+                window.CarVerifySupabase.subscribeToChecklists((novoChecklist) => {
+                    // Quando chegar um novo checklist pelo WebSocket, forçamos um novo sync com o remoto
+                    // para recalcular tudo e atualizar a tela em tempo real sem precisar de F5
+                    console.log('[App] Novo checklist via Realtime detectado, atualizando dashboard...');
+                    syncWithRemote().then(() => {
+                        if (state.screen === 'home') {
+                            charts.destroyAll();
+                            renderHome();
+                        } else if (state.screen === 'dashboard') {
+                            charts.destroyAll();
+                            updateDashboard();
+                        }
+                    });
+                });
             }
         });
     }

@@ -29,6 +29,18 @@ async function sync() {
         const csvText = await response.text();
         fs.writeFileSync(CSV_PATH, csvText, 'utf-8');
         console.log(`[SYNC] Sucesso! Arquivo salvo em: ${CSV_PATH} (${csvText.length} bytes)`);
+
+        // Sincronização incremental com o Supabase
+        const envPath = path.join(__dirname, '..', '.env');
+        if (fs.existsSync(envPath)) {
+            try {
+                const { seed } = require('./seed_supabase.js');
+                console.log(`[SYNC] Sincronizando novos checklists com a nuvem (Supabase)...`);
+                await seed();
+            } catch (errSupabase) {
+                console.warn(`[SYNC] Aviso ao sincronizar com Supabase:`, errSupabase.message);
+            }
+        }
     } catch (err) {
         console.error(`[SYNC ERROR] Falha ao sincronizar:`, err.message);
     }

@@ -21,8 +21,11 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Baixar Respostas do Google Sheets
+      - name: Baixar Respostas do Google Sheets e Sincronizar Supabase
         run: node execution/sync_sheets.js
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
 
       - name: Commit e Push se houver novos dados
         run: |

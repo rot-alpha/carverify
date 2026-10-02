@@ -109,6 +109,41 @@ const ITEM_COLUMNS = [
     'carrinho_carga'
 ];
 
+function resolveChecklistDate(rawManualDate, rawCarimbo) {
+    let carimboDateStr = null;
+    if (rawCarimbo) {
+        if (rawCarimbo.includes('/')) {
+            const [cDate] = rawCarimbo.trim().split(' ');
+            const [cdd, cmm, cyy] = (cDate || '').split('/');
+            if (cdd && cmm && cyy && cyy.length === 4) {
+                carimboDateStr = `${cyy}-${cmm.padStart(2, '0')}-${cdd.padStart(2, '0')}`;
+            }
+        } else if (rawCarimbo.includes('-')) {
+            carimboDateStr = rawCarimbo.slice(0, 10);
+        }
+    }
+
+    if (!rawManualDate) return carimboDateStr;
+
+    const dateParts = rawManualDate.trim().split('/');
+    if (dateParts.length !== 3) return carimboDateStr;
+
+    const [ddStr, mmStr, yyyyStr] = dateParts;
+    const dd = parseInt(ddStr, 10);
+    const mm = parseInt(mmStr, 10);
+    const yyyy = parseInt(yyyyStr, 10);
+
+    const isDayValid = !isNaN(dd) && dd >= 1 && dd <= 31;
+    const isMonthValid = !isNaN(mm) && mm >= 1 && mm <= 12;
+    const isYearValid = !isNaN(yyyy) && yyyy >= 2024 && yyyy <= 2030 && yyyyStr.trim().length === 4 && !yyyyStr.trim().startsWith('00');
+
+    if (isDayValid && isMonthValid && isYearValid) {
+        return `${yyyy}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+    }
+
+    return carimboDateStr;
+}
+
 async function seed() {
     console.log(`\n🚀 [SUPABASE SEED] Conectando a: ${SUPABASE_URL}...`);
     const csvRaw = fs.readFileSync(CSV_PATH, 'utf-8');
@@ -120,6 +155,21 @@ async function seed() {
 
     const records = [];
     const driversSet = new Set();
+
+    // Auto-detecta se a coluna foi renomeada para limpeza_cabine_bau ou permanece extintor
+    let colLimpeza = 'extintor';
+    try {
+        const testResp = await fetch(`${SUPABASE_URL}/rest/v1/checklists?limit=1`, {
+            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+        });
+        if (testResp.ok) {
+            const sampleData = await testResp.json();
+            if (sampleData && sampleData[0] && 'limpeza_cabine_bau' in sampleData[0]) {
+                colLimpeza = 'limpeza_cabine_bau';
+            }
+        }
+    } catch (e) {}
+    const activeItemColumns = ITEM_COLUMNS.map(col => (col === 'extintor' ? colLimpeza : col));
 
     for (let i = 1; i < table.length; i++) {
         const row = table[i];
@@ -135,15 +185,13 @@ async function seed() {
         const rawDate = (row[6] || '').trim();
         const empresa = (row[7] || 'ALPHA CANDIES').trim();
 
+
+
         if (motorista) driversSet.add(motorista);
 
-        // Ajuste de data YYYY-MM-DD
-        const dateParts = rawDate.split('/');
-        if (dateParts.length !== 3) continue;
-        let [dd, mm, yyyy] = dateParts;
-        if (yyyy.length === 4 && parseInt(yyyy, 10) < 100) yyyy = '2026';
-        if (yyyy === '2025') yyyy = '2026';
-        const dateFormatted = `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`;
+        // Ajuste de data com resolução inteligente
+        const dateFormatted = resolveChecklistDate(rawDate, timestampStr);
+        if (!dateFormatted) continue;
 
         // Parse Carimbo de data/hora (DD/MM/YYYY HH:MM:SS)
         let isoTimestamp = new Date().toISOString();
@@ -161,7 +209,7 @@ async function seed() {
         // 29 Itens (colunas 8 a 36)
         let totalNok = 0;
         const itemValues = {};
-        ITEM_COLUMNS.forEach((colName, idx) => {
+        activeItemColumns.forEach((colName, idx) => {
             const val = (row[8 + idx] || 'OK').trim().toUpperCase();
             const status = (val === 'NOK') ? 'NOK' : 'OK';
             itemValues[colName] = status;
@@ -200,6 +248,32 @@ async function seed() {
 
     console.log(`📦 Total de registros processados do CSV: ${records.length}`);
 
+    // Normalizador de formato ISO para comparar timestamptz (Postgres retorna '+00:00' e ISO gera 'Z')
+    const normTimestamp = (ts) => (ts || '').trim().replace(/\+00:00$/, 'Z').replace(/\.000Z$/, 'Z');
+
+    // Buscar checklists já existentes no Supabase para sincronização incremental
+    let existingKeys = new Set();
+    try {
+        const respExisting = await fetch(`${SUPABASE_URL}/rest/v1/checklists?select=carimbo_data_hora,veiculo_placa&limit=50000`, {
+            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+        });
+        if (respExisting.ok) {
+            const list = await respExisting.json();
+            list.forEach(r => existingKeys.add(`${normTimestamp(r.carimbo_data_hora)}_${r.veiculo_placa}`));
+            console.log(`🔍 Checklists já existentes no Supabase: ${existingKeys.size}`);
+        }
+    } catch (e) {
+        console.warn('Aviso ao consultar checklists existentes:', e.message);
+    }
+
+    const newRecords = records.filter(r => !existingKeys.has(`${normTimestamp(r.carimbo_data_hora)}_${r.veiculo_placa}`));
+    console.log(`✨ Novos checklists a sincronizar: ${newRecords.length}`);
+
+    if (newRecords.length === 0) {
+        console.log(`✅ [SINCRONIZADO] O Supabase já está 100% atualizado com todas as respostas da planilha!`);
+        return;
+    }
+
     // Inserir motoristas descobertos que não estejam na lista inicial
     const driversList = Array.from(driversSet).map(name => ({ nome: name, ativo: true }));
     try {
@@ -222,8 +296,8 @@ async function seed() {
     const CHUNK_SIZE = 50;
     let inserted = 0;
 
-    for (let i = 0; i < records.length; i += CHUNK_SIZE) {
-        const chunk = records.slice(i, i + CHUNK_SIZE);
+    for (let i = 0; i < newRecords.length; i += CHUNK_SIZE) {
+        const chunk = newRecords.slice(i, i + CHUNK_SIZE);
         const resp = await fetch(`${SUPABASE_URL}/rest/v1/checklists`, {
             method: 'POST',
             headers: {
@@ -248,6 +322,10 @@ async function seed() {
     console.log(`\n\n✅ [SUCESSO] Todos os ${inserted} checklists foram migrados com sucesso para o Supabase!`);
 }
 
-seed().catch(err => {
-    console.error('❌ Falha na execução da migração:', err);
-});
+module.exports = { seed, resolveChecklistDate };
+
+if (require.main === module) {
+    seed().catch(err => {
+        console.error('❌ Falha na execução da migração:', err);
+    });
+}

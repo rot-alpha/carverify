@@ -24,9 +24,17 @@ class CalendarComponent {
         this.render();
     }
 
-    /** Set which dates have data (array of 'YYYY-MM-DD' strings) */
-    setDatesWithData(dates) {
-        this.datesWithData = new Set(dates);
+    /** Set which dates have data (array of date strings or object mapping date -> dayData/count) */
+    setDatesWithData(datesData) {
+        this.datesWithData = new Map();
+        if (Array.isArray(datesData)) {
+            datesData.forEach(d => this.datesWithData.set(d, 1));
+        } else if (datesData && typeof datesData === 'object') {
+            Object.entries(datesData).forEach(([dateStr, val]) => {
+                const count = (val && typeof val === 'object') ? (val.count || 1) : (Number(val) || 1);
+                this.datesWithData.set(dateStr, count);
+            });
+        }
         this.render();
     }
 
@@ -88,6 +96,7 @@ class CalendarComponent {
             cell.textContent = d;
 
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+            const count = this.datesWithData.get(dateStr) || 0;
 
             // Today highlight
             if (year === this.today.getFullYear() &&
@@ -96,9 +105,17 @@ class CalendarComponent {
                 cell.classList.add('cal-day--today');
             }
 
-            // Has data indicator
-            if (this.datesWithData.has(dateStr)) {
+            // Has data indicator & Multiple checklists tag
+            if (count > 0) {
                 cell.classList.add('cal-day--has-data');
+                if (count > 1) {
+                    cell.classList.add('cal-day--multiple');
+                    const badge = document.createElement('span');
+                    badge.className = 'cal-day-badge-mult';
+                    badge.textContent = `${count}x`;
+                    badge.title = `${count} checklists registrados neste dia`;
+                    cell.appendChild(badge);
+                }
             }
 
             // Selected
@@ -109,7 +126,9 @@ class CalendarComponent {
             // Click handler
             cell.addEventListener('click', () => {
                 this.selectedDate = dateStr;
-                this.display.textContent = this._formatDatePtBR(dateStr);
+                const activeCount = this.datesWithData.get(dateStr) || 0;
+                const countSuffix = activeCount > 1 ? ` (${activeCount}x)` : '';
+                this.display.textContent = `${this._formatDatePtBR(dateStr)}${countSuffix}`;
                 this.render();
                 this.onDateSelect(dateStr);
             });

@@ -32,6 +32,10 @@
 - [x] Passo 1 da Migração Supabase: criação do `database/schema.sql`, diretiva `directives/setup_supabase.md` e script de seed `execution/seed_supabase.js`.
 - [x] Passo 2 e 3 da Migração: criação do projeto no Supabase pelo usuário, execução do schema no SQL Editor e configuração das chaves no `.env`.
 - [x] Passo 4 da Migração: execução da carga inicial de dados via `node execution/seed_supabase.js` (435 checklists migrados) e integração do Supabase JS no front-end (`supabase-config.js`, `app.js` e `drivers.js` com persistência em nuvem).
+- [x] Atualização de Pergunta do Checklist: transição da pergunta 14 de "Extintor (validade e condições)" para "Limpeza do Veículo (Cabine e Baú)" no frontend (`app.js`), cabeçalho CSV/Sheets, relatórios e mapeamento com retrocompatibilidade no Supabase.
+- [x] Diagnóstico e Correção de Checklists de Outubro: sincronização dos 8 checklists pendentes para o Supabase, tratamento de quebras de linha em observações no `parseCSV` e mescla em tempo real no `syncWithRemote()`.
+- [x] Resolução Inteligente de Datas e Sinalização 2x: priorização da data manual com fallback automático para o carimbo de envio em erros de digitação (ex: ano inválido); suporte a múltiplos checklists no mesmo dia com exibição de badge `2x` no calendário e no card de conformidade da tela "Veículos", preservando os cálculos de engajamento, conformidade e KM.
+
 
 
 

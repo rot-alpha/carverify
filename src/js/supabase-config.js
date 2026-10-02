@@ -52,6 +52,28 @@
         },
 
         /**
+         * Inscreve para receber novos checklists inseridos em tempo real via WebSocket
+         */
+        subscribeToChecklists(onInsertCallback) {
+            if (!client) return null;
+            
+            console.log('[SUPABASE] Ativando escuta Realtime para tabela checklists...');
+            const channel = client
+                .channel('checklists-realtime')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'checklists' }, payload => {
+                    console.log('[SUPABASE] NOVO CHECKLIST RECEBIDO EM TEMPO REAL!', payload.new);
+                    if (onInsertCallback) onInsertCallback(payload.new);
+                })
+                .subscribe((status) => {
+                    if (status === 'SUBSCRIBED') {
+                        console.log('[SUPABASE] Realtime conectado com sucesso!');
+                    }
+                });
+                
+            return channel;
+        },
+
+        /**
          * Busca todas as atividades cadastradas dos motoristas
          */
         async fetchDriverActivities() {
