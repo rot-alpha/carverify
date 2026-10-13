@@ -933,6 +933,7 @@ function detectRecurrences(vehicleDays, threshold = 0.25) {
 
     return recurrences.sort((a, b) => b.count - a.count);
 }
+window.detectRecurrences = detectRecurrences;
 
 // ─── RENDERING ─────────────────────────────
 
@@ -1594,7 +1595,7 @@ function updateDashboard() {
         renderCompiled(monthDays);
     }
 
-    renderRecurrences(vehicleData.days);
+    renderRecurrences(monthDays);
 }
 
 function renderCompiled(monthDays) {
@@ -1818,11 +1819,13 @@ function renderComments(daysObj) {
     }).join('');
 }
 
-function renderRecurrences(allDays) {
+function renderRecurrences(daysObj) {
     const container = document.getElementById('recurrenceList');
-    const recurrences = detectRecurrences(allDays);
+    if (!container) return;
 
-    document.getElementById('recurrenceCount').textContent = recurrences.length;
+    const recurrences = detectRecurrences(daysObj || {});
+    const countEl = document.getElementById('recurrenceCount');
+    if (countEl) countEl.textContent = recurrences.length;
 
     if (recurrences.length === 0) {
         container.innerHTML = `

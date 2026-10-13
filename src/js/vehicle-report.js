@@ -545,17 +545,22 @@ const VehicleReportModule = (function () {
             }).join('');
         }
 
-        // Alertas de Reincidência do veículo (se houver no state)
+        // Alertas de Reincidência do veículo (se houver no state e no mês selecionado)
         let recurrenceBadge = '';
-        if (typeof computeRecurrences === 'function') {
-            const vehicleDays = (state.data[plate] && state.data[plate].days) || {};
-            const recurrences = computeRecurrences(vehicleDays);
+        const recDetector = (typeof detectRecurrences === 'function')
+            ? detectRecurrences
+            : (typeof window !== 'undefined' && typeof window.detectRecurrences === 'function' ? window.detectRecurrences : (typeof computeRecurrences === 'function' ? computeRecurrences : null));
+
+        if (recDetector) {
+            const targetDays = isSingleDay ? { [selectedDate]: monthDays[selectedDate] } : monthDays;
+            const recurrences = recDetector(targetDays || {});
             if (recurrences && recurrences.length > 0) {
                 const topRec = recurrences[0];
+                const recItemsCount = topRec.items ? topRec.items.length : (topRec.dates ? topRec.dates.length : topRec.count);
                 recurrenceBadge = `
                     <div class="report-recurrence-pill">
                         <span class="material-icons-round">warning</span>
-                        <span>Reincidência detectada: <strong>${topRec.count}x relatos similares</strong> (${topRec.dates.length} vistorias)</span>
+                        <span>Reincidência detectada: <strong>${topRec.count}x relatos similares</strong> (${recItemsCount} vistorias)</span>
                     </div>
                 `;
             }
