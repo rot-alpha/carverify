@@ -851,8 +851,6 @@ const DriversModule = (function() {
             const statusKey = isVac ? 'ferias' : (data[name] && data[name][today] ? data[name][today] : null);
             const statusMeta = statusKey ? STATUS_MAP[statusKey] : null;
             const isSelected = selectedDriver === name;
-            const isH = isHelper(name);
-            const chkStats = isH ? null : getDriverChecklistStats(name, currentFilter);
 
             html += `
                 <div class="driver-nav-item ${isSelected ? 'active' : ''}" data-driver="${name}">
@@ -860,23 +858,14 @@ const DriversModule = (function() {
                         ${getInitials(name)}
                     </div>
                     <div class="driver-nav-info">
-                        <div class="driver-nav-name-row">
-                            <span class="driver-nav-name">${name}</span>
-                            <span class="sidebar-role-tag ${isH ? 'helper' : 'driver'}">${isH ? 'Ajudante' : 'Motorista'}</span>
-                        </div>
-                        <div class="driver-nav-sub-row">
-                            <span class="driver-nav-status-sub">
-                                ${isVac 
-                                    ? '<span class="dot-online" style="background:#f59e0b;"></span> Em Férias'
-                                    : (hasToday && statusMeta) 
-                                    ? `<span class="dot-online" style="background:${statusMeta.color};"></span> ${statusMeta.label}` 
-                                    : '<span class="dot-offline"></span> Aguardando'}
-                            </span>
-                            ${isH 
-                                ? '<span class="sidebar-vistoria-tag exempt">Isento</span>'
-                                : `<span class="sidebar-vistoria-tag ${chkStats.pctAdesao >= 95 ? 'ok' : chkStats.pctAdesao >= 90 ? 'warn' : 'danger'}">${chkStats.pctAdesao}% vistoria</span>`
-                            }
-                        </div>
+                        <span class="driver-nav-name">${name}</span>
+                        <span class="driver-nav-status-sub">
+                            ${isVac 
+                                ? '<span class="dot-online" style="background:#f59e0b;"></span> Em Férias'
+                                : (hasToday && statusMeta) 
+                                ? `<span class="dot-online" style="background:${statusMeta.color};"></span> ${statusMeta.label}` 
+                                : '<span class="dot-offline"></span> Aguardando'}
+                        </span>
                     </div>
                     <span class="material-icons-round driver-nav-arrow">chevron_right</span>
                 </div>
