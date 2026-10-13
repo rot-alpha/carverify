@@ -229,22 +229,47 @@ const DriversModule = (function() {
     function registerVacation(driverName, startStr, endStr) {
         if (DELETED_DRIVERS.includes(driverName)) return;
 
-        // 1. Guardar período de férias permanente
+        // 1. Guardar período de férias permanente e substituir períodos sobrepostos
         const vacs = loadVacations();
-        if (!vacs[driverName]) vacs[driverName] = [];
-        // Filtra períodos idênticos
-        vacs[driverName] = vacs[driverName].filter(p => !(p.start === startStr && p.end === endStr));
-        vacs[driverName].push({
+        const existingPeriods = vacs[driverName] || [];
+        const overlapping = existingPeriods.filter(p => !(p.end < startStr || p.start > endStr));
+        const nonOverlapping = existingPeriods.filter(p => (p.end < startStr || p.start > endStr));
+
+        // Limpa no histórico diário os dias dos períodos anteriores que ficaram fora do novo intervalo
+        const data = loadActivities();
+        if (data[driverName]) {
+            overlapping.forEach(oldP => {
+                const s = parseDate(oldP.start);
+                const e = parseDate(oldP.end);
+                const c = new Date(s);
+                while (c <= e) {
+                    const k = formatDateKey(c);
+                    if (k < startStr || k > endStr) {
+                        if (data[driverName][k] === 'ferias') {
+                            delete data[driverName][k];
+                            if (window.CarVerifySupabase) {
+                                window.CarVerifySupabase.deleteDriverActivity(driverName, k);
+                            }
+                        }
+                    }
+                    c.setDate(c.getDate() + 1);
+                }
+                if (window.CarVerifySupabase) {
+                    window.CarVerifySupabase.deleteDriverVacations(driverName, oldP.start, oldP.end);
+                }
+            });
+        }
+
+        nonOverlapping.push({
             start: startStr,
             end: endStr,
             createdAt: todayKey()
         });
+        vacs[driverName] = nonOverlapping;
         saveVacations(vacs);
 
-        // 2. Preencher automaticamente todos os dias do período no histórico de atividades
-        const data = loadActivities();
+        // 2. Preencher automaticamente todos os dias do novo período no histórico de atividades
         if (!data[driverName]) data[driverName] = {};
-
         const start = parseDate(startStr);
         const end = parseDate(endStr);
         const cursor = new Date(start);
@@ -278,13 +303,30 @@ const DriversModule = (function() {
         const vacs = loadVacations();
         if (vacs[driverName]) {
             const removedPeriods = vacs[driverName].filter(p => p.start <= dateStr && p.end >= dateStr);
-            vacs[driverName] = vacs[driverName].filter(p => !(p.start <= dateStr && p.end >= dateStr));
-            saveVacations(vacs);
+            if (removedPeriods.length > 0) {
+                vacs[driverName] = vacs[driverName].filter(p => !(p.start <= dateStr && p.end >= dateStr));
+                saveVacations(vacs);
 
-            if (window.CarVerifySupabase && removedPeriods.length > 0) {
+                // Limpa todos os dias preenchidos pelas férias removidas
                 removedPeriods.forEach(p => {
-                    window.CarVerifySupabase.deleteDriverVacations(driverName, p.start, p.end);
+                    const s = parseDate(p.start);
+                    const e = parseDate(p.end);
+                    const c = new Date(s);
+                    while (c <= e) {
+                        const k = formatDateKey(c);
+                        if (data[driverName] && data[driverName][k] === 'ferias') {
+                            delete data[driverName][k];
+                            if (window.CarVerifySupabase) {
+                                window.CarVerifySupabase.deleteDriverActivity(driverName, k);
+                            }
+                        }
+                        c.setDate(c.getDate() + 1);
+                    }
+                    if (window.CarVerifySupabase) {
+                        window.CarVerifySupabase.deleteDriverVacations(driverName, p.start, p.end);
+                    }
                 });
+                saveActivities(data);
             }
         }
 
@@ -787,6 +829,7 @@ const DriversModule = (function() {
     function render() {
         renderSidebarList();
         renderMonthFilter();
+        updateDriverSelect();
 
         if (selectedDriver) {
             // Show individual profile & calendar
@@ -873,6 +916,39 @@ const DriversModule = (function() {
         });
 
         container.innerHTML = html;
+    }
+
+    // ─── DRIVER SELECT (FILTRO DINÂMICO DE FÉRIAS) ───
+    function updateDriverSelect(referenceDate, forcedDriver = null) {
+        const select = document.getElementById('driverNameSelect');
+        if (!select) return;
+
+        const dateInput = document.getElementById('driverDateInput');
+        const targetDate = referenceDate || (dateInput && dateInput.value) || todayKey();
+        const currentVal = forcedDriver || select.value;
+
+        select.innerHTML = '<option value="">Selecione um motorista...</option>';
+
+        KNOWN_DRIVERS.forEach(name => {
+            if (DELETED_DRIVERS.includes(name)) return;
+
+            // Oculta quem possui férias ativas na data alvo (reaparece após o retorno)
+            const activeVac = getActiveVacationForDate(name, targetDate);
+            const isVacationOnTargetDate = !!activeVac;
+
+            if (!isVacationOnTargetDate || (forcedDriver && forcedDriver === name)) {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.textContent = name;
+                select.appendChild(opt);
+            }
+        });
+
+        if (currentVal && Array.from(select.options).some(o => o.value === currentVal)) {
+            select.value = currentVal;
+        } else if (!forcedDriver) {
+            select.value = '';
+        }
     }
 
     // ─── MONTH FILTER ──────────────────────────
@@ -1407,6 +1483,13 @@ const DriversModule = (function() {
             });
         }
 
+        // Atualiza opções do select caso o usuário altere a data de lançamento
+        if (dateInput) {
+            dateInput.addEventListener('change', () => {
+                updateDriverSelect(dateInput.value);
+            });
+        }
+
         // Form submit
         const form = document.getElementById('driverActivityForm');
         if (form) {
@@ -1440,10 +1523,12 @@ const DriversModule = (function() {
                     const vacStartInput = document.getElementById('driverVacStartInput');
                     const vacEndInput = document.getElementById('driverVacEndInput');
 
-                    if (driverSelect) driverSelect.value = driver;
-
                     const activeVac = getActiveVacationForDate(driver, todayKey());
                     if (activeVac && statusSelect) {
+                        // Força a inclusão do colaborador em edição no select
+                        updateDriverSelect(todayKey(), driver);
+                        if (driverSelect) driverSelect.value = driver;
+
                         statusSelect.value = 'ferias';
                         if (vacationFields) vacationFields.style.display = 'flex';
                         if (singleDateField) singleDateField.style.display = 'none';
@@ -1457,6 +1542,9 @@ const DriversModule = (function() {
                             vacEndInput.value = activeVac.end;
                         }
                     } else {
+                        updateDriverSelect(todayKey(), driver);
+                        if (driverSelect) driverSelect.value = driver;
+
                         if (dateInput) {
                             dateInput.value = todayKey();
                             dateInput.required = true;
@@ -1623,6 +1711,7 @@ const DriversModule = (function() {
         }
 
         // Reset form
+        if (driverSelect) driverSelect.value = '';
         if (statusSelect) statusSelect.value = 'ativo';
         if (dateInput) {
             dateInput.value = todayKey();
@@ -1669,6 +1758,7 @@ const DriversModule = (function() {
         init,
         render,
         sync: syncFromSupabase,
+        updateDriverSelect,
         KNOWN_DRIVERS,
         STATUS_MAP,
         VEHICLE_HABITUAL_DRIVERS,

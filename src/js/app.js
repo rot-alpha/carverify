@@ -1061,19 +1061,10 @@ function navigateTo(screen, updateHistory = true) {
         if (driversEl) driversEl.style.display = '';
         if (navDrivers) navDrivers.classList.add('active');
         if (charts) charts.destroyAll();
-        // Populate driver name select from known drivers
-        const driverNameSelect = document.getElementById('driverNameSelect');
+        // Populate driver name select from known drivers (filtrando férias ativas)
         const driversMod = window.DriversModule || (typeof DriversModule !== 'undefined' ? DriversModule : null);
-        if (driverNameSelect && driversMod) {
-            const currentVal = driverNameSelect.value;
-            driverNameSelect.innerHTML = '<option value="">Selecione um motorista...</option>';
-            driversMod.KNOWN_DRIVERS.forEach(name => {
-                const opt = document.createElement('option');
-                opt.value = name;
-                opt.textContent = name;
-                driverNameSelect.appendChild(opt);
-            });
-            if (currentVal) driverNameSelect.value = currentVal;
+        if (driversMod && typeof driversMod.updateDriverSelect === 'function') {
+            driversMod.updateDriverSelect();
         }
         // Set date input to today
         const dateInput = document.getElementById('driverDateInput');
