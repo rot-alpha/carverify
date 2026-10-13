@@ -127,7 +127,7 @@ class CalendarComponent {
             } else if (this.currentVehiclePlate && window.getVehicleGapJustification) {
                 // Checa se o dia sem vistoria possui justificativa operacional (Feriado ou ausência do condutor)
                 const gap = window.getVehicleGapJustification(this.currentVehiclePlate, dateStr);
-                if (gap) {
+                if (gap && gap.status !== 'feriado') {
                     cell.classList.add('cal-day--gap-justified');
                     const gapBadge = document.createElement('span');
                     gapBadge.className = `cal-day-badge-gap ${gap.badgeClass}`;

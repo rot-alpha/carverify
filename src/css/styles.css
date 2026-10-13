@@ -803,24 +803,55 @@ button {
     color: #7c3aed !important;
 }
 
-/* Indicador de feriado no calendário de veículos */
+/* Destaque de Feriado Oficial no calendário de veículos (Fundo Roxo Suave no card do dia) */
 .cal-day--holiday {
     position: relative;
 }
 
-.cal-day--holiday::after {
-    content: '';
-    position: absolute;
-    top: 3px;
-    right: 3px;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #8b5cf6;
+.cal-day--holiday:not(.cal-day--selected) {
+    background: rgba(139, 92, 246, 0.14) !important;
+    color: #7c3aed !important;
+    font-weight: 700 !important;
+    border: 1px solid rgba(139, 92, 246, 0.35) !important;
+    border-radius: var(--radius-sm);
 }
 
-.cal-day--selected.cal-day--holiday::after {
-    background: #ffffff;
+.cal-day--holiday:hover:not(.cal-day--selected) {
+    background: rgba(139, 92, 246, 0.24) !important;
+    color: #6d28d9 !important;
+    border-color: rgba(139, 92, 246, 0.5) !important;
+    transform: translateY(-1px);
+}
+
+[data-theme="dark"] .cal-day--holiday:not(.cal-day--selected) {
+    background: rgba(139, 92, 246, 0.2) !important;
+    color: #c4b5fd !important;
+    border: 1px solid rgba(139, 92, 246, 0.45) !important;
+}
+
+[data-theme="dark"] .cal-day--holiday:hover:not(.cal-day--selected) {
+    background: rgba(139, 92, 246, 0.3) !important;
+    color: #ddd6fe !important;
+}
+
+/* Se houver checklist registrado no feriado, dot em roxo destacado */
+.cal-day--holiday.cal-day--has-data::after {
+    background: #7c3aed !important;
+}
+
+[data-theme="dark"] .cal-day--holiday.cal-day--has-data::after {
+    background: #c4b5fd !important;
+}
+
+/* No calendário de motoristas, célula com fundo roxo translúcido e borda destacada */
+.cal-day-cell.cal-holiday {
+    background: rgba(124, 58, 237, 0.08) !important;
+    border-color: rgba(124, 58, 237, 0.35) !important;
+}
+
+[data-theme="dark"] .cal-day-cell.cal-holiday {
+    background: rgba(124, 58, 237, 0.16) !important;
+    border-color: rgba(139, 92, 246, 0.45) !important;
 }
 
 /* Banner de justificativa de lacuna na tela do veículo */
