@@ -35,7 +35,9 @@
 - [x] Atualização de Pergunta do Checklist: transição da pergunta 14 de "Extintor (validade e condições)" para "Limpeza do Veículo (Cabine e Baú)" no frontend (`app.js`), cabeçalho CSV/Sheets, relatórios e mapeamento com retrocompatibilidade no Supabase.
 - [x] Diagnóstico e Correção de Checklists de Outubro: sincronização dos 8 checklists pendentes para o Supabase, tratamento de quebras de linha em observações no `parseCSV` e mescla em tempo real no `syncWithRemote()`.
 - [x] Resolução Inteligente de Datas e Sinalização 2x: priorização da data manual com fallback automático para o carimbo de envio em erros de digitação (ex: ano inválido); suporte a múltiplos checklists no mesmo dia com exibição de badge `2x` no calendário e no card de conformidade da tela "Veículos", preservando os cálculos de engajamento, conformidade e KM.
+- [x] Integração Supabase Realtime (WebSocket): escuta de novos registros via `subscribeToChecklists` e atualização automática da interface do painel sem necessidade de recarregar a página (F5).
+- [x] Elaboração da Instrução de Trabalho (IT) Oficial: redação e compilação do documento Word editável `Instrucao_de_Trabalho_CAR_VERIFY_139_DIS_IT.docx` no padrão visual da Alpha Candies / Grupo EFX.
+- [x] Resumo Inteligente de Observações no Relatório da Frota: implementação de deduplicação léxica (Jaccard) e filtro do campo "NOTA DE CAMPO & OBSERVAÇÕES" no compilado do mês, condensando repetições mecânicas em até 2 apontamentos mais recentes e relevantes por item reprovado.
 
-
-
-
+## Backlog / Próximos Passos
+- [ ] **Seção Analítica de Ranking de Itens Críticos Reprovados (Alertas NOK)**: Desenvolver na Tela Inicial (Home) a listagem e ranking dos itens que mais sofreram apontamentos NOK no mês selecionado (conforme idealizado na IT), facilitando a tomada de decisão preventiva e acionamento de manutenção mecânica.

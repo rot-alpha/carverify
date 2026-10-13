@@ -31,6 +31,89 @@ const VehicleReportModule = (function () {
     }
 
     /**
+     * Valida se o comentário do motorista contém uma observação real
+     */
+    function isMeaningfulComment(text) {
+        if (!text || typeof text !== 'string') return false;
+        const clean = text.trim();
+        if (clean.length < 2) return false;
+        const norm = clean.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const genericNegatives = ['nao', 'nenhuma', 'sem', 'n/a', 'nada', 'ok', 'tudo ok', 'sem observacao', 'sem observacoes', 'nenhum', '-'];
+        return !genericNegatives.includes(norm);
+    }
+
+    /**
+     * Deduplica e resume observações por similaridade Jaccard,
+     * mantendo até as N observações mais recentes/relevantes do campo NOTA DE CAMPO & OBSERVAÇÕES.
+     */
+    function summarizeNokComments(rawCommentsList, maxItems = 2) {
+        if (!rawCommentsList || rawCommentsList.length === 0) {
+            return 'Registrado sem observação textual';
+        }
+
+        // Divide comentários compostos (ex: split por '|') e filtra notas com significado real
+        const validEntries = [];
+        rawCommentsList.forEach(item => {
+            const textStr = typeof item === 'string' ? item : (item && item.text ? item.text : '');
+            const dateStr = typeof item === 'object' && item ? item.date : '';
+            textStr.split('|').forEach(part => {
+                const trimmed = part.trim();
+                if (isMeaningfulComment(trimmed)) {
+                    validEntries.push({ text: trimmed, date: dateStr });
+                }
+            });
+        });
+
+        if (validEntries.length === 0) {
+            return 'Registrado sem observação textual';
+        }
+
+        function tokenizeText(str) {
+            return str
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9\s]/g, '')
+                .split(/\s+/)
+                .filter(w => w.length > 2);
+        }
+
+        function calculateSimilarity(tokA, tokB) {
+            const setA = new Set(tokA);
+            const setB = new Set(tokB);
+            const intersection = new Set([...setA].filter(x => setB.has(x)));
+            const union = new Set([...setA, ...setB]);
+            return union.size > 0 ? intersection.size / union.size : 0;
+        }
+
+        // Percorre dos mais recentes para os mais antigos para priorizar ocorrências recentes
+        const reversed = [...validEntries].reverse();
+        const selected = [];
+
+        for (const entry of reversed) {
+            const tokens = tokenizeText(entry.text);
+            const isSimilar = selected.some(sel => {
+                const selTokens = tokenizeText(sel.text);
+                return calculateSimilarity(tokens, selTokens) >= 0.35;
+            });
+
+            if (!isSimilar) {
+                selected.push(entry);
+                if (selected.length >= maxItems) break;
+            }
+        }
+
+        if (selected.length === 0) {
+            selected.push(reversed[0]);
+        }
+
+        // Mantém ordem cronológica (mais antigo primeiro) para leitura natural
+        selected.reverse();
+
+        return selected.map(s => s.text).join(' • ');
+    }
+
+    /**
      * Cria SVG Donut Chart vetorial de alta definição para impressão/PDF
      */
     function createVectorDonutSVG(pct, okCount, nokCount) {
@@ -159,20 +242,21 @@ const VehicleReportModule = (function () {
                         questionsStats[q].nok++;
                         questionsStats[q].datesNok.push(formattedDate);
                     }
+                    const dayComment = isMeaningfulComment(dayData.comment) ? dayData.comment.trim() : 'Registrado sem observação textual';
                     nokItems.push({
                         question: q,
                         frequency: 1,
                         date: formattedDate,
-                        comment: dayData.comment || 'Não especificado'
+                        comment: dayComment
                     });
                 }
             });
 
-            if (dayData.comment && dayData.comment.trim().length > 1) {
+            if (isMeaningfulComment(dayData.comment)) {
                 observations.push({
                     date: formattedDate,
                     driver: driver,
-                    text: dayData.comment
+                    text: dayData.comment.trim()
                 });
             }
 
@@ -216,7 +300,8 @@ const VehicleReportModule = (function () {
                 }
             }
 
-            // Agregação das perguntas
+            // Agregação das perguntas e observações
+            const obsMap = new Map();
             sortedDates.forEach(d => {
                 const dData = monthDays[d];
                 const dFormatted = formatDisplayDate(d);
@@ -230,32 +315,52 @@ const VehicleReportModule = (function () {
                         if (questionsStats[q]) {
                             questionsStats[q].nok++;
                             questionsStats[q].datesNok.push(dFormatted);
-                            if (dData.comment && !questionsStats[q].comments.includes(dData.comment)) {
-                                questionsStats[q].comments.push(dData.comment);
+                            if (isMeaningfulComment(dData.comment)) {
+                                questionsStats[q].comments.push({
+                                    text: dData.comment.trim(),
+                                    date: dFormatted
+                                });
                             }
                         }
                     }
                 });
 
-                if (dData.comment && dData.comment.trim().length > 1) {
-                    observations.push({
-                        date: dFormatted,
-                        driver: dData.driver || 'Motorista',
-                        text: dData.comment
-                    });
+                if (isMeaningfulComment(dData.comment)) {
+                    const text = dData.comment.trim();
+                    const drv = dData.driver || 'Motorista';
+                    const key = `${drv}:::${text}`;
+                    if (obsMap.has(key)) {
+                        const existing = obsMap.get(key);
+                        existing.count++;
+                        existing.dates.push(dFormatted);
+                    } else {
+                        obsMap.set(key, {
+                            date: dFormatted,
+                            dates: [dFormatted],
+                            driver: drv,
+                            text: text,
+                            count: 1
+                        });
+                    }
                 }
             });
 
-            // Constrói lista consolidada de NOKs
+            obsMap.forEach(item => {
+                observations.push({
+                    date: item.count > 1 ? `${item.date} (${item.count}x)` : item.date,
+                    driver: item.driver,
+                    text: item.text
+                });
+            });
+
+            // Constrói lista consolidada de NOKs com resumo inteligente das observações
             QUESTIONS.forEach(q => {
                 if (questionsStats[q].nok > 0) {
                     nokItems.push({
                         question: q,
                         frequency: questionsStats[q].nok,
                         date: questionsStats[q].datesNok.join(', '),
-                        comment: questionsStats[q].comments.length > 0 
-                            ? questionsStats[q].comments.join(' | ') 
-                            : 'Registrado sem observação textual'
+                        comment: summarizeNokComments(questionsStats[q].comments, 2)
                     });
                 }
             });
@@ -448,26 +553,36 @@ const VehicleReportModule = (function () {
                     </div>
                 </section>
 
-                <!-- 6. OBSERVAÇÕES E NOTAS DOS OPERADORES -->
-                ${observations.length > 0 || recurrenceBadge ? `
-                    <section class="report-section report-comments-section">
-                        <div class="report-section-header">
-                            <div class="report-section-title">
-                                <span class="material-icons-round">speaker_notes</span>
-                                <span>NOTAS DE CAMPO & OBSERVAÇÕES</span>
-                            </div>
-                            ${recurrenceBadge}
+                <!-- 6. OBSERVAÇÕES E NOTAS DO MOTORISTA -->
+                <section class="report-section report-comments-section">
+                    <div class="report-section-header">
+                        <div class="report-section-title">
+                            <span class="material-icons-round">edit_note</span>
+                            <span>OBSERVAÇÕES DO MOTORISTA</span>
                         </div>
+                        ${recurrenceBadge || (observations.length > 0 
+                            ? `<span class="report-section-badge badge-obs-count">${observations.length} apontamento(s)</span>`
+                            : `<span class="report-section-badge">Sem Apontamentos</span>`
+                        )}
+                    </div>
+                    ${observations.length > 0 ? `
                         <div class="report-comments-box">
                             ${observations.slice(0, 3).map(c => `
                                 <div class="report-comment-entry">
-                                    <span class="comment-author-badge">${c.date} · ${c.driver}:</span>
+                                    <span class="comment-author-badge">${isSingleDay ? `${c.driver}:` : `${c.date} · ${c.driver}:`}</span>
                                     <span class="comment-content">"${c.text}"</span>
                                 </div>
                             `).join('')}
                         </div>
-                    </section>
-                ` : ''}
+                    ` : `
+                        <div class="report-clean-state report-obs-clean">
+                            <span class="material-icons-round">verified</span>
+                            <span>${isSingleDay 
+                                ? 'Nenhuma observação ou apontamento adicional registrado pelo condutor nesta vistoria.' 
+                                : 'Nenhuma observação ou apontamento registrado pelos condutores no período selecionado.'}</span>
+                        </div>
+                    `}
+                </section>
 
                 <!-- 7. RODAPÉ E TERMO DE CIÊNCIA / ASSINATURAS -->
                 <footer class="report-footer">

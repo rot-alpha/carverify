@@ -7,3 +7,4 @@ token.json
 .vercel
 .env*
 .agents
+*.backup_usuario.*
