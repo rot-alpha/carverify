@@ -793,6 +793,36 @@ button {
     color: #d97706 !important;
 }
 
+.cal-day-badge-gap.gap-holiday {
+    background: #7c3aed; /* Roxo oficial de feriados */
+    color: #ffffff;
+}
+
+.cal-day--selected .cal-day-badge-gap.gap-holiday {
+    background: #ffffff !important;
+    color: #7c3aed !important;
+}
+
+/* Indicador de feriado no calendário de veículos */
+.cal-day--holiday {
+    position: relative;
+}
+
+.cal-day--holiday::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #8b5cf6;
+}
+
+.cal-day--selected.cal-day--holiday::after {
+    background: #ffffff;
+}
+
 /* Banner de justificativa de lacuna na tela do veículo */
 .gap-day-banner {
     display: inline-flex;
@@ -823,6 +853,18 @@ button {
     background: rgba(13, 148, 136, 0.08);
     border-color: rgba(13, 148, 136, 0.3);
     color: #0f766e;
+}
+
+.gap-day-banner.gap-holiday {
+    background: rgba(124, 58, 237, 0.08);
+    border-color: rgba(124, 58, 237, 0.3);
+    color: #5b21b6;
+}
+
+[data-theme="dark"] .gap-day-banner.gap-holiday {
+    background: rgba(124, 58, 237, 0.18);
+    border-color: rgba(139, 92, 246, 0.4);
+    color: #c4b5fd;
 }
 
 .gap-banner-icon {
@@ -3772,6 +3814,35 @@ button {
     background: rgba(239, 68, 68, 0.2);
     color: #f87171;
     border-color: rgba(239, 68, 68, 0.45);
+}
+
+.cal-holiday-tag {
+    font-size: 9px;
+    font-weight: 700;
+    color: #7c3aed;
+    background: rgba(124, 58, 237, 0.12);
+    border: 1px solid rgba(124, 58, 237, 0.3);
+    padding: 1px 4px;
+    border-radius: 4px;
+    line-height: 1;
+}
+
+[data-theme="dark"] .cal-holiday-tag {
+    color: #c4b5fd;
+    background: rgba(124, 58, 237, 0.25);
+    border-color: rgba(139, 92, 246, 0.4);
+}
+
+.status-holiday {
+    background: rgba(124, 58, 237, 0.12) !important;
+    color: #7c3aed !important;
+    border: 1px solid rgba(124, 58, 237, 0.32) !important;
+}
+
+[data-theme="dark"] .status-holiday {
+    background: rgba(124, 58, 237, 0.22) !important;
+    color: #c4b5fd !important;
+    border-color: rgba(124, 58, 237, 0.45) !important;
 }
 
 .cal-no-record {

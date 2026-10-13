@@ -106,6 +106,13 @@ class CalendarComponent {
                 cell.classList.add('cal-day--today');
             }
 
+            // Holiday highlight
+            const holiday = window.Holidays ? window.Holidays.getHoliday(dateStr) : null;
+            if (holiday) {
+                cell.classList.add('cal-day--holiday');
+                cell.title = `Feriado ${holiday.type}: ${holiday.name} (Sem Expediente)`;
+            }
+
             // Has data indicator & Multiple checklists tag
             if (count > 0) {
                 cell.classList.add('cal-day--has-data');
@@ -118,7 +125,7 @@ class CalendarComponent {
                     cell.appendChild(badge);
                 }
             } else if (this.currentVehiclePlate && window.getVehicleGapJustification) {
-                // Checa se o dia sem vistoria possui justificativa operacional do titular
+                // Checa se o dia sem vistoria possui justificativa operacional (Feriado ou ausência do condutor)
                 const gap = window.getVehicleGapJustification(this.currentVehiclePlate, dateStr);
                 if (gap) {
                     cell.classList.add('cal-day--gap-justified');
@@ -140,7 +147,8 @@ class CalendarComponent {
                 this.selectedDate = dateStr;
                 const activeCount = this.datesWithData.get(dateStr) || 0;
                 const countSuffix = activeCount > 1 ? ` (${activeCount}x)` : '';
-                this.display.textContent = `${this._formatDatePtBR(dateStr)}${countSuffix}`;
+                const holSuffix = holiday ? ` · ${holiday.short}` : '';
+                this.display.textContent = `${this._formatDatePtBR(dateStr)}${countSuffix}${holSuffix}`;
                 this.render();
                 this.onDateSelect(dateStr);
             });

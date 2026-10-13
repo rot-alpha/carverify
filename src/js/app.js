@@ -1546,14 +1546,15 @@ function renderSingleDayGap(date, plate, vehicle, gap) {
         `;
     }
 
+    const isHol = gap && gap.status === 'feriado';
     document.getElementById('checklistBody').innerHTML = `
         <tr><td colspan="4" class="empty-state" style="padding:40px">
-            <span class="material-icons-round" style="font-size:32px;color:#2563eb;opacity:0.85">event_busy</span>
+            <span class="material-icons-round" style="font-size:32px;color:${isHol ? '#7c3aed' : '#2563eb'};opacity:0.9">${isHol ? 'event_available' : 'event_busy'}</span>
             <p style="margin-top:8px;font-weight:700;color:var(--clr-text-primary);font-size:14px;">
                 ${gap ? gap.text : 'Veículo inoperante / sem vistoria registrada nesta data.'}
             </p>
             <p style="margin-top:4px;font-size:12px;color:var(--clr-text-secondary)">
-                O veículo não realizou rota e permaneceu no pátio, justificando a ausência do checklist.
+                ${isHol ? 'Feriado oficial sem expediente das operações da frota.' : 'O veículo não realizou rota e permaneceu no pátio, justificando a ausência do checklist.'}
             </p>
         </td></tr>`;
 

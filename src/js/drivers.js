@@ -572,6 +572,25 @@ const DriversModule = (function() {
             return null;
         }
 
+        // 1. Checa se o dia é feriado oficial (Sem expediente geral da frota)
+        const holiday = window.Holidays ? window.Holidays.getHoliday(dateKey) : null;
+        if (holiday) {
+            const titular = getVehicleHabitualDriver(plate) || 'Titular';
+            return {
+                plate,
+                driver: titular,
+                habitualDriver: titular,
+                status: 'feriado',
+                label: `Feriado: ${holiday.short}`,
+                statusLabel: `Feriado ${holiday.type} (${holiday.name})`,
+                badgeClass: 'gap-holiday',
+                shortCode: 'FER',
+                text: `Sem expediente da frota: Feriado ${holiday.type} (${holiday.name}).`,
+                justification: `Sem expediente operacional na data devido ao Feriado ${holiday.type} (${holiday.name}).`,
+                holiday
+            };
+        }
+
         const titular = getVehicleHabitualDriver(plate);
         if (!titular) return null;
         const status = getDriverStatusOnDate(titular, dateKey);
@@ -1321,6 +1340,7 @@ const DriversModule = (function() {
             const statusKey = driverDays[dayKey];
             const isToday = dayKey === today;
             const statusMeta = statusKey ? STATUS_MAP[statusKey] : null;
+            const holiday = window.Holidays ? window.Holidays.getHoliday(dayKey) : null;
 
             const hasChecklist = chkDates.has(dayKey);
             const plates = platesByDate[dayKey] || [];
@@ -1336,7 +1356,7 @@ const DriversModule = (function() {
                             <span>Vistoria OK${plateLabel}</span>
                         </div>
                     `;
-                } else if (statusKey === 'ativo' && dayKey <= today) {
+                } else if (statusKey === 'ativo' && dayKey <= today && !holiday) {
                     checklistPillHtml = `
                         <div class="cal-checklist-pill missing" title="Colaborador ativo sem registro de vistoria veicular">
                             <span class="material-icons-round" style="font-size:12px;">warning_amber</span>
@@ -1346,17 +1366,24 @@ const DriversModule = (function() {
                 }
             }
 
+            const dayTitle = `${dayKey}: ${statusMeta ? statusMeta.label : (holiday ? `Feriado ${holiday.type} (${holiday.name}) · Sem Expediente` : 'Sem registro')}${hasChecklist ? ' | Vistoria OK' + platesText : ''}`;
+
             html += `
-                <div class="cal-day-cell ${isToday ? 'cal-today' : ''} ${statusKey ? 'has-status' : ''}" data-date="${dayKey}" data-driver="${driverName}" title="${dayKey}: ${statusMeta ? statusMeta.label : 'Sem registro'}${hasChecklist ? ' | Vistoria OK' + platesText : ''}">
+                <div class="cal-day-cell ${isToday ? 'cal-today' : ''} ${statusKey ? 'has-status' : ''} ${holiday ? 'cal-holiday' : ''}" data-date="${dayKey}" data-driver="${driverName}" title="${dayTitle}">
                     <div class="cal-day-header">
                         <span class="cal-day-number">${day}</span>
-                        ${isToday ? '<span class="cal-today-tag">Hoje</span>' : ''}
+                        ${holiday ? `<span class="cal-holiday-tag" title="Feriado ${holiday.type}: ${holiday.name} (Sem Expediente)">Feriado</span>` : (isToday ? '<span class="cal-today-tag">Hoje</span>' : '')}
                     </div>
                     <div class="cal-day-body">
                         ${statusMeta ? `
                             <div class="cal-status-pill status-${statusKey}" style="background: rgba(${statusMeta.colorRgb}, 0.14); color: ${statusMeta.color}; border: 1px solid rgba(${statusMeta.colorRgb}, 0.35);">
                                 <span class="material-icons-round">${statusMeta.icon}</span>
                                 <span class="cal-status-text">${statusMeta.label}</span>
+                            </div>
+                        ` : holiday ? `
+                            <div class="cal-status-pill status-holiday" title="Feriado ${holiday.type}: ${holiday.name} (Sem Expediente)">
+                                <span class="material-icons-round" style="font-size:13px;">event_busy</span>
+                                <span class="cal-status-text">${holiday.short}</span>
                             </div>
                         ` : `
                             <span class="cal-no-record">-</span>
