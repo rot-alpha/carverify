@@ -25,8 +25,9 @@ class CalendarComponent {
     }
 
     /** Set which dates have data (array of date strings or object mapping date -> dayData/count) */
-    setDatesWithData(datesData) {
+    setDatesWithData(datesData, vehiclePlate = null) {
         this.datesWithData = new Map();
+        this.currentVehiclePlate = vehiclePlate;
         if (Array.isArray(datesData)) {
             datesData.forEach(d => this.datesWithData.set(d, 1));
         } else if (datesData && typeof datesData === 'object') {
@@ -115,6 +116,17 @@ class CalendarComponent {
                     badge.textContent = `${count}x`;
                     badge.title = `${count} checklists registrados neste dia`;
                     cell.appendChild(badge);
+                }
+            } else if (this.currentVehiclePlate && window.getVehicleGapJustification) {
+                // Checa se o dia sem vistoria possui justificativa operacional do titular
+                const gap = window.getVehicleGapJustification(this.currentVehiclePlate, dateStr);
+                if (gap) {
+                    cell.classList.add('cal-day--gap-justified');
+                    const gapBadge = document.createElement('span');
+                    gapBadge.className = `cal-day-badge-gap ${gap.badgeClass}`;
+                    gapBadge.textContent = gap.shortCode;
+                    gapBadge.title = `Lacuna justificada: ${gap.text}`;
+                    cell.appendChild(gapBadge);
                 }
             }
 

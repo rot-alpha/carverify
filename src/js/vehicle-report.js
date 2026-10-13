@@ -179,7 +179,30 @@ const VehicleReportModule = (function () {
         });
 
         const selectedDate = state.selectedDate;
-        const isSingleDay = Boolean(selectedDate && monthDays[selectedDate]);
+        const hasDayData = Boolean(selectedDate && monthDays[selectedDate]);
+        const isSingleDay = hasDayData;
+        const isGapDay = Boolean(selectedDate && !hasDayData);
+        const singleDayGap = isGapDay && typeof window.getVehicleGapJustification === 'function'
+            ? window.getVehicleGapJustification(plate, selectedDate)
+            : null;
+
+        // Compilar lacunas justificadas no mês (dias sem checklist até hoje com condutor titular em BH/Férias/Atestado/Falta)
+        const monthGaps = [];
+        if (!selectedDate) {
+            const daysInMonth = new Date(calMonth.year, calMonth.month + 1, 0).getDate();
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dStr = `${calMonth.year}-${String(calMonth.month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                if (dStr > todayStr) continue;
+                if (!monthDays[dStr] && typeof window.getVehicleGapJustification === 'function') {
+                    const gap = window.getVehicleGapJustification(plate, dStr);
+                    if (gap) {
+                        monthGaps.push(gap);
+                    }
+                }
+            }
+        }
 
         return {
             vehicle,
@@ -190,6 +213,9 @@ const VehicleReportModule = (function () {
             monthDays,
             selectedDate,
             isSingleDay,
+            isGapDay,
+            singleDayGap,
+            monthGaps,
             dayData: isSingleDay ? monthDays[selectedDate] : null
         };
     }
@@ -198,9 +224,117 @@ const VehicleReportModule = (function () {
      * Gera o HTML completo do relatório de 1 página
      */
     function buildReportHTML(ctx) {
-        const { vehicle, plate, monthLabel, monthDays, selectedDate, isSingleDay, dayData } = ctx;
+        const { vehicle, plate, monthLabel, monthDays, selectedDate, isSingleDay, isGapDay, singleDayGap, monthGaps, dayData } = ctx;
         const now = new Date();
         const emissionTimestamp = now.toLocaleDateString('pt-BR') + ' às ' + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+        if (isGapDay) {
+            const formattedDate = formatDisplayDate(selectedDate);
+            const periodHeader = `Dia: <strong>${formattedDate}</strong> (Veículo Inoperante / Pátio)`;
+            currentMeta.periodTitle = `Dia ${formattedDate} (Inoperante)`;
+            currentMeta.periodSlug = `${selectedDate}_inoperante`;
+
+            const titular = singleDayGap ? singleDayGap.habitualDriver : (typeof window.getVehicleHabitualDriver === 'function' ? window.getVehicleHabitualDriver(plate) : 'Não vinculado');
+            const statusLabel = singleDayGap ? singleDayGap.label : 'Sem registro de saída';
+            const operatorsHeader = `Condutor habitual: <strong>${titular}</strong> (${statusLabel})`;
+            const kmDisplay = '0 km (Veículo permaneceu no pátio)';
+
+            currentMeta.plate = plate;
+            currentMeta.model = vehicle.model;
+
+            return `
+            <div class="report-sheet">
+                <!-- 1. CABEÇALHO EXECUTIVO -->
+                <header class="report-header">
+                    <div class="report-brand">
+                        <div class="report-logo-text">CAR . VERIFY</div>
+                        <div class="report-brand-sub">Sistema de Gestão & Conformidade de Frota</div>
+                    </div>
+                    <div class="report-header-center">
+                        <h1 class="report-main-title">RELATÓRIO DE INOPERÂNCIA / JUSTIFICATIVA DE LACUNA</h1>
+                        <div class="report-emission-tag">Emitido em: ${emissionTimestamp}</div>
+                    </div>
+                    <div class="report-client-logo">
+                        <img src="assets/logo-grupo-efx.png" alt="Grupo EFX" class="report-efx-img">
+                    </div>
+                </header>
+
+                <!-- 2. QUADRO DE IDENTIFICAÇÃO E PARÂMETROS -->
+                <section class="report-meta-grid">
+                    <div class="report-meta-item">
+                        <span class="report-meta-label">VEÍCULO / MODELO</span>
+                        <span class="report-meta-val"><strong class="highlight-plate">${plate}</strong> — ${vehicle.model}</span>
+                    </div>
+                    <div class="report-meta-item">
+                        <span class="report-meta-label">DATA DA OCORRÊNCIA</span>
+                        <span class="report-meta-val">${periodHeader}</span>
+                    </div>
+                    <div class="report-meta-item">
+                        <span class="report-meta-label">CONDUTOR HABITUAL / STATUS</span>
+                        <span class="report-meta-val">${operatorsHeader}</span>
+                    </div>
+                    <div class="report-meta-item">
+                        <span class="report-meta-label">QUILOMETRAGEM (ODÔMETRO)</span>
+                        <span class="report-meta-val">${kmDisplay}</span>
+                    </div>
+                </section>
+
+                <!-- 3. PAINEL DE STATUS DA LACUNA -->
+                <section class="report-summary-bar gap-summary-bar">
+                    <div class="gap-seal-box">
+                        <span class="material-icons-round gap-seal-icon">event_available</span>
+                        <div class="gap-seal-text">
+                            <strong>LACUNA JUSTIFICADA OPERACIONALMENTE</strong>
+                            <span>Veículo permaneceu no pátio · Sem não conformidades operacionais</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. DETALHAMENTO DA JUSTIFICATIVA -->
+                <section class="report-section report-gap-detail-section">
+                    <div class="report-section-header header-gap-info">
+                        <div class="report-section-title">
+                            <span class="material-icons-round">info</span>
+                            <span>AUDITORIA DA AUSÊNCIA DE CHECKLIST</span>
+                        </div>
+                        <span class="report-section-badge">${singleDayGap ? singleDayGap.label : 'Veículo Inoperante'}</span>
+                    </div>
+                    <div class="report-gap-full-box">
+                        <div class="report-gap-full-row">
+                            <span class="gap-full-label">Motivo Operacional:</span>
+                            <span class="gap-full-val">${singleDayGap ? singleDayGap.justification : `Nenhum checklist registrado para o veículo ${plate} em ${formattedDate}. O veículo permaneceu no pátio da base.`}</span>
+                        </div>
+                        <div class="report-gap-full-row">
+                            <span class="gap-full-label">Condutor Designado:</span>
+                            <span class="gap-full-val"><strong>${titular}</strong> ${singleDayGap ? `— Lançamento: ${singleDayGap.label}` : ''}</span>
+                        </div>
+                        <div class="report-gap-full-row">
+                            <span class="gap-full-label">Regra de Vistoria:</span>
+                            <span class="gap-full-val">Como o condutor habitual não compareceu (banco de horas/ausência programada) e nenhum condutor substituto movimentou o veículo, a ausência de vistoria nesta data é justificada e não constitui infração ou pendência.</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. RODAPÉ E ASSINATURAS -->
+                <footer class="report-footer">
+                    <div class="report-signatures">
+                        <div class="report-sig-field">
+                            <div class="sig-line"></div>
+                            <span class="sig-label">Gestão de Tráfego / Escala Operacional</span>
+                        </div>
+                        <div class="report-sig-field">
+                            <div class="sig-line"></div>
+                            <span class="sig-label">Gestão de Frotas / Manutenção EFX</span>
+                        </div>
+                    </div>
+                    <div class="report-footer-sub">
+                        <span>Car Verify v1.0 · Grupo EFX · Registro operacional de inoperância veicular.</span>
+                        <span class="report-page-count">Página 1 de 1</span>
+                    </div>
+                </footer>
+            </div>
+            `;
+        }
 
         let okCount = 0;
         let nokCount = 0;
@@ -552,6 +686,28 @@ const VehicleReportModule = (function () {
                         <div class="report-matrix-col">${renderQuestionColumn(col3)}</div>
                     </div>
                 </section>
+
+                <!-- 5.1 JUSTIFICATIVAS DE LACUNAS NA VISTORIA DIÁRIA (DIAS EM PÁTIO) -->
+                ${monthGaps && monthGaps.length > 0 ? `
+                <section class="report-section report-gaps-section">
+                    <div class="report-section-header header-gap-info">
+                        <div class="report-section-title">
+                            <span class="material-icons-round">event_available</span>
+                            <span>JUSTIFICATIVAS DE LACUNAS NA VISTORIA DIÁRIA (${monthGaps.length})</span>
+                        </div>
+                        <span class="report-section-badge badge-gap-audit">Auditoria de Ausência do Titular</span>
+                    </div>
+                    <div class="report-gaps-box">
+                        ${monthGaps.map(g => `
+                            <div class="report-gap-entry">
+                                <span class="gap-date-badge">${formatDisplayDate(g.date)}</span>
+                                <span class="gap-status-pill ${g.badgeClass}">${g.label}</span>
+                                <span class="gap-text">Veículo no pátio · Condutor habitual <strong>${g.habitualDriver}</strong> ausente (${g.label})</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </section>
+                ` : ''}
 
                 <!-- 6. OBSERVAÇÕES E NOTAS DO MOTORISTA -->
                 <section class="report-section report-comments-section">

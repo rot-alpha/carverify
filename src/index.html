@@ -590,7 +590,9 @@
                                         <thead>
                                             <tr>
                                                 <th>Colaborador</th>
+                                                <th>Função</th>
                                                 <th>Status</th>
+                                                <th>Presença vs Vistoria</th>
                                                 <th>Data de Referência</th>
                                                 <th>Origem</th>
                                                 <th class="col-actions">Ação Rápida</th>
@@ -621,6 +623,10 @@
                                 </div>
                             </div>
                             <div class="driver-banner-right">
+                                <button type="button" class="driver-banner-print-btn" id="btnPrintDriverProfile" title="Imprimir Relatório do Colaborador">
+                                    <span class="material-icons-round">print</span>
+                                    <span>Imprimir Relatório</span>
+                                </button>
                                 <div class="driver-cal-month-stepper">
                                     <button type="button" class="stepper-btn" id="btnCalPrevMonth" title="Mês anterior">
                                         <span class="material-icons-round">chevron_left</span>
@@ -651,6 +657,8 @@
                                     <span class="legend-badge status-falta"><span class="legend-dot"></span> Falta</span>
                                     <span class="legend-badge status-atestado"><span class="legend-dot"></span> Atestado</span>
                                     <span class="legend-badge status-ferias"><span class="legend-dot"></span> Férias</span>
+                                    <span class="legend-badge status-vistoria-ok"><span class="legend-dot" style="background:#22c55e;"></span> Vistoria OK</span>
+                                    <span class="legend-badge status-vistoria-missing"><span class="legend-dot" style="background:#ef4444;"></span> Sem Vistoria</span>
                                 </div>
                             </div>
                             <div class="card-body">

@@ -39,6 +39,35 @@ const DriversModule = (function() {
         'Wesley Cristian'
     ];
 
+    // ─── DEFINIÇÃO DE AJUDANTES E MOTORISTAS ───
+    // Regra oficial: Alan, Cristian, Wesley, Jailton, Luis Gustavo são ajudantes e não entram na regra de vistoria. O restante são motoristas.
+    const HELPERS_LIST = [
+        'Alan Henrique',
+        'Cristian Ricardo',
+        'Wesley Cristian',
+        'Jailton Ferreira',
+        'Luis Gustavo'
+    ];
+
+    function normalizeName(str) {
+        if (!str) return '';
+        return str.trim()
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function isHelper(name) {
+        if (!name) return false;
+        const norm = normalizeName(name);
+        return HELPERS_LIST.some(h => normalizeName(h) === norm) ||
+               ['alan', 'cristian', 'wesley', 'jailton', 'luis gustavo'].some(prefix => norm.startsWith(prefix));
+    }
+
+    function getDriverRole(name) {
+        return isHelper(name) ? 'Ajudante' : 'Motorista';
+    }
+
     // ─── PERSISTENCE & AUTO-VACATION SYNC ──────
     function loadVacations() {
         try {
@@ -312,7 +341,20 @@ const DriversModule = (function() {
             percentages[k] = total > 0 ? Math.round((counts[k] / total) * 100) : 0;
         });
 
-        return { counts, total, percentages };
+        // Aderência geral de vistorias (apenas motoristas; ajudantes isentos)
+        let totalVeioMotoristas = 0;
+        let totalVistoriasMotoristas = 0;
+        KNOWN_DRIVERS.forEach(drv => {
+            if (isHelper(drv) || DELETED_DRIVERS.includes(drv)) return;
+            const chk = getDriverChecklistStats(drv, filterMonth);
+            totalVeioMotoristas += chk.diasVeio;
+            totalVistoriasMotoristas += chk.diasVistoria;
+        });
+        const pctAderenciaGeral = totalVeioMotoristas > 0 
+            ? Math.min(100, Math.round((totalVistoriasMotoristas / totalVeioMotoristas) * 100))
+            : 0;
+
+        return { counts, total, percentages, totalVeioMotoristas, totalVistoriasMotoristas, pctAderenciaGeral };
     }
 
     function computeTop3Absent(filterMonth) {
@@ -453,6 +495,145 @@ const DriversModule = (function() {
         return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
     }
 
+    // ─── HABITUAL VEHICLE-DRIVER MAPPING ───────
+    const VEHICLE_HABITUAL_DRIVERS = {
+        'SUX8H84': 'Leonildo Silva',
+        'SUE7D02': 'Anderson Barbosa',
+        'SVJ3H89': 'Evaldo Aparecido',
+        'SUW7B16': 'Ricardo Rodrigues',
+        'STA0F48': 'Anderson Luiz',
+        'FRG7C31': 'Alex Schuermann',
+        'FPF8A23': 'Carlos Alberto',
+        'FXI0C35': 'Rafael Da Silva',
+        'ECF3235': 'José Lucivaldo',
+        'FJF7817': 'Rogério Ribeiro'
+    };
+
+    function getVehicleHabitualDriver(plate) {
+        return VEHICLE_HABITUAL_DRIVERS[plate] || null;
+    }
+
+    function getDriverStatusOnDate(driverName, dateKey) {
+        if (!driverName || !dateKey) return null;
+        const activeVac = getActiveVacationForDate(driverName, dateKey);
+        if (activeVac) return 'ferias';
+        const data = loadActivities();
+        return data[driverName]?.[dateKey] || null;
+    }
+
+    function getVehicleGapJustification(plate, dateKey) {
+        if (!plate || !dateKey) return null;
+
+        // Se o veículo possui checklist na data (outro motorista saiu com o veículo), não há lacuna
+        const vehicleData = (window.state && window.state.data && window.state.data[plate]) || null;
+        if (vehicleData && vehicleData.days && vehicleData.days[dateKey]) {
+            return null;
+        }
+
+        const titular = getVehicleHabitualDriver(plate);
+        if (!titular) return null;
+        const status = getDriverStatusOnDate(titular, dateKey);
+        if (!status || status === 'ativo') return null;
+
+        const label = STATUS_MAP[status]?.label || status;
+        const isBh = status === 'banco_horas';
+        const isVac = status === 'ferias';
+        const isMed = status === 'atestado';
+        const isAbs = status === 'falta';
+
+        let badgeClass = 'gap-banco';
+        let shortCode = 'BH';
+        if (isVac) { badgeClass = 'gap-ferias'; shortCode = 'FÉR'; }
+        else if (isMed) { badgeClass = 'gap-atestado'; shortCode = 'ATEST'; }
+        else if (isAbs) { badgeClass = 'gap-falta'; shortCode = 'F'; }
+
+        let textDesc = `Veículo inoperante: condutor habitual (${titular}) em ${label}.`;
+        if (isAbs) {
+            textDesc = `Veículo inoperante: condutor titular (${titular}) com Falta.`;
+        } else if (isBh) {
+            textDesc = `Veículo inoperante: condutor habitual (${titular}) em Banco de Horas.`;
+        }
+
+        return {
+            plate,
+            driver: titular,
+            habitualDriver: titular,
+            status,
+            label,
+            statusLabel: label,
+            badgeClass,
+            shortCode,
+            text: textDesc,
+            justification: `Veículo inoperante na data devido a ausência do condutor habitual (${titular}: ${label}).`
+        };
+    }
+
+    function getDriverChecklistStats(driverName, monthKey = null) {
+        const helper = isHelper(driverName);
+        if (helper) {
+            return {
+                isHelper: true,
+                role: 'Ajudante',
+                diasVeio: 0,
+                diasVistoria: 0,
+                pctAdesao: null,
+                isExempt: true,
+                presentDates: new Set(),
+                checklistDates: new Set(),
+                checklistPlatesByDate: {}
+            };
+        }
+
+        // Obtém checklists efetuados pelo motorista através do app.js
+        const checklistInfo = (window.getDriverChecklists && window.getDriverChecklists(driverName, monthKey)) || { dates: new Set(), list: [] };
+        const checklistDates = checklistInfo.dates || new Set();
+        const checklistPlatesByDate = {};
+        (checklistInfo.list || []).forEach(item => {
+            if (!checklistPlatesByDate[item.date]) checklistPlatesByDate[item.date] = [];
+            if (!checklistPlatesByDate[item.date].includes(item.plate)) {
+                checklistPlatesByDate[item.date].push(item.plate);
+            }
+        });
+
+        // Carrega histórico de atividades diárias
+        const data = loadActivities();
+        const driverDays = data[driverName] || {};
+        const presentDates = new Set();
+
+        // 1. Dias registrados como ativo (presença física efetiva)
+        Object.entries(driverDays).forEach(([dateStr, status]) => {
+            if (monthKey && !dateStr.startsWith(monthKey)) return;
+            if (status === 'ativo') {
+                presentDates.add(dateStr);
+            }
+        });
+
+        // 2. Se o motorista preencheu checklist num dia mas não foi lançado como falta/atestado/férias, ele veio trabalhar!
+        checklistDates.forEach(dateStr => {
+            if (monthKey && !dateStr.startsWith(monthKey)) return;
+            const st = driverDays[dateStr];
+            if (st !== 'falta' && st !== 'atestado' && st !== 'ferias') {
+                presentDates.add(dateStr);
+            }
+        });
+
+        const diasVeio = presentDates.size;
+        const diasVistoria = checklistDates.size;
+        const pctAdesao = diasVeio > 0 ? Math.min(100, Math.round((diasVistoria / diasVeio) * 100)) : 0;
+
+        return {
+            isHelper: false,
+            role: 'Motorista',
+            diasVeio,
+            diasVistoria,
+            pctAdesao,
+            isExempt: false,
+            presentDates,
+            checklistDates,
+            checklistPlatesByDate
+        };
+    }
+
     function getCollaboratorStats(driverName, monthKey) {
         const data = loadActivities();
         const days = data[driverName] || {};
@@ -467,8 +648,16 @@ const DriversModule = (function() {
             }
         });
 
-        const pctPresenca = total > 0 ? Math.round(((counts.ativo + counts.banco_horas) / total) * 100) : 0;
-        return { counts, total, pctPresenca };
+        // Banco de horas representa ausência/folga compensatória (não veio)
+        const pctPresenca = total > 0 ? Math.round((counts.ativo / total) * 100) : 0;
+        const chkStats = getDriverChecklistStats(driverName, monthKey);
+
+        return {
+            counts,
+            total,
+            pctPresenca,
+            ...chkStats
+        };
     }
 
     // ─── STATE MANAGEMENT ──────────────────────
@@ -662,6 +851,8 @@ const DriversModule = (function() {
             const statusKey = isVac ? 'ferias' : (data[name] && data[name][today] ? data[name][today] : null);
             const statusMeta = statusKey ? STATUS_MAP[statusKey] : null;
             const isSelected = selectedDriver === name;
+            const isH = isHelper(name);
+            const chkStats = isH ? null : getDriverChecklistStats(name, currentFilter);
 
             html += `
                 <div class="driver-nav-item ${isSelected ? 'active' : ''}" data-driver="${name}">
@@ -669,14 +860,23 @@ const DriversModule = (function() {
                         ${getInitials(name)}
                     </div>
                     <div class="driver-nav-info">
-                        <span class="driver-nav-name">${name}</span>
-                        <span class="driver-nav-status-sub">
-                            ${isVac 
-                                ? '<span class="dot-online" style="background:#f59e0b;"></span> Em Férias'
-                                : (hasToday && statusMeta) 
-                                ? `<span class="dot-online" style="background:${statusMeta.color};"></span> ${statusMeta.label}` 
-                                : '<span class="dot-offline"></span> Aguardando hoje'}
-                        </span>
+                        <div class="driver-nav-name-row">
+                            <span class="driver-nav-name">${name}</span>
+                            <span class="sidebar-role-tag ${isH ? 'helper' : 'driver'}">${isH ? 'Ajudante' : 'Motorista'}</span>
+                        </div>
+                        <div class="driver-nav-sub-row">
+                            <span class="driver-nav-status-sub">
+                                ${isVac 
+                                    ? '<span class="dot-online" style="background:#f59e0b;"></span> Em Férias'
+                                    : (hasToday && statusMeta) 
+                                    ? `<span class="dot-online" style="background:${statusMeta.color};"></span> ${statusMeta.label}` 
+                                    : '<span class="dot-offline"></span> Aguardando'}
+                            </span>
+                            ${isH 
+                                ? '<span class="sidebar-vistoria-tag exempt">Isento</span>'
+                                : `<span class="sidebar-vistoria-tag ${chkStats.pctAdesao >= 95 ? 'ok' : chkStats.pctAdesao >= 90 ? 'warn' : 'danger'}">${chkStats.pctAdesao}% vistoria</span>`
+                            }
+                        </div>
                     </div>
                     <span class="material-icons-round driver-nav-arrow">chevron_right</span>
                 </div>
@@ -712,9 +912,9 @@ const DriversModule = (function() {
         const container = document.getElementById('driversKpiGrid');
         if (!container) return;
 
-        const { counts, total, percentages } = computeKPIs(currentFilter);
+        const { counts, total, percentages, totalVeioMotoristas, totalVistoriasMotoristas, pctAderenciaGeral } = computeKPIs(currentFilter);
 
-        container.innerHTML = Object.entries(STATUS_MAP).map(([key, meta]) => `
+        let html = Object.entries(STATUS_MAP).map(([key, meta]) => `
             <div class="driver-kpi-card" data-status="${key}">
                 <div class="driver-kpi-icon" style="background: rgba(${meta.colorRgb}, 0.12); color: ${meta.color};">
                     <span class="material-icons-round">${meta.icon}</span>
@@ -726,6 +926,24 @@ const DriversModule = (function() {
                 <div class="driver-kpi-pct" style="color: ${meta.color};">${percentages[key]}%</div>
             </div>
         `).join('');
+
+        const adhColor = pctAderenciaGeral >= 95 ? '#22c55e' : (pctAderenciaGeral >= 90 ? '#f59e0b' : '#ef4444');
+        const adhRgb = pctAderenciaGeral >= 95 ? '34,197,94' : (pctAderenciaGeral >= 90 ? '245,158,11' : '239,68,68');
+
+        html += `
+            <div class="driver-kpi-card card-kpi-adherence" title="Vistorias efetuadas vs dias presentes de motoristas (ajudantes isentos)">
+                <div class="driver-kpi-icon" style="background: rgba(${adhRgb}, 0.12); color: ${adhColor};">
+                    <span class="material-icons-round">fact_check</span>
+                </div>
+                <div class="driver-kpi-info">
+                    <span class="driver-kpi-value">${totalVistoriasMotoristas}/${totalVeioMotoristas}</span>
+                    <span class="driver-kpi-label">Vistorias (Motoristas)</span>
+                </div>
+                <div class="driver-kpi-pct" style="color: ${adhColor};">${pctAderenciaGeral}%</div>
+            </div>
+        `;
+
+        container.innerHTML = html;
     }
 
     function renderTop3() {
@@ -778,6 +996,25 @@ const DriversModule = (function() {
             const isToday = r.isToday;
             const isVacation = !!r.isVacation;
             const dateStr = r.date ? formatDateDisplay(r.date) : 'Sem registro';
+            const isH = isHelper(r.driver);
+            const chkStats = isH ? null : getDriverChecklistStats(r.driver, currentFilter);
+
+            const roleHtml = isH
+                ? `<span class="badge-role role-ajudante" title="Ajudante de Carga / Operacional"><span class="material-icons-round" style="font-size:13px;">support_agent</span> Ajudante</span>`
+                : `<span class="badge-role role-motorista" title="Motorista Oficial da Frota"><span class="material-icons-round" style="font-size:13px;">drive_eta</span> Motorista</span>`;
+
+            let vistoriaHtml = '';
+            if (isH) {
+                vistoriaHtml = `<span class="vistoria-exempt-badge" title="Regra de vistoria veicular não se aplica a ajudantes"><span class="material-icons-round" style="font-size:13px;">check_circle</span> Isento</span>`;
+            } else {
+                const adhLevel = chkStats.pctAdesao >= 95 ? 'ok' : (chkStats.pctAdesao >= 90 ? 'warn' : 'danger');
+                vistoriaHtml = `
+                    <div class="driver-vistoria-cell" title="${chkStats.diasVistoria} vistorias realizadas em ${chkStats.diasVeio} dias presentes">
+                        <span class="vistoria-ratio">${chkStats.diasVistoria}/${chkStats.diasVeio}d</span>
+                        <span class="vistoria-pill pill-${adhLevel}">${chkStats.pctAdesao}%</span>
+                    </div>
+                `;
+            }
 
             return `
                 <tr class="${isVacation ? 'row-vacation' : (isToday ? 'row-today' : 'row-past')}">
@@ -788,6 +1025,9 @@ const DriversModule = (function() {
                             </div>
                             <span class="driver-table-name">${r.driver}</span>
                         </div>
+                    </td>
+                    <td>
+                        ${roleHtml}
                     </td>
                     <td>
                         ${meta ? `
@@ -801,6 +1041,9 @@ const DriversModule = (function() {
                                 Não registrado
                             </span>
                         `}
+                    </td>
+                    <td>
+                        ${vistoriaHtml}
                     </td>
                     <td>
                         <span class="driver-table-date ${isToday ? 'date-today' : 'date-past'}">
@@ -868,12 +1111,20 @@ const DriversModule = (function() {
         // Header info
         const nameEl = document.getElementById('driverBannerName');
         const avatarEl = document.getElementById('driverBannerAvatar');
+        const roleEl = document.getElementById('driverBannerRole');
         const monthLabel = document.getElementById('calCurrentMonthLabel');
 
         if (nameEl) nameEl.textContent = selectedDriver;
         if (avatarEl) {
             avatarEl.textContent = getInitials(selectedDriver);
             avatarEl.style.background = getAvatarColor(selectedDriver);
+        }
+
+        const isH = isHelper(selectedDriver);
+        if (roleEl) {
+            roleEl.innerHTML = isH
+                ? `<span class="badge-role role-ajudante" title="Ajudante Operacional (Isento de vistoria veicular)"><span class="material-icons-round" style="font-size:13px;">support_agent</span> Ajudante Operacional (Isento de Vistoria)</span>`
+                : `<span class="badge-role role-motorista" title="Motorista Oficial da Frota"><span class="material-icons-round" style="font-size:13px;">drive_eta</span> Motorista da Frota (Vistoria Obrigatória)</span>`;
         }
 
         const [yStr, mStr] = selectedCalendarMonth.split('-');
@@ -887,7 +1138,34 @@ const DriversModule = (function() {
         const kpiContainer = document.getElementById('driverIndividualKpis');
         if (kpiContainer) {
             const stats = getCollaboratorStats(selectedDriver, selectedCalendarMonth);
+
+            let adherenceCardHtml = '';
+            if (isH) {
+                adherenceCardHtml = `
+                    <div class="individual-kpi-card card-adherence-exempt" title="Ajudantes são isentos da regra de vistoria veicular">
+                        <div class="ind-kpi-icon"><span class="material-icons-round">check_circle</span></div>
+                        <div class="ind-kpi-content">
+                            <span class="ind-kpi-value" style="font-size: 1.15rem; color: #64748b;">Isento</span>
+                            <span class="ind-kpi-label">Vistoria Veicular</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                const adhColor = stats.pctAdesao >= 95 ? '#22c55e' : (stats.pctAdesao >= 90 ? '#f59e0b' : '#ef4444');
+                const adhLevel = stats.pctAdesao >= 95 ? 'ok' : (stats.pctAdesao >= 90 ? 'warn' : 'danger');
+                adherenceCardHtml = `
+                    <div class="individual-kpi-card card-adherence pill-${adhLevel}" title="${stats.diasVistoria} vistorias realizadas em ${stats.diasVeio} dias trabalhados no mês">
+                        <div class="ind-kpi-icon" style="color: ${adhColor};"><span class="material-icons-round">fact_check</span></div>
+                        <div class="ind-kpi-content">
+                            <span class="ind-kpi-value" style="color: ${adhColor};">${stats.pctAdesao}%</span>
+                            <span class="ind-kpi-label">Vistorias (${stats.diasVistoria}/${stats.diasVeio}d)</span>
+                        </div>
+                    </div>
+                `;
+            }
+
             kpiContainer.innerHTML = `
+                ${adherenceCardHtml}
                 <div class="individual-kpi-card card-presence">
                     <div class="ind-kpi-icon"><span class="material-icons-round">speed</span></div>
                     <div class="ind-kpi-content">
@@ -944,6 +1222,11 @@ const DriversModule = (function() {
         const data = loadActivities();
         const driverDays = data[driverName] || {};
 
+        const isH = isHelper(driverName);
+        const chkStats = isH ? null : getDriverChecklistStats(driverName, monthKey);
+        const chkDates = chkStats ? chkStats.checklistDates : new Set();
+        const platesByDate = chkStats ? chkStats.checklistPlatesByDate : {};
+
         const [yStr, mStr] = monthKey.split('-');
         const year = parseInt(yStr, 10);
         const month = parseInt(mStr, 10); // 1-12
@@ -974,8 +1257,32 @@ const DriversModule = (function() {
             const isToday = dayKey === today;
             const statusMeta = statusKey ? STATUS_MAP[statusKey] : null;
 
+            const hasChecklist = chkDates.has(dayKey);
+            const plates = platesByDate[dayKey] || [];
+            const platesText = plates.length > 0 ? ` [${plates.join(', ')}]` : '';
+
+            let checklistPillHtml = '';
+            if (!isH) {
+                if (hasChecklist) {
+                    const plateLabel = plates.length > 0 ? ` (${plates[0]})` : '';
+                    checklistPillHtml = `
+                        <div class="cal-checklist-pill ok" title="Vistoria veicular realizada com sucesso${platesText}">
+                            <span class="material-icons-round" style="font-size:12px;">task_alt</span>
+                            <span>Vistoria OK${plateLabel}</span>
+                        </div>
+                    `;
+                } else if (statusKey === 'ativo' && dayKey <= today) {
+                    checklistPillHtml = `
+                        <div class="cal-checklist-pill missing" title="Colaborador ativo sem registro de vistoria veicular">
+                            <span class="material-icons-round" style="font-size:12px;">warning_amber</span>
+                            <span>Sem Vistoria</span>
+                        </div>
+                    `;
+                }
+            }
+
             html += `
-                <div class="cal-day-cell ${isToday ? 'cal-today' : ''} ${statusKey ? 'has-status' : ''}" data-date="${dayKey}" data-driver="${driverName}" title="${dayKey}: ${statusMeta ? statusMeta.label : 'Sem registro'}">
+                <div class="cal-day-cell ${isToday ? 'cal-today' : ''} ${statusKey ? 'has-status' : ''}" data-date="${dayKey}" data-driver="${driverName}" title="${dayKey}: ${statusMeta ? statusMeta.label : 'Sem registro'}${hasChecklist ? ' | Vistoria OK' + platesText : ''}">
                     <div class="cal-day-header">
                         <span class="cal-day-number">${day}</span>
                         ${isToday ? '<span class="cal-today-tag">Hoje</span>' : ''}
@@ -989,6 +1296,7 @@ const DriversModule = (function() {
                         ` : `
                             <span class="cal-no-record">-</span>
                         `}
+                        ${checklistPillHtml}
                     </div>
                 </div>
             `;
@@ -1039,6 +1347,21 @@ const DriversModule = (function() {
                 render();
             });
         }
+
+        // Print driver profile button
+        const printBtn = document.getElementById('btnPrintDriverProfile');
+        if (printBtn) {
+            printBtn.addEventListener('click', () => {
+                document.body.classList.add('print-driver-mode');
+                window.print();
+                setTimeout(() => {
+                    document.body.classList.remove('print-driver-mode');
+                }, 500);
+            });
+        }
+        window.addEventListener('afterprint', () => {
+            document.body.classList.remove('print-driver-mode');
+        });
 
         // Calendar month stepper
         const prevMonthBtn = document.getElementById('btnCalPrevMonth');
@@ -1358,11 +1681,25 @@ const DriversModule = (function() {
         render,
         sync: syncFromSupabase,
         KNOWN_DRIVERS,
-        STATUS_MAP
+        STATUS_MAP,
+        VEHICLE_HABITUAL_DRIVERS,
+        getVehicleHabitualDriver,
+        getDriverStatusOnDate,
+        getVehicleGapJustification,
+        getDriverChecklistStats,
+        getCollaboratorStats,
+        isHelper,
+        isAjudante: isHelper
     };
 
 })();
 
 // Exporta globalmente no window
 window.DriversModule = DriversModule;
+window.getVehicleHabitualDriver = DriversModule.getVehicleHabitualDriver;
+window.getVehicleGapJustification = DriversModule.getVehicleGapJustification;
+window.getDriverChecklistStats = DriversModule.getDriverChecklistStats;
+window.getCollaboratorStats = DriversModule.getCollaboratorStats;
+window.isAjudante = DriversModule.isAjudante;
+
 

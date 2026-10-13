@@ -103,10 +103,12 @@ function aggregateDataForMonths(data, monthsList) {
                 }
             });
 
-            // Driver count
+            // Driver count (ignora ajudantes: Alan, Cristian, Wesley, Jailton, Luis Gustavo)
             if (dayData.driver) {
                 const drv = dayData.driver.trim();
-                if (drv && drv.toLowerCase() !== 'não informado' && drv !== '—') {
+                const HELPERS = ['alan', 'cristian', 'wesley', 'jailton', 'luis gustavo'];
+                const isH = HELPERS.some(h => drv.toLowerCase().startsWith(h));
+                if (!isH && drv && drv.toLowerCase() !== 'não informado' && drv !== '—') {
                     driverStats[drv] = (driverStats[drv] || 0) + 1;
                 }
             }
@@ -603,9 +605,9 @@ function addDashboardSlide(pres, theme, title, subtitleDate, stats, logoImgData)
         radius: 0.06
     });
 
-    slide.addText("Engajamento (%)", {
+    slide.addText("Vistorias (Motoristas)", {
         x: engageX + 0.12, y: midY + 0.08, w: 2.26, h: 0.20,
-        fontSize: 10.5, fontFace: 'Inter',
+        fontSize: 10, fontFace: 'Inter',
         color: theme.textPrimary, bold: true
     });
 

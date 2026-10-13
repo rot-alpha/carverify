@@ -720,6 +720,41 @@ function smartSplitCSV(line) {
     return result;
 }
 
+// ─── GLOBAL CHECKLIST ACCESSORS ────────────
+window.getFleetChecklists = function() {
+    return state.data || {};
+};
+
+window.getDriverChecklists = function(driverName, monthKey = null) {
+    if (!driverName) return { dates: new Set(), count: 0, list: [] };
+    const normTarget = driverName.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const dates = new Set();
+    const list = [];
+
+    Object.entries(state.data || {}).forEach(([plate, vehicleData]) => {
+        Object.entries(vehicleData.days || {}).forEach(([dateStr, dayData]) => {
+            if (monthKey && !dateStr.startsWith(monthKey)) return;
+            if (!dayData.driver) return;
+
+            const parts = dayData.driver.split('/').map(d => d.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''));
+            const matched = parts.some(p => p === normTarget || p.includes(normTarget) || normTarget.includes(p));
+
+            if (matched) {
+                dates.add(dateStr);
+                list.push({
+                    plate,
+                    date: dateStr,
+                    km: dayData.km,
+                    count: dayData.count || 1,
+                    comment: dayData.comment
+                });
+            }
+        });
+    });
+
+    return { dates, count: dates.size, list };
+};
+
 // ─── SUPABASE CHECKLISTS PARSER ───────────
 const SUPABASE_ITEM_MAP = {
     'Sistema de freio': 'sistema_freio',
@@ -1455,7 +1490,12 @@ function updateVehicleConformity(vehicleData, monthDays, selectedDate) {
             const footer = document.getElementById('conformityFooter');
             if (footer) {
                 const [, m, d] = selectedDate.split('-');
-                footer.textContent = `Sem vistoria para ${plate} em ${parseInt(d)}/${parseInt(m)}`;
+                const gap = window.getVehicleGapJustification ? window.getVehicleGapJustification(plate, selectedDate) : null;
+                if (gap) {
+                    footer.innerHTML = `<span style="color:#2563eb;font-weight:600;"><span class="material-icons-round" style="font-size:14px;vertical-align:middle;">info</span> ${plate} sem vistoria em ${parseInt(d)}/${parseInt(m)} (${gap.text})</span>`;
+                } else {
+                    footer.textContent = `Sem vistoria para ${plate} em ${parseInt(d)}/${parseInt(m)}`;
+                }
             }
         }
     } else {
@@ -1483,18 +1523,73 @@ function updateVehicleConformity(vehicleData, monthDays, selectedDate) {
     }
 }
 
+function renderSingleDayGap(date, plate, vehicle, gap) {
+    const table = document.getElementById('checklistTable');
+    if (table) table.classList.remove('single-day-mode');
+    const thead = table ? table.querySelector('thead tr') : null;
+    if (thead) {
+        thead.innerHTML = `
+            <th class="col-question">Pergunta</th>
+            <th class="col-ok"><span class="badge badge-ok">OK</span></th>
+            <th class="col-nok"><span class="badge badge-nok">NOK</span></th>
+            <th class="col-bar">Distribuição</th>
+        `;
+    }
+    charts.updateKmChart([], []);
+    document.getElementById('kmValue').textContent = '—';
+    document.getElementById('kmSubtitle').textContent = 'Veículo inoperante neste dia';
+
+    const [y, m, d] = date.split('-');
+    const formattedDate = `${parseInt(d)}/${parseInt(m)}/${y}`;
+    const metaContainer = document.getElementById('checklistMeta');
+    if (metaContainer) {
+        metaContainer.innerHTML = `
+            <div class="gap-day-banner ${gap ? gap.badgeClass : ''}">
+                <span class="material-icons-round gap-banner-icon">event_busy</span>
+                <div class="gap-banner-info">
+                    <strong>Sem Vistoria em ${formattedDate} — ${plate} (${vehicle ? vehicle.model : ''})</strong>
+                    <span>${gap ? gap.text : 'Nenhuma vistoria registrada nesta data (veículo no pátio).'}</span>
+                </div>
+            </div>
+        `;
+    }
+
+    document.getElementById('checklistBody').innerHTML = `
+        <tr><td colspan="4" class="empty-state" style="padding:40px">
+            <span class="material-icons-round" style="font-size:32px;color:#2563eb;opacity:0.85">event_busy</span>
+            <p style="margin-top:8px;font-weight:700;color:var(--clr-text-primary);font-size:14px;">
+                ${gap ? gap.text : 'Veículo inoperante / sem vistoria registrada nesta data.'}
+            </p>
+            <p style="margin-top:4px;font-size:12px;color:var(--clr-text-secondary)">
+                O veículo não realizou rota e permaneceu no pátio, justificando a ausência do checklist.
+            </p>
+        </td></tr>`;
+
+    document.getElementById('commentsList').innerHTML = `
+        <div class="empty-state">
+            <span class="material-icons-round">speaker_notes_off</span>
+            <p>Nenhuma observação registrada.</p>
+        </div>`;
+    document.getElementById('commentCount').textContent = '0';
+}
+
 function updateDashboard() {
     const vehicleData = getActiveVehicleData();
+    const currentVehicle = VEHICLES[state.activeVehicle];
+    const plate = currentVehicle ? currentVehicle.plate : '';
     const monthDays = getFilteredDays(vehicleData);
     const selectedDate = state.selectedDate;
 
-    // Passa o objeto completo de dias com contagens para o calendário exibir selos '2x'
-    calendar.setDatesWithData(monthDays);
+    // Passa o objeto completo de dias com contagens e a placa para o calendário exibir selos e justificativas
+    calendar.setDatesWithData(monthDays, plate);
 
     updateVehicleConformity(vehicleData, monthDays, selectedDate);
 
     if (selectedDate && monthDays[selectedDate]) {
         renderSingleDay(selectedDate, monthDays[selectedDate], monthDays);
+    } else if (selectedDate && !monthDays[selectedDate]) {
+        const gap = window.getVehicleGapJustification ? window.getVehicleGapJustification(plate, selectedDate) : null;
+        renderSingleDayGap(selectedDate, plate, currentVehicle, gap);
     } else {
         renderCompiled(monthDays);
     }
@@ -1857,6 +1952,9 @@ async function syncWithRemote() {
         if (state.screen === 'dashboard') {
             updateDashboard();
         }
+        if (window.DriversModule && typeof window.DriversModule.render === 'function') {
+            window.DriversModule.render();
+        }
     }
 
     if (btn) {
@@ -1920,6 +2018,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else if (state.screen === 'dashboard') {
                         charts.destroyAll();
                         updateDashboard();
+                    }
+                    if (window.DriversModule && typeof window.DriversModule.render === 'function') {
+                        window.DriversModule.render();
                     }
                     console.log(`[SUPABASE] ${rows.length} checklists carregados da nuvem.`);
                 }
