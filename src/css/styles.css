@@ -3375,7 +3375,7 @@ button {
 .driver-individual-kpi-grid {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: var(--space-md);
+    gap: 8px;
     align-items: stretch;
     width: 100%;
 }
@@ -3383,15 +3383,16 @@ button {
 .individual-kpi-card {
     background: var(--bg-card);
     border: 1px solid var(--clr-border-light);
-    border-radius: var(--radius-lg);
-    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    padding: 8px 10px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     min-width: 0;
-    min-height: 74px;
+    min-height: 62px;
     box-shadow: var(--shadow-sm);
     transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+    box-sizing: border-box;
 }
 
 .individual-kpi-card:hover {
@@ -3400,9 +3401,10 @@ button {
 }
 
 .ind-kpi-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: var(--radius-md);
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3410,7 +3412,7 @@ button {
 }
 
 .ind-kpi-icon .material-icons-round {
-    font-size: 22px;
+    font-size: 18px;
 }
 
 .ind-kpi-content {
@@ -3422,23 +3424,22 @@ button {
 }
 
 .ind-kpi-value {
-    font-size: 1.35rem;
+    font-size: 1.2rem;
     font-weight: 700;
     color: var(--clr-text-primary);
-    line-height: 1.15;
+    line-height: 1.1;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: visible;
 }
 
 .ind-kpi-label {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--clr-text-secondary);
     font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 1.2;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+    line-height: 1.15;
     margin-top: 2px;
 }
 
@@ -3685,15 +3686,15 @@ button {
 .cal-grid {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 8px;
+    gap: 6px;
     width: 100%;
     min-width: 0;
 }
 
 .cal-header-cell {
     text-align: center;
-    padding: 10px 4px;
-    font-size: 12px;
+    padding: 8px 4px;
+    font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -3707,15 +3708,16 @@ button {
 }
 
 .cal-day-cell {
-    min-height: 86px;
+    min-height: 94px;
     min-width: 0;
     background: var(--bg-card);
     border: 1px solid var(--clr-border-light);
     border-radius: var(--radius-md);
-    padding: 8px 10px;
+    padding: 5px 6px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: 4px;
     cursor: pointer;
     transition: all var(--transition-fast);
     overflow: hidden;
@@ -3743,6 +3745,7 @@ button {
     justify-content: space-between;
     min-width: 0;
     gap: 4px;
+    margin-bottom: 2px;
 }
 
 .cal-day-number {
@@ -3758,43 +3761,44 @@ button {
 }
 
 .cal-today-tag {
-    font-size: 10px;
+    font-size: 9.5px;
     font-weight: 700;
     background: var(--clr-primary);
     color: #fff;
-    padding: 1px 6px;
+    padding: 1px 5px;
     border-radius: var(--radius-full);
     line-height: 1.2;
     flex-shrink: 0;
 }
 
 .cal-day-body {
-    margin-top: 6px;
+    flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     min-width: 0;
     width: 100%;
-    min-height: 28px;
+    gap: 3px;
 }
 
 .cal-status-pill {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
-    gap: 5px;
-    padding: 5px 8px;
+    gap: 3px;
+    padding: 3px 5px;
     border-radius: var(--radius-sm);
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 600;
     width: 100%;
     min-width: 0;
     box-sizing: border-box;
+    overflow: hidden;
 }
 
 .cal-status-pill .material-icons-round {
-    font-size: 14px;
+    font-size: 13px !important;
     flex-shrink: 0;
 }
 
@@ -3803,24 +3807,37 @@ button {
     overflow: hidden;
     text-overflow: ellipsis;
     min-width: 0;
+    text-align: center;
 }
 
 .cal-checklist-pill {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-    padding: 3px 6px;
+    gap: 3px;
+    padding: 2.5px 4px;
     border-radius: var(--radius-sm);
-    font-size: 10px;
+    font-size: 9.5px;
     font-weight: 700;
     width: 100%;
-    margin-top: 4px;
+    min-width: 0;
+    margin-top: 0;
     box-sizing: border-box;
-    white-space: nowrap;
+    line-height: 1.2;
+    overflow: hidden;
+}
+
+.cal-checklist-pill .material-icons-round {
+    font-size: 12px !important;
+    flex-shrink: 0;
+}
+
+.cal-checklist-pill .cal-pill-text {
     overflow: hidden;
     text-overflow: ellipsis;
-    line-height: 1.2;
+    white-space: nowrap;
+    min-width: 0;
+    text-align: center;
 }
 
 .cal-checklist-pill.ok {
@@ -3925,9 +3942,9 @@ button {
 }
 
 /* Responsive */
-@media (max-width: 1400px) {
+@media (max-width: 1200px) {
     .driver-individual-kpi-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 }
 
@@ -3951,6 +3968,9 @@ button {
     .drivers-top-row {
         grid-template-columns: 1fr;
     }
+    .driver-individual-kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
 @media (max-width: 768px) {
@@ -3961,16 +3981,18 @@ button {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     .cal-grid {
-        gap: 4px;
+        gap: 3px;
     }
     .cal-day-cell {
-        min-height: 64px;
-        padding: 4px 6px;
+        min-height: 68px;
+        padding: 3px 4px;
     }
-    .cal-status-text {
+    .cal-status-text,
+    .cal-checklist-pill .cal-pill-text {
         display: none;
     }
-    .cal-status-pill {
+    .cal-status-pill,
+    .cal-checklist-pill {
         padding: 4px;
         justify-content: center;
     }
@@ -4943,28 +4965,40 @@ button {
 
     body.print-driver-mode .driver-individual-kpi-grid {
         grid-template-columns: repeat(7, 1fr) !important;
-        gap: 6px !important;
+        gap: 4px !important;
         margin-bottom: 8px !important;
     }
 
     body.print-driver-mode .individual-kpi-card {
-        padding: 6px 8px !important;
-        min-height: auto !important;
-        border: 1px solid #e2e8f0 !important;
+        padding: 4px 5px !important;
+        min-height: 46px !important;
+        gap: 4px !important;
+        border: 1px solid #cbd5e1 !important;
         box-shadow: none !important;
     }
 
     body.print-driver-mode .ind-kpi-icon {
-        width: 26px !important;
-        height: 26px !important;
+        width: 22px !important;
+        height: 22px !important;
+        min-width: 22px !important;
+    }
+
+    body.print-driver-mode .ind-kpi-icon .material-icons-round {
+        font-size: 13px !important;
     }
 
     body.print-driver-mode .ind-kpi-value {
-        font-size: 1rem !important;
+        font-size: 0.95rem !important;
+        line-height: 1 !important;
+        white-space: nowrap !important;
+        overflow: visible !important;
     }
 
     body.print-driver-mode .ind-kpi-label {
-        font-size: 9px !important;
+        font-size: 8px !important;
+        line-height: 1.1 !important;
+        white-space: normal !important;
+        word-break: normal !important;
     }
 
     body.print-driver-mode .driver-calendar-card {
@@ -4974,10 +5008,40 @@ button {
         break-inside: avoid !important;
     }
 
+    body.print-driver-mode .cal-grid {
+        gap: 3px !important;
+    }
+
     body.print-driver-mode .cal-day-cell {
-        min-height: 58px !important;
+        min-height: 64px !important;
         border: 1px solid #e2e8f0 !important;
-        padding: 4px 6px !important;
+        padding: 3px 4px !important;
+    }
+
+    body.print-driver-mode .cal-day-header {
+        margin-bottom: 2px !important;
+    }
+
+    body.print-driver-mode .cal-day-body {
+        gap: 2px !important;
+    }
+
+    body.print-driver-mode .cal-status-pill,
+    body.print-driver-mode .cal-checklist-pill {
+        padding: 1.5px 3px !important;
+        font-size: 8px !important;
+        gap: 2px !important;
+        line-height: 1.15 !important;
+    }
+
+    body.print-driver-mode .cal-status-pill .material-icons-round,
+    body.print-driver-mode .cal-checklist-pill .material-icons-round {
+        font-size: 10px !important;
+    }
+
+    body.print-driver-mode .cal-checklist-pill .cal-pill-text,
+    body.print-driver-mode .cal-status-text {
+        font-size: 8px !important;
     }
 }
 

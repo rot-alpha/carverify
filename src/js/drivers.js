@@ -1230,7 +1230,7 @@ const DriversModule = (function() {
                         <div class="ind-kpi-icon"><span class="material-icons-round">check_circle</span></div>
                         <div class="ind-kpi-content">
                             <span class="ind-kpi-value" style="font-size: 1.15rem; color: #64748b;">Isento</span>
-                            <span class="ind-kpi-label">Vistoria Veicular</span>
+                            <span class="ind-kpi-label">Vistoria</span>
                         </div>
                     </div>
                 `;
@@ -1242,7 +1242,7 @@ const DriversModule = (function() {
                         <div class="ind-kpi-icon" style="color: ${adhColor};"><span class="material-icons-round">fact_check</span></div>
                         <div class="ind-kpi-content">
                             <span class="ind-kpi-value" style="color: ${adhColor};">${stats.pctAdesao}%</span>
-                            <span class="ind-kpi-label">Vistorias (${stats.diasVistoria}/${stats.diasVeio}d)</span>
+                            <span class="ind-kpi-label" title="${stats.diasVistoria} vistorias em ${stats.diasVeio} dias trabalhados">Vistorias (${stats.diasVistoria}/${stats.diasVeio})</span>
                         </div>
                     </div>
                 `;
@@ -1254,7 +1254,7 @@ const DriversModule = (function() {
                     <div class="ind-kpi-icon"><span class="material-icons-round">speed</span></div>
                     <div class="ind-kpi-content">
                         <span class="ind-kpi-value">${stats.pctPresenca}%</span>
-                        <span class="ind-kpi-label">Índice de Presença</span>
+                        <span class="ind-kpi-label">Índice Presença</span>
                     </div>
                 </div>
                 <div class="individual-kpi-card card-ativo">
@@ -1268,7 +1268,7 @@ const DriversModule = (function() {
                     <div class="ind-kpi-icon"><span class="material-icons-round">schedule</span></div>
                     <div class="ind-kpi-content">
                         <span class="ind-kpi-value">${stats.counts.banco_horas}</span>
-                        <span class="ind-kpi-label">Banco de Horas</span>
+                        <span class="ind-kpi-label">Banco Horas</span>
                     </div>
                 </div>
                 <div class="individual-kpi-card card-falta">
@@ -1353,20 +1353,33 @@ const DriversModule = (function() {
                     checklistPillHtml = `
                         <div class="cal-checklist-pill ok" title="Vistoria veicular realizada com sucesso${platesText}">
                             <span class="material-icons-round" style="font-size:12px;">task_alt</span>
-                            <span>Vistoria OK${plateLabel}</span>
+                            <span class="cal-pill-text">Vistoria OK${plateLabel}</span>
                         </div>
                     `;
                 } else if (statusKey === 'ativo' && dayKey <= today && !holiday) {
                     checklistPillHtml = `
                         <div class="cal-checklist-pill missing" title="Colaborador ativo sem registro de vistoria veicular">
                             <span class="material-icons-round" style="font-size:12px;">warning_amber</span>
-                            <span>Sem Vistoria</span>
+                            <span class="cal-pill-text">Sem Vistoria</span>
                         </div>
                     `;
                 }
             }
 
             const dayTitle = `${dayKey}: ${statusMeta ? statusMeta.label : (holiday ? `Feriado ${holiday.type} (${holiday.name}) · Sem Expediente` : 'Sem registro')}${hasChecklist ? ' | Vistoria OK' + platesText : ''}`;
+
+            let holidayPillLabel = '';
+            if (holiday) {
+                const shortHolidayNames = {
+                    'N. Sra. Aparecida': 'Aparecida',
+                    'Consciência Negra': 'Zumbi',
+                    'Proclamação Rep.': 'Proclamação',
+                    'Dia do Trabalho': 'Trabalho',
+                    'Paixão de Cristo': 'Sexta Santa',
+                    'Aniv. Sorocaba': 'Sorocaba'
+                };
+                holidayPillLabel = shortHolidayNames[holiday.short] || holiday.short;
+            }
 
             html += `
                 <div class="cal-day-cell ${isToday ? 'cal-today' : ''} ${statusKey ? 'has-status' : ''} ${holiday ? 'cal-holiday' : ''}" data-date="${dayKey}" data-driver="${driverName}" title="${dayTitle}">
@@ -1383,7 +1396,7 @@ const DriversModule = (function() {
                         ` : holiday ? `
                             <div class="cal-status-pill status-holiday" title="Feriado ${holiday.type}: ${holiday.name} (Sem Expediente)">
                                 <span class="material-icons-round" style="font-size:13px;">event_busy</span>
-                                <span class="cal-status-text">${holiday.short}</span>
+                                <span class="cal-status-text">${holidayPillLabel}</span>
                             </div>
                         ` : `
                             <span class="cal-no-record">-</span>
