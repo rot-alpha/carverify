@@ -22,6 +22,11 @@ async function sync() {
         }
 
         const response = await fetch(CSV_URL);
+        if (response.status === 401 || response.status === 403) {
+            console.log(`[SYNC] Planilha Google Sheets protegida com acesso privado (SEC-05: HTTP ${response.status}).`);
+            console.log(`[SYNC] A ingestão de novos checklists opera em tempo real via Webhook Google Apps Script direto no Supabase.`);
+            return;
+        }
         if (!response.ok) {
             throw new Error(`HTTP ${response.status} - ${response.statusText}`);
         }

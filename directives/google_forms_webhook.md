@@ -22,7 +22,7 @@ graph LR
 5. Clique no ícone de disquete **Salvar** (Ctrl + S).
 
 ### 2. Testar o Envio
-1. No editor do Apps Script, selecione a função `testEnviarUltimaLinha` no seletor do topo.
+1. No editor do Apps Script, selecione a função `testarEnvio` no seletor do topo.
 2. Clique em **Executar** (Run).
 3. Na primeira vez, o Google solicitará permissão para conexões externas (`UrlFetchApp`). Clique em **Revisar permissões**, selecione sua conta e autorize.
 4. Veja no log de execução a mensagem `Resposta Supabase: HTTP 201` ou `HTTP 204`.
@@ -31,7 +31,7 @@ graph LR
 1. No menu lateral esquerdo do Apps Script, clique no ícone de **Relógio** (**Acionadores / Triggers**).
 2. Clique no botão azul **+ Adicionar acionador** (canto inferior direito).
 3. Configure os campos:
-   - **Escolha qual função executar:** `onFormSubmit`
+   - **Escolha qual função executar:** `enviarChecklistSupabase`
    - **Escolha qual implantação deve ser executada:** `Head`
    - **Selecione a fonte do evento:** `Da planilha`
    - **Selecione o tipo de evento:** `Ao enviar formulário` (On form submit)

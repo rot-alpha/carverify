@@ -3,10 +3,10 @@
  * Script para ser colado no Google Sheets (Extensões > Apps Script)
  * CAR . VERIFY — Sincronização em Tempo Real e Blindagem da Planilha (SEC-05)
  *
- * Funcionalidade:
- * Ao enviar uma resposta no Google Forms, este script envia o checklist
- * instantaneamente para o Supabase via REST API.
- * Isso permite fechar 100% o acesso público da planilha no Google Drive.
+ * NOTA DE SEGURANÇA E APPS SCRIPT:
+ * A função é nomeada 'enviarChecklistSupabase' (e NÃO 'onFormSubmit'),
+ * pois 'onFormSubmit' é um gatilho simples reservado que o Google bloqueia
+ * quando tenta executar chamadas externas (UrlFetchApp).
  */
 
 const CONFIG = {
@@ -89,22 +89,27 @@ function formatISOTimestamp(rawTimestamp) {
 }
 
 /**
- * Função principal acionada pelo envio do Google Forms
+ * Função acionada pelo envio do Google Forms (Installable Trigger)
  */
-function onFormSubmit(e) {
+function enviarChecklistSupabase(e) {
   try {
     let rowValues = [];
     if (e && e.values) {
       rowValues = e.values;
     } else {
-      // Fallback: se executado manualmente sem evento, pega a última linha da planilha ativa
-      const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const sheet = ss.getSheetByName("Respostas ao formulário 1") || ss.getSheets()[0];
       const lastRow = sheet.getLastRow();
-      rowValues = sheet.getRange(lastRow, 1, 1, 45).getValues()[0];
+      const lastCol = sheet.getLastColumn();
+      if (lastRow < 2) {
+        Logger.log("Aviso: Planilha vazia ou sem respostas.");
+        return;
+      }
+      rowValues = sheet.getRange(lastRow, 1, 1, lastCol).getValues()[0];
     }
 
     if (!rowValues || rowValues.length < 35) {
-      Logger.log("Linha com colunas insuficientes.");
+      Logger.log("Linha com colunas insuficientes (encontradas: " + (rowValues ? rowValues.length : 0) + ").");
       return;
     }
 
@@ -119,7 +124,7 @@ function onFormSubmit(e) {
     const empresa = String(rowValues[7] || 'ALPHA CANDIES').trim();
 
     if (!placa || placa.length < 7) {
-      Logger.log("Placa inválida ou não informada: " + placa);
+      Logger.log("Aviso: Placa inválida ou não informada: " + placa);
       return;
     }
 
@@ -180,15 +185,14 @@ function onFormSubmit(e) {
     }
 
   } catch (err) {
-    Logger.log("Exceção no onFormSubmit: " + err.toString());
+    Logger.log("Exceção em enviarChecklistSupabase: " + err.toString());
   }
 }
 
 /**
- * Função de Teste Rápido:
- * Executa o envio da última linha gravada na planilha para testar a conexão sem preencher um novo form.
+ * Função de Teste: executa o envio da última linha da planilha
  */
-function testEnviarUltimaLinha() {
-  Logger.log("Iniciando teste de envio da última linha...");
-  onFormSubmit(null);
+function testarEnvio() {
+  Logger.log("Executando teste com a última linha da planilha...");
+  enviarChecklistSupabase(null);
 }
