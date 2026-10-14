@@ -19,6 +19,21 @@ const DriversModule = (function() {
     const STORAGE_VACATIONS = 'carverify_driver_vacations';
     const DELETED_DRIVERS = ['Pablo Henrique'];
 
+    // ─── SECURITY HELPERS (ANTI-XSS & LGPD SECURE STORAGE) ──
+    const escapeHtml = (window.CarVerifySecurity && window.CarVerifySecurity.escapeHtml) ? window.CarVerifySecurity.escapeHtml : (str => {
+        if (str === null || str === undefined) return '';
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    });
+
+    const secStore = (window.CarVerifySecurity && window.CarVerifySecurity.secureStorage) ? window.CarVerifySecurity.secureStorage : {
+        getItem: (k, fb = null) => {
+            try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : fb; } catch (e) { return fb; }
+        },
+        setItem: (k, v) => {
+            try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; }
+        }
+    };
+
     // ─── DRIVERS LIST (quadro ativo de colaboradores) ──
     const KNOWN_DRIVERS = [
         'Alan Henrique',
@@ -71,8 +86,7 @@ const DriversModule = (function() {
     // ─── PERSISTENCE & AUTO-VACATION SYNC ──────
     function loadVacations() {
         try {
-            const raw = localStorage.getItem(STORAGE_VACATIONS);
-            return raw ? JSON.parse(raw) : {};
+            return secStore.getItem(STORAGE_VACATIONS, {}) || {};
         } catch (e) {
             console.warn('DriversModule: falha ao ler férias', e);
             return {};
@@ -81,7 +95,7 @@ const DriversModule = (function() {
 
     function saveVacations(vacs) {
         try {
-            localStorage.setItem(STORAGE_VACATIONS, JSON.stringify(vacs));
+            secStore.setItem(STORAGE_VACATIONS, vacs);
         } catch (e) {
             console.warn('DriversModule: falha ao salvar férias', e);
         }
@@ -104,20 +118,19 @@ const DriversModule = (function() {
 
         if (actChanged) {
             try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                secStore.setItem(STORAGE_KEY, data);
             } catch (e) {}
         }
         if (vacChanged) {
             try {
-                localStorage.setItem(STORAGE_VACATIONS, JSON.stringify(vacs));
+                secStore.setItem(STORAGE_VACATIONS, vacs);
             } catch (e) {}
         }
     }
 
     // Immediate cleanup of deleted staff records upon script load
     try {
-        const _rawAct = localStorage.getItem(STORAGE_KEY);
-        const _act = _rawAct ? JSON.parse(_rawAct) : {};
+        const _act = secStore.getItem(STORAGE_KEY, {}) || {};
         const _vacs = loadVacations();
         cleanDeletedDrivers(_act, _vacs);
     } catch (e) {}
@@ -147,7 +160,7 @@ const DriversModule = (function() {
 
         if (changed) {
             try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(activitiesData));
+                secStore.setItem(STORAGE_KEY, activitiesData);
             } catch (e) {}
         }
         return activitiesData;
@@ -156,10 +169,9 @@ const DriversModule = (function() {
     function loadActivities() {
         let data = {};
         try {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            data = raw ? JSON.parse(raw) : {};
+            data = secStore.getItem(STORAGE_KEY, {}) || {};
         } catch (e) {
-            console.warn('DriversModule: falha ao ler localStorage', e);
+            console.warn('DriversModule: falha ao ler armazenamento', e);
             data = {};
         }
 
@@ -172,9 +184,9 @@ const DriversModule = (function() {
     function saveActivities(data) {
         try {
             cleanDeletedDrivers(data, loadVacations());
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            secStore.setItem(STORAGE_KEY, data);
         } catch (e) {
-            console.warn('DriversModule: falha ao gravar localStorage', e);
+            console.warn('DriversModule: falha ao gravar armazenamento', e);
         }
     }
 
@@ -920,7 +932,7 @@ const DriversModule = (function() {
                         ${getInitials(name)}
                     </div>
                     <div class="driver-nav-info">
-                        <span class="driver-nav-name">${name}</span>
+                        <span class="driver-nav-name">${escapeHtml(name)}</span>
                         <span class="driver-nav-status-sub">
                             ${isVac 
                                 ? '<span class="dot-online" style="background:#f59e0b;"></span> Em Férias'
@@ -1103,11 +1115,11 @@ const DriversModule = (function() {
             return `
                 <tr class="${isVacation ? 'row-vacation' : (isToday ? 'row-today' : 'row-past')}">
                     <td>
-                        <div class="driver-table-user" data-open-driver="${r.driver}" title="Ver calendário de ${r.driver}">
+                        <div class="driver-table-user" data-open-driver="${escapeHtml(r.driver)}" title="Ver calendário de ${escapeHtml(r.driver)}">
                             <div class="driver-table-avatar" style="background:${getAvatarColor(r.driver)};">
                                 ${getInitials(r.driver)}
                             </div>
-                            <span class="driver-table-name">${r.driver}</span>
+                            <span class="driver-table-name">${escapeHtml(r.driver)}</span>
                         </div>
                     </td>
                     <td>

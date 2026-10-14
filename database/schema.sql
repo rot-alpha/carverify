@@ -122,26 +122,45 @@ ALTER TABLE public.checklists ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.atividades_motoristas ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ferias_motoristas ENABLE ROW LEVEL SECURITY;
 
+-- Revoga privilégios destrutivos de tabelas para a role anônima
+REVOKE TRUNCATE, REFERENCES ON ALL TABLES IN SCHEMA public FROM anon;
+
+-- Políticas de segurança granulares
 DROP POLICY IF EXISTS "Leitura pública veículos" ON public.veiculos;
-CREATE POLICY "Leitura pública veículos" ON public.veiculos FOR SELECT USING (true);
 DROP POLICY IF EXISTS "Edição pública veículos" ON public.veiculos;
-CREATE POLICY "Edição pública veículos" ON public.veiculos FOR ALL USING (true);
+CREATE POLICY "veiculos_select_public" ON public.veiculos FOR SELECT TO anon, authenticated USING (true);
 
 DROP POLICY IF EXISTS "Leitura pública motoristas" ON public.motoristas;
-CREATE POLICY "Leitura pública motoristas" ON public.motoristas FOR SELECT USING (true);
 DROP POLICY IF EXISTS "Edição pública motoristas" ON public.motoristas;
-CREATE POLICY "Edição pública motoristas" ON public.motoristas FOR ALL USING (true);
+CREATE POLICY "motoristas_select_public" ON public.motoristas FOR SELECT TO anon, authenticated USING (true);
 
 DROP POLICY IF EXISTS "Leitura pública checklists" ON public.checklists;
-CREATE POLICY "Leitura pública checklists" ON public.checklists FOR SELECT USING (true);
 DROP POLICY IF EXISTS "Inserção pública checklists" ON public.checklists;
-CREATE POLICY "Inserção pública checklists" ON public.checklists FOR INSERT WITH CHECK (true);
+CREATE POLICY "checklists_select_public" ON public.checklists FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "checklists_insert_public" ON public.checklists FOR INSERT TO anon, authenticated WITH CHECK (
+    veiculo_placa IS NOT NULL AND length(trim(veiculo_placa)) >= 7 AND data_checklist IS NOT NULL
+);
 
 DROP POLICY IF EXISTS "Acesso público atividades motoristas" ON public.atividades_motoristas;
-CREATE POLICY "Acesso público atividades motoristas" ON public.atividades_motoristas FOR ALL USING (true);
+CREATE POLICY "atividades_select_public" ON public.atividades_motoristas FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "atividades_insert_public" ON public.atividades_motoristas FOR INSERT TO anon, authenticated WITH CHECK (
+    motorista_nome IS NOT NULL AND length(trim(motorista_nome)) >= 2 AND data IS NOT NULL AND status IN ('ativo', 'banco_horas', 'falta', 'atestado', 'ferias')
+);
+CREATE POLICY "atividades_update_public" ON public.atividades_motoristas FOR UPDATE TO anon, authenticated USING (true) WITH CHECK (
+    status IN ('ativo', 'banco_horas', 'falta', 'atestado', 'ferias')
+);
+CREATE POLICY "atividades_delete_public" ON public.atividades_motoristas FOR DELETE TO anon, authenticated USING (
+    motorista_nome IS NOT NULL AND data IS NOT NULL
+);
 
 DROP POLICY IF EXISTS "Acesso público férias motoristas" ON public.ferias_motoristas;
-CREATE POLICY "Acesso público férias motoristas" ON public.ferias_motoristas FOR ALL USING (true);
+CREATE POLICY "ferias_select_public" ON public.ferias_motoristas FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "ferias_insert_public" ON public.ferias_motoristas FOR INSERT TO anon, authenticated WITH CHECK (
+    motorista_nome IS NOT NULL AND length(trim(motorista_nome)) >= 2 AND data_inicio IS NOT NULL AND data_fim IS NOT NULL AND data_inicio <= data_fim
+);
+CREATE POLICY "ferias_delete_public" ON public.ferias_motoristas FOR DELETE TO anon, authenticated USING (
+    motorista_nome IS NOT NULL AND data_inicio IS NOT NULL
+);
 
 -- ==============================================================================
 -- CARGA INICIAL (SEEDS)

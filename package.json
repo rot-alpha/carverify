@@ -16,9 +16,6 @@
   ],
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "html-validator": "^6.0.1"
-  },
   "devDependencies": {
     "docx": "^9.8.1"
   }

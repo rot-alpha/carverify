@@ -7,9 +7,9 @@
 const fs = require('fs');
 const path = require('path');
 
-const SHEET_ID = '1OXapsWbWJj_TuNgYw9PUo1ydlzHMSJ7HCAaa_m1YIok';
-const GID = '667476341';
-const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
+const SHEET_ID = process.env.GOOGLE_SHEETS_ID || '1OXapsWbWJj_TuNgYw9PUo1ydlzHMSJ7HCAaa_m1YIok';
+const GID = process.env.GOOGLE_SHEETS_GID || '667476341';
+const CSV_URL = process.env.GOOGLE_SHEETS_CSV_URL || `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
 
 const DATA_DIR = path.join(__dirname, '..', 'src', 'data');
 const CSV_PATH = path.join(DATA_DIR, 'checklist_data.csv');

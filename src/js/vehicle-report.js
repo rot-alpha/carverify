@@ -15,6 +15,11 @@ const VehicleReportModule = (function () {
         periodSlug: ''
     };
 
+    const escapeHtml = (window.CarVerifySecurity && window.CarVerifySecurity.escapeHtml) ? window.CarVerifySecurity.escapeHtml : (str => {
+        if (str === null || str === undefined) return '';
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    });
+
     const MONTH_NAMES = [
         'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
         'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
@@ -659,10 +664,10 @@ const VehicleReportModule = (function () {
                                 <tbody>
                                     ${nokItems.map(item => `
                                         <tr>
-                                            <td class="col-nok-name"><strong>${item.question}</strong></td>
+                                            <td class="col-nok-name"><strong>${escapeHtml(item.question)}</strong></td>
                                             <td><span class="report-badge-nok">REPROVADO</span></td>
-                                            <td class="col-nok-dates">${isSingleDay ? item.date : `<strong>${item.frequency}x</strong> (${item.date})`}</td>
-                                            <td class="col-nok-comment">${item.comment}</td>
+                                            <td class="col-nok-dates">${isSingleDay ? escapeHtml(item.date) : `<strong>${item.frequency}x</strong> (${escapeHtml(item.date)})`}</td>
+                                            <td class="col-nok-comment">${escapeHtml(item.comment)}</td>
                                         </tr>
                                     `).join('')}
                                 </tbody>
@@ -706,8 +711,8 @@ const VehicleReportModule = (function () {
                         ${monthGaps.map(g => `
                             <div class="report-gap-entry">
                                 <span class="gap-date-badge">${formatDisplayDate(g.date)}</span>
-                                <span class="gap-status-pill ${g.badgeClass}">${g.label}</span>
-                                <span class="gap-text">Veículo no pátio · Condutor habitual <strong>${g.habitualDriver}</strong> ausente (${g.label})</span>
+                                <span class="gap-status-pill ${g.badgeClass}">${escapeHtml(g.label)}</span>
+                                <span class="gap-text">Veículo no pátio · Condutor habitual <strong>${escapeHtml(g.habitualDriver)}</strong> ausente (${escapeHtml(g.label)})</span>
                             </div>
                         `).join('')}
                     </div>
@@ -730,8 +735,8 @@ const VehicleReportModule = (function () {
                         <div class="report-comments-box">
                             ${observations.slice(0, 3).map(c => `
                                 <div class="report-comment-entry">
-                                    <span class="comment-author-badge">${isSingleDay ? `${c.driver}:` : `${c.date} · ${c.driver}:`}</span>
-                                    <span class="comment-content">"${c.text}"</span>
+                                    <span class="comment-author-badge">${isSingleDay ? `${escapeHtml(c.driver)}:` : `${escapeHtml(c.date)} · ${escapeHtml(c.driver)}:`}</span>
+                                    <span class="comment-content">"${escapeHtml(c.text)}"</span>
                                 </div>
                             `).join('')}
                         </div>

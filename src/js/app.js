@@ -4,6 +4,12 @@
    NLP recurrence detection, state management.
    ============================================ */
 
+// ─── SECURITY HELPER (ANTI-XSS) ─────────────
+const escapeHtml = (window.CarVerifySecurity && window.CarVerifySecurity.escapeHtml) ? window.CarVerifySecurity.escapeHtml : (str => {
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+});
+
 // ─── CONFIG: REAL VEHICLES ─────────────────
 const VEHICLES = [
     { plate: 'SUX8H84', model: 'FIORINO' },
@@ -1484,7 +1490,7 @@ function updateVehicleConformity(vehicleData, monthDays, selectedDate) {
                 const [, m, d] = selectedDate.split('-');
                 const gap = window.getVehicleGapJustification ? window.getVehicleGapJustification(plate, selectedDate) : null;
                 if (gap) {
-                    footer.innerHTML = `<span style="color:#2563eb;font-weight:600;"><span class="material-icons-round" style="font-size:14px;vertical-align:middle;">info</span> ${plate} sem vistoria em ${parseInt(d)}/${parseInt(m)} (${gap.text})</span>`;
+                    footer.innerHTML = `<span style="color:#2563eb;font-weight:600;"><span class="material-icons-round" style="font-size:14px;vertical-align:middle;">info</span> ${escapeHtml(plate)} sem vistoria em ${parseInt(d)}/${parseInt(m)} (${escapeHtml(gap.text)})</span>`;
                 } else {
                     footer.textContent = `Sem vistoria para ${plate} em ${parseInt(d)}/${parseInt(m)}`;
                 }
@@ -1539,8 +1545,8 @@ function renderSingleDayGap(date, plate, vehicle, gap) {
             <div class="gap-day-banner ${gap ? gap.badgeClass : ''}">
                 <span class="material-icons-round gap-banner-icon">event_busy</span>
                 <div class="gap-banner-info">
-                    <strong>Sem Vistoria em ${formattedDate} — ${plate} (${vehicle ? vehicle.model : ''})</strong>
-                    <span>${gap ? gap.text : 'Nenhuma vistoria registrada nesta data (veículo no pátio).'}</span>
+                    <strong>Sem Vistoria em ${formattedDate} — ${escapeHtml(plate)} (${vehicle ? escapeHtml(vehicle.model) : ''})</strong>
+                    <span>${gap ? escapeHtml(gap.text) : 'Nenhuma vistoria registrada nesta data (veículo no pátio).'}</span>
                 </div>
             </div>
         `;
@@ -1636,7 +1642,7 @@ function renderSingleDay(date, dayData, allMonthDays) {
     const driverName = dayData.driver ? dayData.driver.trim() : '';
     const hasValidDriver = driverName && !['null', 'undefined', '-', ''].includes(driverName.toLowerCase());
     const driverBadgeHtml = hasValidDriver 
-        ? `<span class="meta-driver-badge"><span class="material-icons-round">person</span> Motorista: <strong>${driverName}</strong></span>` 
+        ? `<span class="meta-driver-badge"><span class="material-icons-round">person</span> Motorista: <strong>${escapeHtml(driverName)}</strong></span>` 
         : '';
 
     const multBadgeHtml = (dayData.count && dayData.count > 1) 
@@ -1801,10 +1807,10 @@ function renderComments(daysObj) {
                     <span class="comment-date-month">${monthNames[parseInt(m) - 1]}</span>
                 </div>
                 <div class="comment-body">
-                    <p class="comment-text">${c.text}</p>
+                    <p class="comment-text">${escapeHtml(c.text)}</p>
                     <span class="comment-driver">
                         <span class="material-icons-round" style="font-size:12px;vertical-align:middle">person</span>
-                        ${c.driver}
+                        ${escapeHtml(c.driver)}
                     </span>
                 </div>
             </div>`;
@@ -1831,7 +1837,7 @@ function renderRecurrences(daysObj) {
     container.innerHTML = recurrences.map(r => {
         return `
             <div class="recurrence-item">
-                <div class="recurrence-theme">${r.theme}</div>
+                <div class="recurrence-theme">${escapeHtml(r.theme)}</div>
                 <div class="recurrence-meta">
                     <span>${r.count} relatos similares</span>
                     <span class="recurrence-score">
@@ -1845,7 +1851,7 @@ function renderRecurrences(daysObj) {
                         return `
                             <div class="recurrence-text-item">
                                 <span class="recurrence-text-date">${d}/${m}</span>
-                                <span>"${item.text}"</span>
+                                <span>"${escapeHtml(item.text)}"</span>
                             </div>`;
                     }).join('')}
                     ${r.items.length > 5 ? `<div class="recurrence-text-item" style="color:var(--clr-text-muted);font-style:italic">... e mais ${r.items.length - 5} relatos</div>` : ''}
