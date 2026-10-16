@@ -1949,8 +1949,15 @@ async function syncWithRemote() {
                 });
             });
         }
+    }
+
+    if (loadedFromSupabase || fetchedCSV) {
         initConformityMonthSelect();
-        if (state.screen === 'dashboard') {
+        if (state.screen === 'home') {
+            if (charts) charts.destroyAll();
+            renderHome();
+        } else if (state.screen === 'dashboard') {
+            if (charts) charts.destroyAll();
             updateDashboard();
         }
         if (window.DriversModule && typeof window.DriversModule.render === 'function') {

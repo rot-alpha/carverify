@@ -66,6 +66,16 @@ function formatISODate(rawDate, rawTimestamp) {
   if (rawTimestamp instanceof Date) {
     return Utilities.formatDate(rawTimestamp, "America/Sao_Paulo", "yyyy-MM-dd");
   }
+  if (typeof rawTimestamp === 'string' && rawTimestamp.includes('/')) {
+    const parts = rawTimestamp.trim().split(' ')[0].split('/');
+    if (parts.length === 3) {
+      let yyyy = parts[2].trim();
+      if (yyyy.length === 2) yyyy = '20' + yyyy;
+      if (parseInt(yyyy, 10) >= 2024 && parseInt(yyyy, 10) <= 2030) {
+        return `${yyyy}-${parts[1].trim().padStart(2, '0')}-${parts[0].trim().padStart(2, '0')}`;
+      }
+    }
+  }
   return Utilities.formatDate(new Date(), "America/Sao_Paulo", "yyyy-MM-dd");
 }
 
@@ -115,7 +125,7 @@ function enviarChecklistSupabase(e) {
 
     const timestamp = rowValues[0];
     const modelo = String(rowValues[1] || '').trim();
-    const placa = String(rowValues[2] || '').trim().toUpperCase();
+    const placa = String(rowValues[2] || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
     const kmStr = String(rowValues[3] || '0').replace(/\D/g, '');
     const km = parseInt(kmStr, 10) || 0;
     const motorista = String(rowValues[4] || '').trim();

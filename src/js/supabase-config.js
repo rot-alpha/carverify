@@ -29,22 +29,41 @@
         anonKey: SUPABASE_ANON_KEY,
 
         /**
-         * Carrega todos os checklists do Supabase (com limite alto de 50.000)
+         * Carrega todos os checklists do Supabase com paginação (superando o teto de 1.000 linhas do PostgREST)
          */
         async fetchChecklists() {
             if (!client) return null;
             try {
-                const { data, error } = await client
-                    .from('checklists')
-                    .select('*')
-                    .order('data_checklist', { ascending: true })
-                    .limit(50000);
+                const PAGE_SIZE = 1000;
+                let from = 0;
+                let allRows = [];
+                let hasMore = true;
 
-                if (error) {
-                    console.error('[SUPABASE] Erro ao buscar checklists:', error);
-                    return null;
+                while (hasMore) {
+                    const { data, error } = await client
+                        .from('checklists')
+                        .select('*')
+                        .order('data_checklist', { ascending: true })
+                        .range(from, from + PAGE_SIZE - 1);
+
+                    if (error) {
+                        console.error('[SUPABASE] Erro ao buscar lote de checklists:', error);
+                        break;
+                    }
+
+                    if (data && data.length > 0) {
+                        allRows = allRows.concat(data);
+                        if (data.length < PAGE_SIZE) {
+                            hasMore = false;
+                        } else {
+                            from += PAGE_SIZE;
+                        }
+                    } else {
+                        hasMore = false;
+                    }
                 }
-                return data;
+
+                return allRows;
             } catch (err) {
                 console.error('[SUPABASE] Exceção ao consultar checklists:', err);
                 return null;
@@ -74,20 +93,40 @@
         },
 
         /**
-         * Busca todas as atividades cadastradas dos motoristas
+         * Busca todas as atividades cadastradas dos motoristas com paginação
          */
         async fetchDriverActivities() {
             if (!client) return null;
             try {
-                const { data, error } = await client
-                    .from('atividades_motoristas')
-                    .select('*');
+                const PAGE_SIZE = 1000;
+                let from = 0;
+                let allRows = [];
+                let hasMore = true;
 
-                if (error) {
-                    console.error('[SUPABASE] Erro ao buscar atividades de motoristas:', error);
-                    return null;
+                while (hasMore) {
+                    const { data, error } = await client
+                        .from('atividades_motoristas')
+                        .select('*')
+                        .range(from, from + PAGE_SIZE - 1);
+
+                    if (error) {
+                        console.error('[SUPABASE] Erro ao buscar lote de atividades de motoristas:', error);
+                        break;
+                    }
+
+                    if (data && data.length > 0) {
+                        allRows = allRows.concat(data);
+                        if (data.length < PAGE_SIZE) {
+                            hasMore = false;
+                        } else {
+                            from += PAGE_SIZE;
+                        }
+                    } else {
+                        hasMore = false;
+                    }
                 }
-                return data;
+
+                return allRows;
             } catch (err) {
                 console.error('[SUPABASE] Exceção ao buscar atividades:', err);
                 return null;
