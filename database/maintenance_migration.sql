@@ -55,3 +55,4 @@ CREATE POLICY "maint_delete_public" ON public.vehicle_maintenance
     FOR DELETE TO anon, authenticated USING (
         veiculo_placa IS NOT NULL
     );
+

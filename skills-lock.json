@@ -49,6 +49,12 @@
       "skillPath": "skills/gsap-utils/SKILL.md",
       "computedHash": "72af4a036d417d6eaef7478eca2f28e760631fb78db822ba34a9c706797aab62"
     },
+    "modern-web-guidance": {
+      "source": "GoogleChrome/modern-web-guidance",
+      "sourceType": "github",
+      "skillPath": "skills/modern-web-guidance/SKILL.md",
+      "computedHash": "3eeead58b609ef1587927559438a7b54333011f01c7c4f319b3a7c6f0c88f74c"
+    },
     "motion-design": {
       "source": "LottieFiles/motion-design-skill",
       "sourceType": "github",
