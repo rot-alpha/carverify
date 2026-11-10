@@ -103,14 +103,18 @@ function aggregateDataForMonths(data, monthsList) {
                 }
             });
 
-            // Driver count (ignora ajudantes: Alan, Cristian, Wesley, Jailton, Luis Gustavo)
+            // Driver count (ignora ajudantes: Alan, Cristian, Wesley, Jailton, Luis Gustavo e 'Sem Ajudante')
             if (dayData.driver) {
-                const drv = dayData.driver.trim();
+                const parts = dayData.driver.split('/').map(d => d.trim()).filter(Boolean);
                 const HELPERS = ['alan', 'cristian', 'wesley', 'jailton', 'luis gustavo'];
-                const isH = HELPERS.some(h => drv.toLowerCase().startsWith(h));
-                if (!isH && drv && drv.toLowerCase() !== 'não informado' && drv !== '—') {
-                    driverStats[drv] = (driverStats[drv] || 0) + 1;
-                }
+                parts.forEach(drv => {
+                    const lower = drv.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                    const isH = HELPERS.some(h => lower.startsWith(h));
+                    const isInvalid = !lower || lower === 'não informado' || lower === 'nao informado' || lower === 'sem ajudante' || lower === 'sem motorista' || drv === '—';
+                    if (!isH && !isInvalid) {
+                        driverStats[drv] = (driverStats[drv] || 0) + 1;
+                    }
+                });
             }
         });
     });

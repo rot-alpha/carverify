@@ -1,0 +1,2259 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrar · ᑕᗩᖇ . ᐯᕮᖇIᖴY</title>
+    <meta name="description" content="Acesso à plataforma CAR VERIFY — Gestão inteligente de frota.">
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Noto+Sans+Canadian+Aboriginal:wght@700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
+    <script>
+        /* Mesmo padrão de tema da produção (chave 'theme' no localStorage) */
+        (function () {
+            var saved = null;
+            try { saved = localStorage.getItem('theme'); } catch (e) {}
+            var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
+            /* Oculta o frame até o GSAP iniciar a entrada (evita "piscar"); há fallback no fim do body */
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.documentElement.classList.add('motion-pending');
+            }
+        })();
+    </script>
+    <style>
+        /* =====================================================================
+           TOKENS DE DESIGN
+           ===================================================================== */
+        :root {
+            color-scheme: light;
+            --accent: #FFA000;
+            --accent-strong: #F59E0B;
+            --accent-soft: rgba(255, 160, 0, 0.16);
+
+            --bg-page: #e7ebf1;
+            --glow: rgba(255, 160, 0, 0.30);
+            --frame-bg: #ffffff;
+            --frame-border: rgba(15, 23, 42, 0.06);
+            --frame-shadow: 0 40px 80px -30px rgba(15, 23, 42, 0.35), 0 2px 6px rgba(15, 23, 42, 0.06);
+
+            --txt: #0b1220;
+            --txt-2: #4b5768;
+            --txt-3: #8a96a8;
+
+            --input-bg: #f4f6f9;
+            --input-bg-focus: #ffffff;
+            --input-border: #e2e7ee;
+
+            --btn-bg: #111827;
+            --btn-bg-hover: #000000;
+            --btn-txt: #ffffff;
+            --btn-arrow-bg: var(--accent);
+            --btn-arrow-txt: #111827;
+
+            --danger: #d92d20;
+            --danger-bg: #fef3f2;
+            --success: #12a150;
+
+            --radius-input: 12px;
+            --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        [data-theme="dark"] {
+            color-scheme: dark;
+            --bg-page: #04060b;
+            --glow: rgba(255, 160, 0, 0.26);
+            --frame-bg: #0c111b;
+            --frame-border: rgba(255, 255, 255, 0.06);
+            --frame-shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.02);
+
+            --txt: #f5f7fb;
+            --txt-2: #9aa6b8;
+            --txt-3: #64708a;
+
+            --input-bg: #131a28;
+            --input-bg-focus: #0f1522;
+            --input-border: #222c3e;
+
+            --btn-bg: #FFA000;
+            --btn-bg-hover: #FFB52E;
+            --btn-txt: #0b0f19;
+            --btn-arrow-bg: #0b0f19;
+            --btn-arrow-txt: #FFA000;
+
+            --danger: #f97066;
+            --danger-bg: rgba(249, 112, 102, 0.10);
+            --success: #32d583;
+        }
+
+        /* =====================================================================
+           BASE
+           ===================================================================== */
+        *, *::before, *::after { box-sizing: border-box; }
+
+        html, body { margin: 0; }
+
+        body {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+            background: var(--bg-page);
+            color: var(--txt);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.4s var(--ease-out), color 0.4s var(--ease-out);
+        }
+
+        .motion-pending .login-frame { visibility: hidden; }
+
+        .visually-hidden:where(:not(:focus-within, :active)) {
+            position: absolute !important;
+            clip-path: inset(50%) !important;
+            overflow: hidden !important;
+            width: 1px !important;
+            height: 1px !important;
+            margin: -1px !important;
+            padding: 0 !important;
+            border: 0 !important;
+            white-space: nowrap !important;
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 3px;
+            border-radius: 6px;
+        }
+
+        /* Brilho ambiente atrás do frame (como no print de referência) */
+        .page-glow {
+            position: fixed;
+            top: -28vh;
+            left: 50%;
+            width: 120vw;
+            height: 75vh;
+            translate: -50% 0;
+            background: radial-gradient(45% 55% at 55% 50%, var(--glow) 0%, transparent 70%);
+            filter: blur(30px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* =====================================================================
+           FRAME PRINCIPAL (2 colunas)
+           ===================================================================== */
+        .login-frame {
+            position: relative;
+            z-index: 1;
+            width: min(1180px, 100%);
+            min-height: min(720px, calc(100vh - 48px));
+            display: grid;
+            grid-template-columns: 1.05fr 1fr;
+            gap: 10px;
+            padding: 10px;
+            background: var(--frame-bg);
+            border: 1px solid var(--frame-border);
+            border-radius: 28px;
+            box-shadow: var(--frame-shadow);
+            transition: background-color 0.4s var(--ease-out), border-color 0.4s var(--ease-out);
+        }
+
+        /* =====================================================================
+           PAINEL ESQUERDO — MARCA, BOAS-VINDAS E FUNCIONALIDADES
+           ===================================================================== */
+        .brand-panel {
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding: 40px 48px 32px;
+            border-radius: 20px;
+            color: #f5f7fb;
+            background:
+                radial-gradient(90% 65% at 78% -5%, rgba(255, 160, 0, 0.38) 0%, rgba(255, 160, 0, 0) 60%),
+                radial-gradient(60% 50% at 0% 100%, rgba(255, 120, 0, 0.12) 0%, rgba(255, 120, 0, 0) 70%),
+                linear-gradient(165deg, #1b1509 0%, #10131b 42%, #080a10 100%);
+        }
+
+        /* Grade técnica sutil com máscara radial */
+        .brand-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+            background-size: 34px 34px;
+            mask-image: radial-gradient(75% 60% at 70% 20%, #000 0%, transparent 75%);
+        }
+
+        /* Roda d'água (marca d'água) girando lentamente */
+        .wm-wheel {
+            position: absolute;
+            right: -150px;
+            bottom: -150px;
+            width: 460px;
+            height: 460px;
+            z-index: -1;
+            opacity: 0.07;
+            pointer-events: none;
+        }
+
+        /* --- LOGO REFINADA --- */
+        .brand-top {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-decoration: none;
+            color: inherit;
+            width: fit-content;
+        }
+
+        .brand-mark {
+            width: 50px;
+            height: 50px;
+            flex-shrink: 0;
+            filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 14px rgba(255, 160, 0, 0.18));
+        }
+
+        .brand-word {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .bw-main {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-family: 'Noto Sans Canadian Aboriginal', 'Montserrat', 'Gadugi', 'Segoe UI Historic', sans-serif;
+            font-weight: 900;
+            font-size: 21px;
+            line-height: 1;
+            letter-spacing: 0.06em;
+        }
+
+        .bw-car {
+            background: linear-gradient(180deg, #FFCB5C 0%, #FFA000 55%, #FF8A00 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .bw-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        .bw-verify { color: #ffffff; }
+
+        .bw-tag {
+            font-family: 'Inter', sans-serif;
+            font-size: 9.5px;
+            font-weight: 600;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            color: rgba(245, 247, 251, 0.55);
+        }
+
+        /* --- BOAS-VINDAS --- */
+        .hero {
+            margin-top: clamp(44px, 9vh, 92px);
+            max-width: 470px;
+        }
+
+        .hero-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px 6px 8px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            font-size: 11.5px;
+            font-weight: 600;
+            color: rgba(245, 247, 251, 0.82);
+            backdrop-filter: blur(6px);
+        }
+
+        .hero-pill-dot {
+            position: relative;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #32d583;
+            box-shadow: 0 0 0 3px rgba(50, 213, 131, 0.20);
+        }
+
+        .hero h2 {
+            margin: 18px 0 14px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            font-size: clamp(34px, 3.6vw, 54px);
+            line-height: 0.98;
+            letter-spacing: -0.025em;
+            text-transform: uppercase;
+        }
+
+        .hero h2 .accent { color: var(--accent); }
+
+        .hero p {
+            margin: 0;
+            font-size: 15px;
+            line-height: 1.6;
+            color: rgba(245, 247, 251, 0.70);
+        }
+
+        /* --- TÓPICOS / FUNCIONALIDADES --- */
+        .features {
+            list-style: none;
+            margin: 40px 0 0;
+            padding: 0;
+            display: grid;
+            gap: 20px;
+            max-width: 480px;
+        }
+
+        .feature {
+            display: grid;
+            grid-template-columns: 48px 1fr;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .feature-tile {
+            position: relative;
+            width: 48px;
+            height: 48px;
+            display: grid;
+            place-items: center;
+            border-radius: 14px;
+            color: #FFB52E;
+            background: linear-gradient(160deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.03) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 18px -8px rgba(0, 0, 0, 0.6);
+        }
+
+        .feature-tile::after {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            border-radius: inherit;
+            background: radial-gradient(60% 60% at 50% 0%, rgba(255, 160, 0, 0.22), transparent 70%);
+            pointer-events: none;
+        }
+
+        .feature-tile svg {
+            width: 24px;
+            height: 24px;
+            overflow: visible;
+        }
+
+        .feature h3 {
+            margin: 0 0 3px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: -0.005em;
+        }
+
+        .feature p {
+            margin: 0;
+            font-size: 13.5px;
+            line-height: 1.5;
+            color: rgba(245, 247, 251, 0.62);
+        }
+
+        .brand-foot {
+            margin-top: auto;
+            padding-top: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            font-size: 11.5px;
+            color: rgba(245, 247, 251, 0.42);
+        }
+
+        /* =====================================================================
+           PAINEL DIREITO — FORMULÁRIO
+           ===================================================================== */
+        .form-panel {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 56px 40px 40px;
+        }
+
+        .panel-tools {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+        }
+
+        .theme-toggle {
+            width: 40px;
+            height: 40px;
+            display: grid;
+            place-items: center;
+            border-radius: 12px;
+            border: 1px solid var(--input-border);
+            background: var(--input-bg);
+            color: var(--txt-2);
+            cursor: pointer;
+            transition: color 0.2s, border-color 0.2s, background-color 0.2s;
+        }
+
+        .theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
+
+        .theme-toggle svg { width: 18px; height: 18px; }
+        .theme-toggle .ic-moon { display: none; }
+        [data-theme="dark"] .theme-toggle .ic-sun { display: none; }
+        [data-theme="dark"] .theme-toggle .ic-moon { display: block; }
+
+        .form-card {
+            width: 100%;
+            max-width: 420px;
+            transition: max-width 0.3s var(--ease-out);
+        }
+
+        .form-card.is-wide {
+            max-width: 510px;
+        }
+
+        /* Abas de navegação (Entrar | Solicitar Conta | Esqueci a Senha | Contas dev.g) */
+        .auth-tabs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            padding: 4px;
+            margin-bottom: 20px;
+            border-radius: 14px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+        }
+
+        .auth-tabs.has-dev-tab {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .auth-tab {
+            appearance: none;
+            border: 0;
+            border-radius: 10px;
+            padding: 9px 6px;
+            font-family: inherit;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: var(--txt-2);
+            background: transparent;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+            white-space: nowrap;
+        }
+
+        .auth-tab[hidden] { display: none !important; }
+
+        .auth-tab:hover { color: var(--txt); }
+
+        .auth-tab-dev {
+            color: var(--accent-strong);
+        }
+
+        .auth-tab[aria-selected="true"] {
+            background: var(--frame-bg);
+            color: var(--txt);
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+        }
+
+        [data-theme="dark"] .auth-tab[aria-selected="true"] {
+            background: #1c2536;
+            color: var(--accent);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+        }
+
+        .auth-view[hidden] { display: none !important; }
+
+        /* Barra de sessão conectada */
+        .session-banner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 13px;
+            margin-bottom: 18px;
+            border-radius: 12px;
+            background: color-mix(in srgb, var(--success) 10%, var(--input-bg));
+            border: 1px solid color-mix(in srgb, var(--success) 35%, transparent);
+            font-size: 12px;
+            color: var(--txt);
+        }
+
+        .session-banner[hidden] { display: none !important; }
+
+        .session-banner-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .session-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 22%, transparent);
+            flex-shrink: 0;
+        }
+
+        .btn-logout-mini {
+            appearance: none;
+            border: 1px solid var(--input-border);
+            background: var(--frame-bg);
+            color: var(--txt-2);
+            border-radius: 8px;
+            padding: 5px 10px;
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: border-color 0.2s, color 0.2s;
+        }
+
+        .btn-logout-mini:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        /* Estilos exclusivos da aba de Gestão de Contas (dev.g) */
+        .dev-section-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 0 0 10px;
+            font-size: 11.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--txt-2);
+        }
+
+        .dev-count-badge {
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: var(--accent-soft);
+            color: var(--accent-strong);
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .dev-accounts-list {
+            display: grid;
+            gap: 8px;
+            max-height: 225px;
+            overflow-y: auto;
+            padding-right: 2px;
+            margin-bottom: 18px;
+        }
+
+        .dev-account-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            transition: border-color 0.2s;
+        }
+
+        .dev-account-row:hover {
+            border-color: color-mix(in srgb, var(--accent) 45%, var(--input-border));
+        }
+
+        .dev-acc-main {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+
+        .dev-acc-login {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--txt);
+        }
+
+        .dev-acc-tag {
+            padding: 1.5px 6px;
+            border-radius: 6px;
+            font-family: 'Inter', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            background: rgba(255, 160, 0, 0.14);
+            color: var(--accent-strong);
+        }
+
+        .dev-acc-tag.is-dev {
+            background: rgba(50, 213, 131, 0.16);
+            color: var(--success);
+        }
+
+        .dev-acc-meta {
+            font-size: 11.5px;
+            color: var(--txt-2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dev-acc-pwd {
+            font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+            font-size: 11.5px;
+            padding: 1px 6px;
+            border-radius: 5px;
+            background: var(--frame-bg);
+            border: 1px solid var(--input-border);
+            color: var(--txt);
+        }
+
+        .dev-acc-actions {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+
+        .btn-dev-icon {
+            appearance: none;
+            border: 1px solid var(--input-border);
+            background: var(--frame-bg);
+            color: var(--txt-2);
+            border-radius: 8px;
+            padding: 5px 8px;
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: border-color 0.2s, color 0.2s;
+        }
+
+        .btn-dev-icon:hover {
+            border-color: var(--accent);
+            color: var(--txt);
+        }
+
+        .btn-dev-icon.is-danger:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .dev-create-box {
+            padding: 14px;
+            border-radius: 14px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+        }
+
+        .dev-create-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .dev-mini-field label {
+            display: block;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: var(--txt-2);
+            margin-bottom: 5px;
+        }
+
+        .dev-mini-field input,
+        .dev-mini-field select {
+            width: 100%;
+            height: 40px;
+            padding: 0 11px;
+            font: inherit;
+            font-size: 13px;
+            color: var(--txt);
+            background: var(--frame-bg);
+            border: 1.5px solid var(--input-border);
+            border-radius: 9px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .dev-mini-field input:focus,
+        .dev-mini-field select:focus {
+            border-color: var(--accent);
+        }
+
+        .btn-dev-create {
+            width: 100%;
+            height: 42px;
+            margin-top: 6px;
+            border: 0;
+            border-radius: 10px;
+            background: var(--btn-bg);
+            color: var(--btn-txt);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background-color 0.2s, translate 0.2s;
+        }
+
+        .btn-dev-create:hover {
+            background: var(--btn-bg-hover);
+            translate: 0 -1px;
+        }
+
+        /* Selo do destinatário administrador */
+        .admin-dest-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 5px 11px;
+            margin-bottom: 12px;
+            border-radius: 999px;
+            background: var(--accent-soft);
+            border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+            color: var(--txt);
+            font-size: 11.5px;
+            font-weight: 600;
+        }
+
+        .admin-dest-pill svg {
+            width: 14px;
+            height: 14px;
+            color: var(--accent-strong);
+            flex-shrink: 0;
+        }
+
+        /* Logo compacta exibida apenas no mobile */
+        .form-brand-mobile { display: none; }
+
+        .form-head { text-align: center; margin-bottom: 26px; }
+
+        .form-head h1 {
+            margin: 0 0 10px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: clamp(26px, 2.4vw, 32px);
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+
+        .form-head p {
+            margin: 0;
+            font-size: 14px;
+            line-height: 1.55;
+            color: var(--txt-2);
+        }
+
+        .field { margin-bottom: 18px; }
+
+        .field-label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 8px;
+        }
+
+        .field label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--txt);
+        }
+
+        .input-wrap { position: relative; }
+
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            translate: 0 -50%;
+            width: 18px;
+            height: 18px;
+            color: var(--txt-3);
+            pointer-events: none;
+            transition: color 0.2s;
+        }
+
+        .field input[type="email"],
+        .field input[type="password"],
+        .field input[type="text"] {
+            width: 100%;
+            height: 52px;
+            padding: 0 16px 0 44px;
+            font: inherit;
+            font-size: 14.5px;
+            color: var(--txt);
+            background: var(--input-bg);
+            border: 1.5px solid var(--input-border);
+            border-radius: var(--radius-input);
+            outline: none;
+            transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+        }
+
+        .field textarea {
+            width: 100%;
+            min-height: 92px;
+            padding: 13px 16px;
+            font: inherit;
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--txt);
+            background: var(--input-bg);
+            border: 1.5px solid var(--input-border);
+            border-radius: var(--radius-input);
+            outline: none;
+            resize: vertical;
+            transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+        }
+
+        .field input.has-toggle { padding-right: 52px; }
+
+        .field input::placeholder,
+        .field textarea::placeholder { color: var(--txt-3); }
+
+        .field input:hover,
+        .field textarea:hover { border-color: color-mix(in srgb, var(--input-border) 50%, var(--txt-3)); }
+
+        .field input:focus,
+        .field textarea:focus {
+            border-color: var(--accent);
+            background: var(--input-bg-focus);
+            box-shadow: 0 0 0 4px var(--accent-soft);
+        }
+
+        .input-wrap:focus-within .input-icon { color: var(--accent); }
+
+        /* Autofill do navegador mantendo a identidade visual */
+        .field input:is(:autofill, :-webkit-autofill) {
+            -webkit-text-fill-color: var(--txt);
+            box-shadow: 0 0 0 1000px var(--input-bg) inset;
+            caret-color: var(--txt);
+        }
+
+        /* Validação somente após interação (:user-invalid) */
+        .field input:user-invalid,
+        .field textarea:user-invalid {
+            border-color: var(--danger);
+            background: var(--danger-bg);
+        }
+
+        .field:has(input:user-invalid) .input-icon { color: var(--danger); }
+
+        .error-msg {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            margin-top: 7px;
+            font-size: 12.5px;
+            font-weight: 500;
+            color: var(--danger);
+        }
+
+        .error-msg svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+        .field:has(input:user-invalid, textarea:user-invalid) .error-msg { display: flex; }
+
+        .admin-flow-note {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 11px 13px;
+            margin-bottom: 18px;
+            border-radius: 12px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            font-size: 12.5px;
+            line-height: 1.48;
+            color: var(--txt-2);
+        }
+
+        .admin-flow-note svg {
+            width: 16px;
+            height: 16px;
+            color: var(--accent-strong);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .admin-flow-note strong { color: var(--txt); }
+
+        .mail-confirm-box {
+            padding: 14px 16px;
+            margin-top: 16px;
+            border-radius: 14px;
+            background: color-mix(in srgb, var(--success) 10%, var(--input-bg));
+            border: 1px solid color-mix(in srgb, var(--success) 38%, transparent);
+            font-size: 12.5px;
+            line-height: 1.5;
+            color: var(--txt);
+        }
+
+        .mail-confirm-box[hidden] { display: none; }
+
+        .mail-confirm-box strong { color: var(--success); }
+
+        .mail-confirm-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-mailto-fallback {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 12px;
+            border-radius: 8px;
+            background: var(--frame-bg);
+            border: 1px solid var(--input-border);
+            color: var(--txt);
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: border-color 0.2s, color 0.2s;
+        }
+
+        .btn-mailto-fallback:hover {
+            border-color: var(--accent);
+            color: var(--accent-strong);
+        }
+
+        .caps-hint {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 7px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent-strong);
+        }
+
+        .caps-hint[hidden] { display: none; }
+
+        .pwd-toggle {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            translate: 0 -50%;
+            width: 40px;
+            height: 40px;
+            display: grid;
+            place-items: center;
+            border: 0;
+            border-radius: 9px;
+            background: transparent;
+            color: var(--txt-3);
+            cursor: pointer;
+            transition: color 0.2s, background-color 0.2s;
+        }
+
+        .pwd-toggle:hover { color: var(--txt); background: var(--accent-soft); }
+        .pwd-toggle svg { width: 19px; height: 19px; }
+        .pwd-toggle .ic-eye-off { display: none; }
+        .pwd-toggle[aria-pressed="true"] .ic-eye { display: none; }
+        .pwd-toggle[aria-pressed="true"] .ic-eye-off { display: block; }
+
+        .form-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin: 4px 0 26px;
+        }
+
+        .remember {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--txt-2);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .remember input {
+            width: 17px;
+            height: 17px;
+            margin: 0;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        .link {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--txt);
+            text-decoration: underline;
+            text-decoration-color: color-mix(in srgb, var(--accent) 70%, transparent);
+            text-decoration-thickness: 2px;
+            text-underline-offset: 4px;
+            transition: color 0.2s, text-decoration-color 0.2s;
+        }
+
+        .link:hover { color: var(--accent-strong); text-decoration-color: var(--accent); }
+
+        /* Alerta de erro de autenticação */
+        .auth-alert {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            padding: 12px 14px;
+            margin-bottom: 18px;
+            border-radius: 12px;
+            border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent);
+            background: var(--danger-bg);
+            color: var(--danger);
+            font-size: 13px;
+            font-weight: 500;
+            line-height: 1.45;
+        }
+
+        .auth-alert[hidden] { display: none; }
+        .auth-alert svg { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; }
+
+        /* Botão principal */
+        .btn-submit {
+            position: relative;
+            width: 100%;
+            height: 54px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            border: 0;
+            border-radius: 999px;
+            background: var(--btn-bg);
+            color: var(--btn-txt);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.01em;
+            cursor: pointer;
+            box-shadow: 0 14px 28px -14px rgba(17, 24, 39, 0.6);
+            transition: background-color 0.25s, box-shadow 0.25s, translate 0.25s var(--ease-out);
+        }
+
+        [data-theme="dark"] .btn-submit { box-shadow: 0 14px 30px -12px rgba(255, 160, 0, 0.45); }
+
+        .btn-submit:hover { background: var(--btn-bg-hover); translate: 0 -1px; }
+        .btn-submit:active { translate: 0 1px; }
+
+        .btn-arrow {
+            width: 28px;
+            height: 28px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background: var(--btn-arrow-bg);
+            color: var(--btn-arrow-txt);
+            transition: rotate 0.3s var(--ease-out);
+        }
+
+        .btn-arrow svg { width: 15px; height: 15px; }
+        .btn-submit:hover .btn-arrow { rotate: 45deg; }
+
+        .btn-submit[aria-busy="true"] { cursor: progress; }
+        .btn-submit[aria-busy="true"] .btn-arrow { display: none; }
+        .btn-submit .loading-spinner { display: none; }
+        .btn-submit[aria-busy="true"] .loading-spinner { display: inline-block; }
+
+        .btn-submit.is-success { background: var(--success); color: #ffffff; }
+
+        /* Spinner acessível (progress indeterminado) */
+        @property --arc-start { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+        @property --arc-end { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+        @property --progress-dash-animation { syntax: "*"; inherits: false; initial-value: , progress-dash 3s ease-in-out infinite; }
+
+        progress.loading-spinner:indeterminate::-webkit-progress-bar { display: none; background: none; }
+        progress.loading-spinner:indeterminate::-webkit-progress-value { display: none; background: none; }
+        progress.loading-spinner:indeterminate::-moz-progress-bar { display: none; background: none; }
+
+        progress.loading-spinner:indeterminate {
+            --_from: calc(90deg + var(--arc-start, 0deg));
+            --_to: calc(90deg + var(--arc-end, 158deg));
+            --size: 20px;
+            --thickness: 2.5px;
+            --spinner-color: currentColor;
+            --track-color: color-mix(in srgb, currentColor 22%, transparent);
+            --_used-spinner-duration: 1.4s;
+            width: var(--size);
+            height: var(--size);
+            border-radius: 50%;
+            appearance: none;
+            border: 0;
+            background: conic-gradient(from var(--_from), var(--spinner-color) calc(var(--_to) - var(--_from)), transparent 0) var(--track-color);
+            mask-image: radial-gradient(farthest-side, transparent calc(100% - var(--thickness)), #000 calc(100% - var(--thickness)));
+            animation: progress-spin var(--_used-spinner-duration) linear infinite var(--progress-dash-animation, );
+        }
+
+        @media (forced-colors: active) {
+            progress.loading-spinner:indeterminate {
+                forced-color-adjust: none;
+                --spinner-color: CanvasText;
+                --track-color: Canvas;
+            }
+        }
+
+        @keyframes progress-spin { to { rotate: 1turn; } }
+        @keyframes progress-dash {
+            from { --arc-start: 0deg; --arc-end: 3deg; }
+            50% { --arc-start: 100deg; --arc-end: 358deg; }
+            to { --arc-start: 360deg; --arc-end: 363deg; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            progress.loading-spinner:indeterminate {
+                --_used-spinner-duration: 6s;
+                --progress-dash-animation: ;
+                --arc-end: 158deg;
+            }
+        }
+
+        .form-foot {
+            margin-top: 22px;
+            text-align: center;
+            font-size: 13px;
+            color: var(--txt-2);
+        }
+
+        .secure-note {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            margin-top: 34px;
+            padding-top: 20px;
+            border-top: 1px dashed var(--input-border);
+            font-size: 11.5px;
+            color: var(--txt-3);
+        }
+
+        .secure-note svg { width: 14px; height: 14px; color: #32d583; }
+
+        /* =====================================================================
+           ELEMENTOS DE PROTÓTIPO (não sobem para produção)
+           ===================================================================== */
+        .proto-badge {
+            position: fixed;
+            left: 16px;
+            bottom: 16px;
+            z-index: 5;
+            max-width: 280px;
+            padding: 9px 12px;
+            border-radius: 12px;
+            background: rgba(11, 15, 25, 0.86);
+            border: 1px solid rgba(255, 160, 0, 0.35);
+            color: #e8ecf3;
+            font-size: 11px;
+            line-height: 1.45;
+            backdrop-filter: blur(8px);
+        }
+
+        .proto-badge strong { color: var(--accent); letter-spacing: 0.06em; }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 24px;
+            z-index: 6;
+            translate: -50% 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 18px;
+            border-radius: 14px;
+            background: #0b0f19;
+            color: #f5f7fb;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid rgba(255, 160, 0, 0.35);
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.6);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s var(--ease-out), translate 0.3s var(--ease-out);
+        }
+
+        .toast.show { opacity: 1; translate: -50% 0; }
+
+        /* =====================================================================
+           RESPONSIVO
+           ===================================================================== */
+        @media (max-width: 1080px) {
+            .brand-panel { padding: 36px 36px 28px; }
+            .form-panel { padding: 56px 28px 36px; }
+        }
+
+        @media (max-width: 920px) {
+            body { padding: 12px; place-items: start center; }
+            .login-frame { grid-template-columns: 1fr; min-height: auto; border-radius: 24px; }
+            /* No mobile o formulário vem primeiro (teclado não cobre o botão Entrar) */
+            .form-panel { order: 1; padding: 64px 22px 32px; }
+            .brand-panel { order: 2; padding: 32px 26px 24px; }
+            .brand-panel .brand-top { display: none; }
+            .hero { margin-top: 0; }
+            .form-brand-mobile {
+                display: flex;
+                justify-content: center;
+                margin-bottom: 28px;
+            }
+            .form-brand-mobile .brand-top { color: var(--txt); }
+            .form-brand-mobile .bw-verify { color: var(--txt); }
+            .form-brand-mobile .bw-tag { color: var(--txt-3); }
+            .proto-badge { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-glow" aria-hidden="true"></div>
+
+    <!-- SVG reutilizável da marca (roda + anel de verificação) -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+        <defs>
+            <linearGradient id="gMarkTile" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#232a3a"/>
+                <stop offset="1" stop-color="#0a0d14"/>
+            </linearGradient>
+            <linearGradient id="gMarkAmber" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#FFCB5C"/>
+                <stop offset="1" stop-color="#FF8A00"/>
+            </linearGradient>
+            <path id="markBlade" d="M23.2 20.8 C24.6 17.2 27.2 15 30.8 14.4 C30.2 18 28.2 20.8 25.4 22.4 Z"/>
+        </defs>
+    </svg>
+
+    <main class="login-frame" id="loginFrame">
+        <!-- =========================================================
+             PAINEL ESQUERDO
+             ========================================================= -->
+        <section class="brand-panel" aria-labelledby="heroTitle">
+            <svg class="wm-wheel" viewBox="0 0 48 48" aria-hidden="true">
+                <circle cx="24" cy="24" r="20" fill="none" stroke="#ffffff" stroke-width="2.4"/>
+                <circle cx="24" cy="24" r="16.6" fill="none" stroke="#FFA000" stroke-width="0.6"/>
+                <g fill="#ffffff" transform="translate(24 24) scale(1.35) translate(-24 -24)">
+                    <use href="#markBlade"/>
+                    <use href="#markBlade" transform="rotate(72 24 24)"/>
+                    <use href="#markBlade" transform="rotate(144 24 24)"/>
+                    <use href="#markBlade" transform="rotate(216 24 24)"/>
+                    <use href="#markBlade" transform="rotate(288 24 24)"/>
+                </g>
+                <circle cx="24" cy="24" r="3.6" fill="none" stroke="#ffffff" stroke-width="1.2"/>
+            </svg>
+
+            <a class="brand-top" href="#" aria-label="CAR VERIFY — Gestão Inteligente de Frota">
+                <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true">
+                    <rect x="1" y="1" width="46" height="46" rx="13" fill="url(#gMarkTile)" stroke="rgba(255,255,255,0.14)"/>
+                    <circle class="mark-arc" cx="24" cy="24" r="19" fill="none" stroke="url(#gMarkAmber)" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="104 15.38" transform="rotate(-62 24 24)"/>
+                    <circle cx="24" cy="24" r="14.6" fill="none" stroke="#E9EDF4" stroke-width="3.2"/>
+                    <circle cx="24" cy="24" r="12.3" fill="none" stroke="#FFA000" stroke-width="0.7" opacity="0.55"/>
+                    <g class="mark-blades" fill="url(#gMarkAmber)">
+                        <use href="#markBlade"/>
+                        <use href="#markBlade" transform="rotate(72 24 24)"/>
+                        <use href="#markBlade" transform="rotate(144 24 24)"/>
+                        <use href="#markBlade" transform="rotate(216 24 24)"/>
+                        <use href="#markBlade" transform="rotate(288 24 24)"/>
+                    </g>
+                    <circle cx="24" cy="24" r="3.5" fill="#0a0d14" stroke="#E9EDF4" stroke-width="1.4"/>
+                    <circle cx="24" cy="24" r="1.25" fill="#FFA000"/>
+                </svg>
+                <span class="brand-word">
+                    <span class="bw-main" aria-hidden="true">
+                        <span class="bw-car">ᑕᗩᖇ</span><i class="bw-dot"></i><span class="bw-verify">ᐯᕮᖇIᖴY</span>
+                    </span>
+                    <span class="bw-tag" aria-hidden="true">Gestão Inteligente de Frota</span>
+                </span>
+            </a>
+
+            <div class="hero">
+                <span class="hero-pill hero-reveal">
+                    <span class="hero-pill-dot" aria-hidden="true"></span>
+                    Plataforma de Frota · Grupo EFX
+                </span>
+                <h2 id="heroTitle" class="hero-reveal">Bem-vindo<span class="accent">.</span></h2>
+                <p class="hero-reveal">Acesse o painel central da frota com segurança, conformidade e permissões sob medida — tudo integrado em um único ambiente.</p>
+            </div>
+
+            <ul class="features" aria-label="Funcionalidades do CAR VERIFY">
+                <li class="feature" data-feature="checklist">
+                    <span class="feature-tile" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="5" y="4.5" width="14" height="16.5" rx="2.6"/>
+                            <path d="M9 4.5V3.7c0-.6.5-1.1 1.1-1.1h3.8c.6 0 1.1.5 1.1 1.1v.8"/>
+                            <path class="ic-check" d="M8.6 13.2l2.4 2.4 4.6-5"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <h3>Checklist Digital Diário</h3>
+                        <p>Respostas dos motoristas consolidadas em tempo real, com conformidade OK/NOK por item.</p>
+                    </div>
+                </li>
+                <li class="feature" data-feature="km">
+                    <span class="feature-tile" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4.3 16.8A8.2 8.2 0 1 1 19.7 16.8"/>
+                            <path d="M12 7.2v1.4M7.2 9.2l1 1M16.8 9.2l-1 1"/>
+                            <g class="ic-needle"><path d="M12 14V8.6" stroke="#FFFFFF"/></g>
+                            <circle cx="12" cy="14" r="1.7" fill="currentColor" stroke="none"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <h3>Quilometragem &amp; Calendário</h3>
+                        <p>KM acumulado, feriados, férias e banco de horas integrados à rotina da frota.</p>
+                    </div>
+                </li>
+                <li class="feature" data-feature="alert">
+                    <span class="feature-tile" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <g class="ic-bell">
+                                <path d="M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.5 1.8H5z"/>
+                                <path d="M10.2 20.4a2 2 0 0 0 3.6 0"/>
+                            </g>
+                            <circle class="ic-ripple" cx="17.8" cy="6.2" r="2.6" stroke="#f97066" stroke-width="1.2"/>
+                            <circle class="ic-dot" cx="17.8" cy="6.2" r="2.6" fill="#f04438" stroke="#10131b" stroke-width="1.2"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <h3>Alertas de Reincidência</h3>
+                        <p>Falhas recorrentes destacadas automaticamente para você agir antes da parada.</p>
+                    </div>
+                </li>
+                <li class="feature" data-feature="maint">
+                    <span class="feature-tile" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <g class="ic-gear-lg">
+                                <circle cx="10" cy="10" r="6.3" stroke-width="2.4" stroke-dasharray="2 1.958" stroke-linecap="butt"/>
+                                <circle cx="10" cy="10" r="4.3"/>
+                                <circle cx="10" cy="10" r="1.5" fill="currentColor" stroke="none"/>
+                            </g>
+                            <g class="ic-gear-sm">
+                                <circle cx="17.4" cy="17.2" r="3.3" stroke-width="2" stroke-dasharray="1.6 1.36" stroke-linecap="butt" stroke="#FFFFFF"/>
+                                <circle cx="17.4" cy="17.2" r="2" stroke-width="1.5" stroke="#FFFFFF"/>
+                            </g>
+                        </svg>
+                    </span>
+                    <div>
+                        <h3>Manutenção &amp; Custos</h3>
+                        <p>Paradas, notas fiscais e investimento por veículo reunidos em um só lugar.</p>
+                    </div>
+                </li>
+            </ul>
+
+            <div class="brand-foot">
+                <span>© 2026 Grupo EFX · Alpha Candies</span>
+                <span>v2.2</span>
+            </div>
+        </section>
+
+        <!-- =========================================================
+             PAINEL DIREITO — LOGIN
+             ========================================================= -->
+        <section class="form-panel" aria-labelledby="loginTitle">
+            <div class="panel-tools">
+                <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false" aria-label="Ativar tema escuro">
+                    <svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4"/></svg>
+                    <svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
+                </button>
+            </div>
+
+            <div class="form-card">
+                <div class="form-brand-mobile form-reveal">
+                    <a class="brand-top" href="#" aria-label="CAR VERIFY">
+                        <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true">
+                            <rect x="1" y="1" width="46" height="46" rx="13" fill="url(#gMarkTile)" stroke="rgba(255,255,255,0.14)"/>
+                            <circle cx="24" cy="24" r="19" fill="none" stroke="url(#gMarkAmber)" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="104 15.38" transform="rotate(-62 24 24)"/>
+                            <circle cx="24" cy="24" r="14.6" fill="none" stroke="#E9EDF4" stroke-width="3.2"/>
+                            <g fill="url(#gMarkAmber)">
+                                <use href="#markBlade"/>
+                                <use href="#markBlade" transform="rotate(72 24 24)"/>
+                                <use href="#markBlade" transform="rotate(144 24 24)"/>
+                                <use href="#markBlade" transform="rotate(216 24 24)"/>
+                                <use href="#markBlade" transform="rotate(288 24 24)"/>
+                            </g>
+                            <circle cx="24" cy="24" r="3.5" fill="#0a0d14" stroke="#E9EDF4" stroke-width="1.4"/>
+                            <circle cx="24" cy="24" r="1.25" fill="#FFA000"/>
+                        </svg>
+                        <span class="brand-word">
+                            <span class="bw-main" aria-hidden="true"><span class="bw-car">ᑕᗩᖇ</span><i class="bw-dot"></i><span class="bw-verify">ᐯᕮᖇIᖴY</span></span>
+                            <span class="bw-tag" aria-hidden="true">Gestão Inteligente de Frota</span>
+                        </span>
+                    </a>
+                </div>
+
+                <!-- Barra de sessão ativa (exibida após autenticar uma conta) -->
+                <div class="session-banner" id="sessionBanner" hidden>
+                    <div class="session-banner-info">
+                        <span class="session-dot" aria-hidden="true"></span>
+                        <span id="sessionBannerText">Conectado como <strong>—</strong></span>
+                    </div>
+                    <button type="button" class="btn-logout-mini" id="btnLogoutSession">Sair / Trocar conta</button>
+                </div>
+
+                <!-- Barra de abas: Entrar | Solicitar Conta | Esqueci Minha Senha | Contas (Exclusivo dev.g) -->
+                <div class="auth-tabs form-reveal" id="authTabsBar" role="tablist" aria-label="Opções de acesso">
+                    <button type="button" class="auth-tab" role="tab" id="tabBtnLogin" aria-selected="true" aria-controls="viewLogin" data-target="viewLogin">Entrar</button>
+                    <button type="button" class="auth-tab" role="tab" id="tabBtnRequest" aria-selected="false" aria-controls="viewRequestAccount" data-target="viewRequestAccount">Solicitar Conta</button>
+                    <button type="button" class="auth-tab" role="tab" id="tabBtnForgot" aria-selected="false" aria-controls="viewForgotPassword" data-target="viewForgotPassword">Esqueci a Senha</button>
+                    <button type="button" class="auth-tab auth-tab-dev" role="tab" id="tabBtnDevAccounts" aria-selected="false" aria-controls="viewDevAccounts" data-target="viewDevAccounts" hidden>🔒 Contas</button>
+                </div>
+
+                <!-- =========================================================
+                     ABA 1: ENTRAR COM CONTA FORNECIDA
+                     ========================================================= -->
+                <div class="auth-view" id="viewLogin" role="tabpanel" aria-labelledby="tabBtnLogin">
+                    <header class="form-head">
+                        <h1 id="loginTitle" class="form-reveal">Acesse sua conta</h1>
+                        <p class="form-reveal">Entre com a conta fornecida pela administração e suas permissões delimitadas para acessar o CAR VERIFY.</p>
+                    </header>
+
+                    <form id="loginForm" action="#" method="post">
+                        <div class="auth-alert" id="authAlert" role="alert" hidden>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v4.5M12 16h.01"/></svg>
+                            <span id="authAlertText">Conta ou senha incorretas.</span>
+                        </div>
+
+                        <div class="field form-reveal">
+                            <div class="field-label-row">
+                                <label for="accountUser">Conta de acesso</label>
+                            </div>
+                            <div class="input-wrap">
+                                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.6"/><path d="M5.5 19.5c0-3.3 2.9-5.5 6.5-5.5s6.5 2.2 6.5 5.5"/></svg>
+                                <input type="text" id="accountUser" name="username" autocomplete="username" spellcheck="false" autocorrect="off" autocapitalize="none" enterkeyhint="next" minlength="3" placeholder="Ex: operador.frota ou sua conta fornecida" required data-error="accountError">
+                            </div>
+                            <div class="error-msg" id="accountError">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" role="img" aria-label="Erro"><circle cx="12" cy="12" r="9"/><path d="M12 8v4.5M12 16h.01"/></svg>
+                                Informe a conta de acesso fornecida pelo administrador.
+                            </div>
+                        </div>
+
+                        <div class="field form-reveal">
+                            <div class="field-label-row">
+                                <label for="current-password">Senha</label>
+                            </div>
+                            <div class="input-wrap">
+                                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.8a4 4 0 0 1 8 0v2.7"/></svg>
+                                <input type="password" id="current-password" name="password" class="has-toggle" autocomplete="current-password" enterkeyhint="done" placeholder="Digite sua senha" required data-error="passwordError">
+                                <button type="button" class="pwd-toggle" id="pwdToggle" aria-pressed="false" aria-label="Mostrar senha" aria-controls="current-password">
+                                    <svg class="ic-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    <svg class="ic-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 5.6A9.7 9.7 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-3 3.8M6.6 6.6A17 17 0 0 0 2.5 12S6 18.5 12 18.5a9.4 9.4 0 0 0 4.4-1.1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+                                </button>
+                            </div>
+                            <div class="error-msg" id="passwordError">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" role="img" aria-label="Erro"><circle cx="12" cy="12" r="9"/><path d="M12 8v4.5M12 16h.01"/></svg>
+                                Digite sua senha para continuar.
+                            </div>
+                            <div class="caps-hint" id="capsHint" hidden>
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4l7 7h-4v5H9v-5H5z"/><path d="M9 20h6"/></svg>
+                                Caps Lock está ativado.
+                            </div>
+                        </div>
+
+                        <div class="form-row form-reveal">
+                            <label class="remember">
+                                <input type="checkbox" name="remember" id="remember">
+                                Manter conectado
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn-submit form-reveal" id="btnSubmit">
+                            <span id="btnLabel">Entrar</span>
+                            <progress class="loading-spinner" aria-label="Verificando credenciais"></progress>
+                            <span class="btn-arrow" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
+                            </span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- =========================================================
+                     ABA 2: SOLICITAR CONTA (NOVA CONTA)
+                     ========================================================= -->
+                <div class="auth-view" id="viewRequestAccount" role="tabpanel" aria-labelledby="tabBtnRequest" hidden>
+                    <header class="form-head">
+                        <span class="admin-dest-pill">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7.5 3v5.5c0 4.5-3.2 8.3-7.5 9.5-4.3-1.2-7.5-5-7.5-9.5V6z"/></svg>
+                            Central de Gestão de Acessos
+                        </span>
+                        <h1>Solicitar nova conta</h1>
+                        <p>Informe seu e-mail corporativo e uma mensagem. A administração criará sua conta com as permissões adequadas e enviará a senha por e-mail.</p>
+                    </header>
+
+                    <form id="requestAccountForm" action="#" method="post">
+                        <div class="field">
+                            <div class="field-label-row">
+                                <label for="reqEmail">Seu e-mail corporativo</label>
+                            </div>
+                            <div class="input-wrap">
+                                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 6.5l8.5 6 8.5-6"/></svg>
+                                <input type="email" id="reqEmail" name="corporate_email" autocomplete="email" spellcheck="false" enterkeyhint="next" placeholder="nome.sobrenome@empresa.com.br" required data-error="reqEmailError">
+                            </div>
+                            <div class="error-msg" id="reqEmailError">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" role="img" aria-label="Erro"><circle cx="12" cy="12" r="9"/><path d="M12 8v4.5M12 16h.01"/></svg>
+                                Informe seu e-mail corporativo válido para receber os dados da conta.
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <div class="field-label-row">
+                                <label for="reqMessage">Mensagem solicitando a conta</label>
+                            </div>
+                            <textarea id="reqMessage" name="message" rows="3" placeholder="Ex: Solicito a criação de uma conta de acesso ao painel CAR VERIFY para acompanhamento da frota (informe seu nome e setor)." required data-error="reqMsgError"></textarea>
+                            <div class="error-msg" id="reqMsgError">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" role="img" aria-label="Erro"><circle cx="12" cy="12" r="9"/><path d="M12 8v4.5M12 16h.01"/></svg>
+                                Escreva uma mensagem breve informando o motivo ou setor do acesso.
+                            </div>
+                        </div>
+
+                        <div class="admin-flow-note">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+                            <span>Sua solicitação será analisada pela <strong>Administração da Frota</strong>, que enviará os dados de acesso e a senha diretamente para o seu e-mail corporativo.</span>
+                        </div>
+
+                        <button type="submit" class="btn-submit" id="btnRequestSubmit">
+                            <span id="btnRequestLabel">Enviar solicitação de conta</span>
+                            <progress class="loading-spinner" aria-label="Enviando solicitação"></progress>
+                            <span class="btn-arrow" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
+                            </span>
+                        </button>
+
+                        <div class="mail-confirm-box" id="reqConfirmBox" role="status" hidden></div>
+                    </form>
+
+                    <p class="form-foot">
+                        Já recebeu sua conta? <a href="#entrar" class="link" data-switch-tab="viewLogin">← Voltar para o login</a>
+                    </p>
+                </div>
+
+                <!-- =========================================================
+                     ABA 3: ESQUECI MINHA SENHA (RELEMBRAR SENHA VIA ADM)
+                     ========================================================= -->
+                <div class="auth-view" id="viewForgotPassword" role="tabpanel" aria-labelledby="tabBtnForgot" hidden>
+                    <header class="form-head">
+                        <span class="admin-dest-pill">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.8a4 4 0 0 1 8 0v2.7"/></svg>
+                            Recuperação de Credenciais
+                        </span>
+                        <h1>Relembrar minha senha</h1>
+                        <p>Informe seu e-mail corporativo e uma mensagem solicitando a recuperação. Sua senha será enviada para o seu e-mail após validação.</p>
+                    </header>
+
+                    <form id="forgotPasswordForm" action="#" method="post">
+                        <div class="field">
+                            <div class="field-label-row">
+                                <label for="forgotEmail">Seu e-mail corporativo</label>
+                            </div>
+                            <div class="input-wrap">
+                                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 6.5l8.5 6 8.5-6"/></svg>
+                                <input type="email" id="forgotEmail" name="corporate_email" autocomplete="email" spellcheck="false" enterkeyhint="next" placeholder="nome.sobrenome@empresa.com.br" required data-error="forgotEmailError">
+                            </div>
+                            <div class="error-msg" id="forgotEmailError">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" role="img" aria-label="Erro"><circle cx="12" cy="12" r="9"/><path d="M12 8v4.5M12 16h.01"/></svg>
+                                Informe seu e-mail corporativo válido para receber a senha.
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <div class="field-label-row">
+                                <label for="forgotMessage">Mensagem para relembrar a senha</label>
+                            </div>
+                            <textarea id="forgotMessage" name="message" rows="3" placeholder="Ex: Solicito o reenvio da senha vinculada à minha conta de acesso ao painel CAR VERIFY." required data-error="forgotMsgError"></textarea>
+                            <div class="error-msg" id="forgotMsgError">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" role="img" aria-label="Erro"><circle cx="12" cy="12" r="9"/><path d="M12 8v4.5M12 16h.01"/></svg>
+                                Escreva uma mensagem pedindo para relembrar sua senha.
+                            </div>
+                        </div>
+
+                        <div class="admin-flow-note">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+                            <span>O pedido será encaminhado à <strong>Administração da Frota</strong>, que responderá para o seu e-mail corporativo com a sua senha.</span>
+                        </div>
+
+                        <button type="submit" class="btn-submit" id="btnForgotSubmit">
+                            <span id="btnForgotLabel">Solicitar lembrete de senha</span>
+                            <progress class="loading-spinner" aria-label="Enviando pedido de senha"></progress>
+                            <span class="btn-arrow" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
+                            </span>
+                        </button>
+
+                        <div class="mail-confirm-box" id="forgotConfirmBox" role="status" hidden></div>
+                    </form>
+
+                    <p class="form-foot">
+                        Lembrou sua senha? <a href="#entrar" class="link" data-switch-tab="viewLogin">← Voltar para o login</a>
+                    </p>
+                </div>
+
+                <!-- =========================================================
+                     ABA 4: GESTÃO DE CONTAS VIGENTES (EXCLUSIVO dev.g)
+                     ========================================================= -->
+                <div class="auth-view" id="viewDevAccounts" role="tabpanel" aria-labelledby="tabBtnDevAccounts" hidden>
+                    <header class="form-head" style="margin-bottom: 18px;">
+                        <span class="admin-dest-pill">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7.5 3v5.5c0 4.5-3.2 8.3-7.5 9.5-4.3-1.2-7.5-5-7.5-9.5V6z"/><path d="M8.8 12.2l2.2 2.2 4.2-4.4"/></svg>
+                            Exclusivo Desenvolvedor · dev.g
+                        </span>
+                        <h1 style="font-size: 24px;">Contas Vigentes</h1>
+                        <p>Visualize todas as credenciais ativas e crie novas contas de acesso para a plataforma.</p>
+                    </header>
+
+                    <div class="dev-section-title">
+                        <span>Credenciais Ativas na Plataforma</span>
+                        <span class="dev-count-badge" id="devAccountsCount">4 contas</span>
+                    </div>
+
+                    <div class="dev-accounts-list" id="devAccountsList" aria-label="Lista de contas vigentes"></div>
+
+                    <div class="dev-create-box">
+                        <div class="dev-section-title" style="margin-bottom: 10px;">
+                            <span>Criar Nova Conta de Acesso</span>
+                        </div>
+                        <form id="devCreateAccountForm" action="#" method="post">
+                            <div class="dev-create-grid">
+                                <div class="dev-mini-field">
+                                    <label for="newAccLogin">Login da conta</label>
+                                    <input type="text" id="newAccLogin" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="none" placeholder="Ex: adm.carlos" required minlength="3">
+                                </div>
+                                <div class="dev-mini-field">
+                                    <label for="newAccPassword">Senha de acesso</label>
+                                    <input type="text" id="newAccPassword" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="none" placeholder="Ex: frota2026" required minlength="4">
+                                </div>
+                            </div>
+                            <div class="dev-mini-field" style="margin-bottom: 8px;">
+                                <label for="newAccRole">Perfil / Permissão</label>
+                                <select id="newAccRole">
+                                    <option value="Administração · Frota &amp; Manutenção">Administração · Frota &amp; Manutenção</option>
+                                    <option value="Operação · Roteirização &amp; Checklists">Operação · Roteirização &amp; Checklists</option>
+                                    <option value="Consulta · Relatórios">Consulta · Relatórios</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn-dev-create" id="btnCreateAccount">+ Criar Conta Vigente</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="secure-note form-reveal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7.5 3v5.5c0 4.5-3.2 8.3-7.5 9.5-4.3-1.2-7.5-5-7.5-9.5V6z"/><path d="M8.8 12.2l2.2 2.2 4.2-4.4"/></svg>
+                    Conexão protegida · Permissões gerenciadas pela Administração
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Elementos exclusivos do protótipo -->
+    <aside class="proto-badge" aria-label="Informações do protótipo">
+        <strong>PROTÓTIPO · LOGIN v3</strong><br>
+        Contas reais configuradas (<code>adm.sandro</code>, <code>adm.julio</code>, <code>rot.alpha</code> e <code>dev.g</code> com aba exclusiva de Gestão de Contas).
+    </aside>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <div class="visually-hidden" id="announcer" aria-live="polite"></div>
+
+    <script>
+        (function () {
+            'use strict';
+            var root = document.documentElement;
+            var ADMIN_EMAIL = 'gabriel.santos@alphacandies.com.br';
+            var ACCOUNTS_STORAGE_KEY = 'car_verify_accounts_v1';
+            var SESSION_STORAGE_KEY = 'car_verify_active_session_v1';
+
+            /* Contas base oficiais definidas para a plataforma */
+            var DEFAULT_ACCOUNTS = [
+                { login: 'adm.sandro', password: 'manutsandro', role: 'Administração · Manutenção', isDev: false, isCore: true },
+                { login: 'adm.julio',  password: 'frotajulio',  role: 'Administração · Frota',      isDev: false, isCore: true },
+                { login: 'dev.g',      password: 'CVAEgl30!',   role: 'Desenvolvedor Master',       isDev: true,  isCore: true },
+                { login: 'rot.alpha',  password: 'rotalpha1',   role: 'Operação · Roteirização',    isDev: false, isCore: true }
+            ];
+
+            function loadAccounts() {
+                try {
+                    var raw = localStorage.getItem(ACCOUNTS_STORAGE_KEY);
+                    if (raw) {
+                        var parsed = JSON.parse(raw);
+                        if (Array.isArray(parsed) && parsed.length) {
+                            /* Garante que as 4 contas base estejam sempre presentes e atualizadas */
+                            var map = {};
+                            parsed.forEach(function (a) { map[a.login.toLowerCase()] = a; });
+                            DEFAULT_ACCOUNTS.forEach(function (def) {
+                                map[def.login.toLowerCase()] = Object.assign({}, map[def.login.toLowerCase()] || {}, def);
+                            });
+                            return Object.keys(map).map(function (k) { return map[k]; });
+                        }
+                    }
+                } catch (e) {}
+                return DEFAULT_ACCOUNTS.slice();
+            }
+
+            function saveAccounts(list) {
+                try { localStorage.setItem(ACCOUNTS_STORAGE_KEY, JSON.stringify(list)); } catch (e) {}
+            }
+
+            var accounts = loadAccounts();
+            saveAccounts(accounts);
+            var activeSession = null;
+            var revealedPasswords = {};
+
+            /* ================================================================
+               TEMA (mesma chave 'theme' da produção)
+               ================================================================ */
+            var themeBtn = document.getElementById('themeToggle');
+            function applyTheme(theme) {
+                root.setAttribute('data-theme', theme);
+                var isDark = theme === 'dark';
+                themeBtn.setAttribute('aria-pressed', String(isDark));
+                themeBtn.setAttribute('aria-label', isDark ? 'Ativar tema claro' : 'Ativar tema escuro');
+                try { localStorage.setItem('theme', theme); } catch (e) {}
+            }
+            applyTheme(root.getAttribute('data-theme') || 'light');
+            themeBtn.addEventListener('click', function () {
+                applyTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+            });
+
+            /* ================================================================
+               TOAST
+               ================================================================ */
+            var toastEl = document.getElementById('toast');
+            var toastTimer;
+            function showToast(msg) {
+                toastEl.textContent = msg;
+                toastEl.classList.add('show');
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, 3800);
+            }
+
+            /* ================================================================
+               NAVEGAÇÃO ENTRE ABAS (ENTRAR | SOLICITAR CONTA | ESQUECI SENHA | CONTAS dev.g)
+               ================================================================ */
+            var authTabsBar = document.getElementById('authTabsBar');
+            var tabBtnDev = document.getElementById('tabBtnDevAccounts');
+            var formCard = document.querySelector('.form-card');
+            var tabButtons = document.querySelectorAll('.auth-tab');
+            var views = document.querySelectorAll('.auth-view');
+
+            function switchAuthTab(targetViewId) {
+                /* Bloqueio de segurança: somente dev.g autenticado pode abrir viewDevAccounts */
+                if (targetViewId === 'viewDevAccounts' && (!activeSession || !activeSession.isDev)) {
+                    return;
+                }
+                tabButtons.forEach(function (btn) {
+                    var active = btn.dataset.target === targetViewId;
+                    btn.setAttribute('aria-selected', String(active));
+                });
+                if (formCard) {
+                    formCard.classList.toggle('is-wide', targetViewId === 'viewDevAccounts');
+                }
+                views.forEach(function (view) {
+                    var isTarget = view.id === targetViewId;
+                    view.hidden = !isTarget;
+                    if (isTarget && window.gsap && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                        gsap.fromTo(view, { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out' });
+                    }
+                });
+                var firstInput = document.querySelector('#' + targetViewId + ' input');
+                if (firstInput) {
+                    setTimeout(function () { firstInput.focus({ preventScroll: true }); }, 60);
+                }
+            }
+
+            tabButtons.forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    switchAuthTab(btn.dataset.target);
+                });
+            });
+
+            document.querySelectorAll('[data-switch-tab]').forEach(function (link) {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    switchAuthTab(link.dataset.switchTab);
+                });
+            });
+
+            /* ================================================================
+               SENHA: MOSTRAR/OCULTAR + AVISO DE CAPS LOCK
+               ================================================================ */
+            var pwd = document.getElementById('current-password');
+            var pwdToggle = document.getElementById('pwdToggle');
+            var capsHint = document.getElementById('capsHint');
+
+            pwdToggle.addEventListener('click', function () {
+                var show = pwd.type === 'password';
+                pwd.type = show ? 'text' : 'password';
+                pwdToggle.setAttribute('aria-pressed', String(show));
+                pwdToggle.setAttribute('aria-label', show ? 'Ocultar senha' : 'Mostrar senha');
+                pwd.focus({ preventScroll: true });
+                var end = pwd.value.length;
+                try { pwd.setSelectionRange(end, end); } catch (e) {}
+            });
+
+            function updateCaps(e) {
+                if (typeof e.getModifierState === 'function') {
+                    capsHint.hidden = !e.getModifierState('CapsLock');
+                }
+            }
+            pwd.addEventListener('keydown', updateCaps);
+            pwd.addEventListener('keyup', updateCaps);
+            pwd.addEventListener('blur', function () { capsHint.hidden = true; });
+
+            /* ================================================================
+               ARIA SINCRONIZADO COM :user-invalid
+               (erro listado no aria-describedby somente enquanto visível)
+               ================================================================ */
+            var announcer = document.getElementById('announcer');
+            var announceTimer;
+
+            function linkError(el, shown) {
+                var errorId = el.dataset.error;
+                if (!errorId) return;
+                var ids = (el.getAttribute('aria-describedby') || '').split(/\s+/).filter(function (id) { return id && id !== errorId; });
+                if (shown) ids.push(errorId);
+                if (ids.length) el.setAttribute('aria-describedby', ids.join(' '));
+                else el.removeAttribute('aria-describedby');
+            }
+
+            function syncAria(el, announce) {
+                if (!el.matches || !el.matches('input[data-error], textarea[data-error]')) return;
+                var invalid = el.matches(':user-invalid');
+                el.setAttribute('aria-invalid', invalid ? 'true' : 'false');
+                linkError(el, invalid);
+                if (invalid && announce) {
+                    var err = document.getElementById(el.dataset.error);
+                    clearTimeout(announceTimer);
+                    announcer.textContent = '';
+                    announceTimer = setTimeout(function () {
+                        announcer.textContent = (el.labels && el.labels[0] ? el.labels[0].textContent.trim() + ': ' : '') + 'Erro. ' + err.textContent.trim();
+                    }, 500);
+                }
+            }
+
+            document.querySelectorAll('input[data-error], textarea[data-error]').forEach(function (el) { syncAria(el, false); });
+            document.addEventListener('blur', function (e) { syncAria(e.target, true); }, true);
+            document.addEventListener('input', function (e) { syncAria(e.target, false); });
+            document.addEventListener('invalid', function (e) { syncAria(e.target, false); }, true);
+
+            /* ================================================================
+               RENDERIZAÇÃO E GESTÃO DE CONTAS VIGENTES (EXCLUSIVO dev.g)
+               ================================================================ */
+            var devAccountsListEl = document.getElementById('devAccountsList');
+            var devAccountsCountEl = document.getElementById('devAccountsCount');
+            var devCreateForm = document.getElementById('devCreateAccountForm');
+            var sessionBanner = document.getElementById('sessionBanner');
+            var sessionBannerText = document.getElementById('sessionBannerText');
+            var btnLogoutSession = document.getElementById('btnLogoutSession');
+
+            function escapeHtml(str) {
+                return String(str).replace(/[&<>"']/g, function (c) {
+                    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+                });
+            }
+
+            function renderDevAccountsList() {
+                if (!devAccountsListEl) return;
+                devAccountsCountEl.textContent = accounts.length + (accounts.length === 1 ? ' conta' : ' contas');
+                devAccountsListEl.innerHTML = accounts.map(function (acc) {
+                    var key = acc.login.toLowerCase();
+                    var isShown = !!revealedPasswords[key];
+                    var maskedPwd = isShown ? escapeHtml(acc.password) : '••••••••';
+                    var badgeClass = acc.isDev ? 'dev-acc-tag is-dev' : 'dev-acc-tag';
+                    var badgeLabel = acc.isDev ? 'DEV MASTER' : (acc.isCore ? 'VIGENTE' : 'CRIADA');
+                    return ''
+                        + '<div class="dev-account-row">'
+                        + '  <div class="dev-acc-main">'
+                        + '    <div class="dev-acc-login">'
+                        + '      <span>' + escapeHtml(acc.login) + '</span>'
+                        + '      <span class="' + badgeClass + '">' + badgeLabel + '</span>'
+                        + '    </div>'
+                        + '    <div class="dev-acc-meta">'
+                        + '      <span>' + escapeHtml(acc.role) + '</span>'
+                        + '      <span>· Senha: <code class="dev-acc-pwd">' + maskedPwd + '</code></span>'
+                        + '    </div>'
+                        + '  </div>'
+                        + '  <div class="dev-acc-actions">'
+                        + '    <button type="button" class="btn-dev-icon" data-action="toggle-pwd" data-login="' + escapeHtml(acc.login) + '">'
+                        +        (isShown ? 'Ocultar' : 'Ver senha')
+                        + '    </button>'
+                        + '    <button type="button" class="btn-dev-icon" data-action="copy-acc" data-login="' + escapeHtml(acc.login) + '">Copiar</button>'
+                        +      (!acc.isCore ? '<button type="button" class="btn-dev-icon is-danger" data-action="delete-acc" data-login="' + escapeHtml(acc.login) + '" title="Remover conta">✕</button>' : '')
+                        + '  </div>'
+                        + '</div>';
+                }).join('');
+            }
+
+            devAccountsListEl.addEventListener('click', function (e) {
+                var btnAct = e.target.closest('button[data-action]');
+                if (!btnAct) return;
+                var action = btnAct.dataset.action;
+                var loginKey = (btnAct.dataset.login || '').toLowerCase();
+                var targetAcc = accounts.find(function (a) { return a.login.toLowerCase() === loginKey; });
+                if (!targetAcc) return;
+
+                if (action === 'toggle-pwd') {
+                    revealedPasswords[loginKey] = !revealedPasswords[loginKey];
+                    renderDevAccountsList();
+                } else if (action === 'copy-acc') {
+                    var copyStr = 'Login: ' + targetAcc.login + ' | Senha: ' + targetAcc.password;
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(copyStr);
+                    }
+                    showToast('📋 Credenciais de "' + targetAcc.login + '" copiadas.');
+                } else if (action === 'delete-acc' && !targetAcc.isCore) {
+                    accounts = accounts.filter(function (a) { return a.login.toLowerCase() !== loginKey; });
+                    saveAccounts(accounts);
+                    renderDevAccountsList();
+                    showToast('🗑️ Conta "' + targetAcc.login + '" removida.');
+                }
+            });
+
+            devCreateForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                if (!activeSession || !activeSession.isDev) return;
+                var loginEl = document.getElementById('newAccLogin');
+                var pwdEl = document.getElementById('newAccPassword');
+                var roleEl = document.getElementById('newAccRole');
+
+                var newLogin = loginEl.value.trim().toLowerCase();
+                var newPassword = pwdEl.value.trim();
+                var newRole = roleEl.value;
+
+                if (!newLogin || !newPassword) return;
+
+                var exists = accounts.some(function (a) { return a.login.toLowerCase() === newLogin; });
+                if (exists) {
+                    showToast('⚠️ Já existe uma conta vigente com o login "' + newLogin + '".');
+                    loginEl.focus();
+                    return;
+                }
+
+                accounts.push({
+                    login: newLogin,
+                    password: newPassword,
+                    role: newRole,
+                    isDev: false,
+                    isCore: false
+                });
+                saveAccounts(accounts);
+                revealedPasswords[newLogin] = true;
+                renderDevAccountsList();
+                loginEl.value = '';
+                pwdEl.value = '';
+                showToast('✅ Nova conta "' + newLogin + '" criada e já ativa para login!');
+            });
+
+            function applyAuthenticatedSession(acc) {
+                activeSession = acc;
+                try { sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ login: acc.login })); } catch (e) {}
+
+                sessionBanner.hidden = false;
+                sessionBannerText.innerHTML = 'Conectado: <strong>' + escapeHtml(acc.login) + '</strong> · ' + escapeHtml(acc.role);
+
+                if (acc.isDev) {
+                    tabBtnDev.hidden = false;
+                    authTabsBar.classList.add('has-dev-tab');
+                    renderDevAccountsList();
+                    switchAuthTab('viewDevAccounts');
+                } else {
+                    tabBtnDev.hidden = true;
+                    authTabsBar.classList.remove('has-dev-tab');
+                }
+            }
+
+            btnLogoutSession.addEventListener('click', function () {
+                activeSession = null;
+                try { sessionStorage.removeItem(SESSION_STORAGE_KEY); } catch (e) {}
+                sessionBanner.hidden = true;
+                tabBtnDev.hidden = true;
+                authTabsBar.classList.remove('has-dev-tab');
+                accountInput.value = '';
+                pwd.value = '';
+                btn.classList.remove('is-success');
+                btnLabel.textContent = 'Entrar';
+                switchAuthTab('viewLogin');
+                showToast('🔒 Sessão encerrada.');
+            });
+
+            /* ================================================================
+               SUBMIT DE LOGIN (VALIDAÇÃO REAL DAS CONTAS VIGENTES)
+               ================================================================ */
+            var form = document.getElementById('loginForm');
+            var accountInput = document.getElementById('accountUser');
+            var btn = document.getElementById('btnSubmit');
+            var btnLabel = document.getElementById('btnLabel');
+            var alertBox = document.getElementById('authAlert');
+            var alertText = document.getElementById('authAlertText');
+            var busy = false;
+
+            function setLoading(on) {
+                busy = on;
+                btn.setAttribute('aria-busy', on ? 'true' : 'false');
+                btnLabel.textContent = on ? 'Verificando…' : 'Entrar';
+            }
+
+            function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                if (busy) return;
+                alertBox.hidden = true;
+                setLoading(true);
+
+                var enteredLogin = accountInput.value.trim().toLowerCase();
+                var enteredPassword = pwd.value;
+
+                wait(850).then(function () {
+                    var matchedAccount = accounts.find(function (a) {
+                        return a.login.toLowerCase() === enteredLogin && a.password === enteredPassword;
+                    });
+
+                    if (matchedAccount) {
+                        setLoading(false);
+                        btn.classList.add('is-success');
+                        btnLabel.textContent = 'Acesso liberado';
+                        if (window.gsap && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                            gsap.to('#btnSubmit', { scale: 1.02, duration: 0.18, yoyo: true, repeat: 1, ease: 'power2.out' });
+                        }
+                        if (matchedAccount.isDev) {
+                            showToast('🔓 Bem-vindo, dev.g! Aba exclusiva de Gestão de Contas liberada.');
+                        } else {
+                            showToast('✅ Acesso autorizado para ' + matchedAccount.login + ' (' + matchedAccount.role + ').');
+                        }
+                        applyAuthenticatedSession(matchedAccount);
+                    } else {
+                        setLoading(false);
+                        alertText.textContent = 'Conta de acesso ou senha incorretas. Verifique suas credenciais.';
+                        alertBox.hidden = false;
+                        if (window.gsap && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                            gsap.fromTo('.form-card', { x: 0 }, { keyframes: { x: [0, -10, 9, -6, 4, 0] }, duration: 0.45, ease: 'none' });
+                        }
+                        pwd.focus();
+                        pwd.select();
+                    }
+                });
+            });
+
+            /* ================================================================
+               ENVIO DE SOLICITAÇÃO DE CONTA E RELEMBRAR SENHA PARA A ADMINISTRAÇÃO
+               ================================================================ */
+            function handleAdminEmailRequest(opts) {
+                var formEl = document.getElementById(opts.formId);
+                var emailEl = document.getElementById(opts.emailId);
+                var msgEl = document.getElementById(opts.msgId);
+                var btnEl = document.getElementById(opts.btnId);
+                var labelEl = document.getElementById(opts.labelId);
+                var confirmEl = document.getElementById(opts.confirmId);
+                var sending = false;
+
+                formEl.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    if (sending) return;
+                    var corpEmail = emailEl.value.trim();
+                    var userMsg = msgEl.value.trim();
+                    if (!corpEmail || !userMsg) return;
+
+                    sending = true;
+                    confirmEl.hidden = true;
+                    btnEl.setAttribute('aria-busy', 'true');
+                    labelEl.textContent = 'Enviando solicitação…';
+
+                    var subject = opts.subjectPrefix + ' — ' + corpEmail;
+
+                    fetch('https://formsubmit.co/ajax/' + ADMIN_EMAIL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify({
+                            _subject: subject,
+                            tipo_solicitacao: opts.tipoLabel,
+                            email_corporativo: corpEmail,
+                            mensagem: userMsg,
+                            sistema: 'CAR VERIFY - Gestão de Frota'
+                        })
+                    }).catch(function () {
+                        return null;
+                    }).finally(function () {
+                        setTimeout(function () {
+                            sending = false;
+                            btnEl.setAttribute('aria-busy', 'false');
+                            btnEl.classList.add('is-success');
+                            labelEl.textContent = opts.successBtnText;
+
+                            confirmEl.innerHTML = ''
+                                + '<strong>✔ Solicitação enviada à Administração da Frota</strong><br>'
+                                + 'Recebemos sua mensagem. Os dados de acesso serão encaminhados para o e-mail corporativo informado (<b>' + corpEmail.replace(/[<>&"]/g, '') + '</b>).';
+                            confirmEl.hidden = false;
+
+                            showToast('📨 Solicitação encaminhada à Administração da Frota.');
+
+                            setTimeout(function () {
+                                btnEl.classList.remove('is-success');
+                                labelEl.textContent = opts.defaultBtnText;
+                            }, 4000);
+                        }, 700);
+                    });
+                });
+            }
+
+            handleAdminEmailRequest({
+                formId: 'requestAccountForm',
+                emailId: 'reqEmail',
+                msgId: 'reqMessage',
+                btnId: 'btnRequestSubmit',
+                labelId: 'btnRequestLabel',
+                confirmId: 'reqConfirmBox',
+                subjectPrefix: '[CAR VERIFY] Solicitação de Nova Conta',
+                tipoLabel: 'Solicitação de Nova Conta e Permissões',
+                defaultBtnText: 'Enviar solicitação de conta',
+                successBtnText: 'Solicitação registrada'
+            });
+
+            handleAdminEmailRequest({
+                formId: 'forgotPasswordForm',
+                emailId: 'forgotEmail',
+                msgId: 'forgotMessage',
+                btnId: 'btnForgotSubmit',
+                labelId: 'btnForgotLabel',
+                confirmId: 'forgotConfirmBox',
+                subjectPrefix: '[CAR VERIFY] Relembrar Senha de Acesso',
+                tipoLabel: 'Lembrete / Recuperação de Senha',
+                defaultBtnText: 'Solicitar lembrete de senha',
+                successBtnText: 'Pedido de senha registrado'
+            });
+
+            /* ================================================================
+               ANIMAÇÕES GSAP (entrada + ícones animados em loop)
+               ================================================================ */
+            var revealed = false;
+            function revealWithoutMotion() {
+                if (revealed) return;
+                revealed = true;
+                root.classList.remove('motion-pending');
+            }
+
+            function initMotion() {
+                if (!window.gsap) { revealWithoutMotion(); return; }
+
+                var mm = gsap.matchMedia();
+                mm.add({
+                    reduce: '(prefers-reduced-motion: reduce)',
+                    full: '(prefers-reduced-motion: no-preference)'
+                }, function (ctx) {
+                    revealWithoutMotion();
+                    if (ctx.conditions.reduce) return; /* Sem movimento: tudo estático e visível */
+
+                    var loops = {};
+
+                    /* ---------- Entrada ---------- */
+                    var arc = document.querySelector('.brand-panel .mark-arc');
+                    var arcLen = 2 * Math.PI * 19;
+
+                    var intro = gsap.timeline({ defaults: { ease: 'power3.out' } });
+                    intro
+                        .from('.login-frame', { autoAlpha: 0, y: 30, scale: 0.985, duration: 0.9 })
+                        .from('.brand-panel .brand-mark', { autoAlpha: 0, scale: 0.55, rotation: -160, duration: 1.1, ease: 'back.out(1.6)', transformOrigin: '50% 50%' }, '-=0.5')
+                        .fromTo(arc, { strokeDasharray: '0 ' + arcLen }, { strokeDasharray: '104 15.38', duration: 1.2, ease: 'power2.inOut' }, '<0.2')
+                        .from('.brand-panel .brand-word', { autoAlpha: 0, x: -14, duration: 0.6 }, '<0.2')
+                        .from('.hero-reveal', { autoAlpha: 0, y: 20, stagger: 0.09, duration: 0.7 }, '-=0.6')
+                        .from('.feature', { autoAlpha: 0, x: -22, stagger: 0.1, duration: 0.6 }, '-=0.35')
+                        .from('.feature-tile', { scale: 0.4, rotation: -14, stagger: 0.1, duration: 0.7, ease: 'back.out(2.2)' }, '<')
+                        .from('.form-reveal', { autoAlpha: 0, y: 16, stagger: 0.06, duration: 0.55 }, 0.45)
+                        .add(startIconLoops);
+
+                    /* ---------- Ambiente ---------- */
+                    gsap.to('.wm-wheel', { rotation: 360, duration: 90, repeat: -1, ease: 'none', transformOrigin: '50% 50%' });
+                    gsap.to('.page-glow', { xPercent: 4, yPercent: 6, scale: 1.06, duration: 10, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+                    gsap.to('.hero-pill-dot', { boxShadow: '0 0 0 7px rgba(50,213,131,0)', duration: 1.6, repeat: -1, ease: 'power1.out' });
+
+                    /* Logo: giro sutil das pás a cada ciclo */
+                    gsap.set('.brand-panel .mark-blades', { svgOrigin: '24 24' });
+                    gsap.to('.brand-panel .mark-blades', { rotation: '+=360', duration: 2.2, ease: 'power3.inOut', repeat: -1, repeatDelay: 7, delay: 3 });
+
+                    /* ---------- Ícones dos tópicos ---------- */
+                    function startIconLoops() {
+                        /* 1. Checklist: o check é desenhado, mantido e recolhido */
+                        var check = document.querySelector('.ic-check');
+                        var len = check.getTotalLength();
+                        gsap.set(check, { strokeDasharray: len, strokeDashoffset: len });
+                        loops.checklist = gsap.timeline({ repeat: -1, repeatDelay: 1.6 })
+                            .to(check, { strokeDashoffset: 0, duration: 0.7, ease: 'power2.out' })
+                            .to('[data-feature="checklist"] .feature-tile', { scale: 1.08, duration: 0.18, yoyo: true, repeat: 1, ease: 'power2.out' }, '-=0.2')
+                            .to(check, { strokeDashoffset: -len, duration: 0.5, ease: 'power2.in' }, '+=1.8')
+                            .set(check, { strokeDashoffset: len });
+
+                        /* 2. Velocímetro: ponteiro acelera, oscila e retorna */
+                        gsap.set('.ic-needle', { svgOrigin: '12 14', rotation: -70 });
+                        loops.km = gsap.timeline({ repeat: -1, repeatDelay: 0.8 })
+                            .to('.ic-needle', { rotation: 58, duration: 1.3, ease: 'power2.inOut' })
+                            .to('.ic-needle', { rotation: 34, duration: 0.6, ease: 'back.out(3)' })
+                            .to('.ic-needle', { rotation: 46, duration: 0.5, ease: 'sine.inOut' })
+                            .to('.ic-needle', { rotation: -70, duration: 1.1, ease: 'power2.inOut' }, '+=0.8');
+
+                        /* 3. Alerta: sino balança e o indicador pulsa */
+                        gsap.set('.ic-bell', { svgOrigin: '12 4.5' });
+                        gsap.set('.ic-ripple', { svgOrigin: '17.8 6.2', autoAlpha: 0 });
+                        gsap.set('.ic-dot', { svgOrigin: '17.8 6.2' });
+                        loops.alert = gsap.timeline({ repeat: -1, repeatDelay: 1.9 })
+                            .to('.ic-bell', { keyframes: { rotation: [0, 18, -15, 11, -7, 3, 0], easeEach: 'sine.inOut' }, duration: 1.1, ease: 'none' })
+                            .fromTo('.ic-dot', { scale: 0.3 }, { scale: 1, duration: 0.45, ease: 'back.out(3)' }, 0)
+                            .fromTo('.ic-ripple', { scale: 1, autoAlpha: 0.9 }, { scale: 2.6, autoAlpha: 0, duration: 0.9, ease: 'power2.out' }, 0.15);
+
+                        /* 4. Manutenção: engrenagens acopladas girando (10 e 7 dentes) */
+                        gsap.set('.ic-gear-lg', { svgOrigin: '10 10' });
+                        gsap.set('.ic-gear-sm', { svgOrigin: '17.4 17.2' });
+                        loops.maint = gsap.timeline({ repeat: -1 })
+                            .to('.ic-gear-lg', { rotation: 360, duration: 8, ease: 'none' }, 0)
+                            .to('.ic-gear-sm', { rotation: -514.3, duration: 8, ease: 'none' }, 0);
+
+                        /* Hover/foco no tópico: destaca o tile e acelera o ícone */
+                        document.querySelectorAll('.feature').forEach(function (item) {
+                            var key = item.dataset.feature;
+                            var tile = item.querySelector('.feature-tile');
+                            function enter() {
+                                gsap.to(tile, { scale: 1.1, rotation: -4, duration: 0.35, ease: 'back.out(3)', overwrite: 'auto' });
+                                if (loops[key]) gsap.to(loops[key], { timeScale: 2.2, duration: 0.3 });
+                            }
+                            function leave() {
+                                gsap.to(tile, { scale: 1, rotation: 0, duration: 0.4, ease: 'power3.out', overwrite: 'auto' });
+                                if (loops[key]) gsap.to(loops[key], { timeScale: 1, duration: 0.5 });
+                            }
+                            item.addEventListener('mouseenter', enter);
+                            item.addEventListener('mouseleave', leave);
+                        });
+                    }
+                });
+            }
+
+            /* GSAP é carregado com defer: inicia quando estiver disponível */
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initMotion);
+            } else {
+                initMotion();
+            }
+            /* Fallback: se o CDN do GSAP falhar, a tela aparece sem animação */
+            setTimeout(revealWithoutMotion, 2500);
+        })();
+    </script>
+</body>
+</html>
+

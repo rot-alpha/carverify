@@ -1054,7 +1054,11 @@ function getActiveScreenFromUrlOrStorage() {
 // ─── NAVIGATION ────────────────────────────
 function navigateTo(screen, updateHistory = true) {
     let validScreen = SCREEN_MAP[screen] || 'home';
-    if (validScreen === 'accounts' && !(window.CarVerifyAuth && window.CarVerifyAuth.isDev())) {
+    if (window.CarVerifyAuth && typeof window.CarVerifyAuth.canAccessScreen === 'function') {
+        if (!window.CarVerifyAuth.canAccessScreen(validScreen)) {
+            validScreen = window.CarVerifyAuth.getFirstAllowedScreen ? window.CarVerifyAuth.getFirstAllowedScreen() : 'home';
+        }
+    } else if (validScreen === 'accounts' && !(window.CarVerifyAuth && window.CarVerifyAuth.isDev())) {
         validScreen = 'home';
     }
     state.screen = validScreen;

@@ -303,6 +303,10 @@ const DriversModule = (function() {
     }
 
     function deleteActivity(driverName, dateStr) {
+        if (window.CarVerifyAuth && typeof window.CarVerifyAuth.canEdit === 'function' && !window.CarVerifyAuth.canEdit()) {
+            showToast('Ação bloqueada: perfil de apenas visualização.');
+            return;
+        }
         const data = loadActivities();
         if (data[driverName] && data[driverName][dateStr]) {
             delete data[driverName][dateStr];
@@ -1566,6 +1570,10 @@ const DriversModule = (function() {
                 // Quick register / edit today / adjust vacation button
                 const quickBtn = e.target.closest('.driver-quick-action-btn');
                 if (quickBtn) {
+                    if (window.CarVerifyAuth && typeof window.CarVerifyAuth.canEdit === 'function' && !window.CarVerifyAuth.canEdit()) {
+                        showToast('Ação bloqueada: perfil de apenas visualização.');
+                        return;
+                    }
                     const driver = quickBtn.dataset.driver;
                     const driverSelect = document.getElementById('driverNameSelect');
                     const dateInput = document.getElementById('driverDateInput');
@@ -1643,6 +1651,9 @@ const DriversModule = (function() {
         const calContainer = document.getElementById('driverCalendarContainer');
         if (calContainer) {
             calContainer.addEventListener('click', (e) => {
+                if (window.CarVerifyAuth && typeof window.CarVerifyAuth.canEdit === 'function' && !window.CarVerifyAuth.canEdit()) {
+                    return;
+                }
                 const cell = e.target.closest('.cal-day-cell:not(.cal-empty-cell)');
                 if (!cell) return;
                 const date = cell.dataset.date;
@@ -1721,6 +1732,10 @@ const DriversModule = (function() {
     }
 
     function handleFormSubmit() {
+        if (window.CarVerifyAuth && typeof window.CarVerifyAuth.canEdit === 'function' && !window.CarVerifyAuth.canEdit()) {
+            showToast('Ação bloqueada: perfil de apenas visualização.', 'warning');
+            return;
+        }
         const driverSelect = document.getElementById('driverNameSelect');
         const statusSelect = document.getElementById('driverStatusSelect');
         const dateInput = document.getElementById('driverDateInput');

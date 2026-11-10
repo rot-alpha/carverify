@@ -138,6 +138,11 @@ function enviarChecklistSupabase(e) {
       return;
     }
 
+    if (!motorista || motorista.toLowerCase() === 'sem ajudante') {
+      Logger.log("Aviso: Motorista inválido ou coluna deslocada: " + motorista);
+      return;
+    }
+
     const dateFormatted = formatISODate(rawDate, timestamp);
     const timestampISO = formatISOTimestamp(timestamp);
 

@@ -752,6 +752,30 @@ body.auth-locked > *:not(#authGateOverlay) {
     letter-spacing: 0.02em;
 }
 
+.header-user-level-badge {
+    padding: 2px 7px;
+    border-radius: 999px;
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    background: rgba(255, 160, 0, 0.15);
+    color: #FFA000;
+    border: 1px solid rgba(255, 160, 0, 0.3);
+}
+
+.header-user-level-badge.is-editor {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+.header-user-level-badge.is-viewer {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
 .btn-header-logout {
     display: inline-flex;
     align-items: center;
@@ -935,6 +959,238 @@ body.auth-locked > *:not(#authGateOverlay) {
 .acc-form-group input:focus,
 .acc-form-group select:focus {
     border-color: #FFA000;
+}
+
+/* Radio buttons de Nível Operacional */
+.acc-level-radios {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.acc-level-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--clr-bg, #0b0f19);
+    border: 1.5px solid var(--clr-border, rgba(255, 255, 255, 0.12));
+    cursor: pointer;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--clr-text, #f5f7fb);
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.acc-level-option input[type="radio"] {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: #FFA000;
+    cursor: pointer;
+}
+
+.acc-level-option:has(input:checked) {
+    border-color: #FFA000;
+    background: rgba(255, 160, 0, 0.08);
+}
+
+/* Checkboxes de Telas Permitidas */
+.acc-screens-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.acc-screen-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 9px;
+    background: var(--clr-bg, #0b0f19);
+    border: 1.5px solid var(--clr-border, rgba(255, 255, 255, 0.1));
+    cursor: pointer;
+    font-size: 12.5px;
+    color: var(--clr-text, #f5f7fb);
+    transition: border-color 0.2s;
+}
+
+.acc-screen-checkbox input[type="checkbox"] {
+    width: 17px;
+    height: 17px;
+    margin: 0;
+    accent-color: #FFA000;
+    cursor: pointer;
+}
+
+.acc-screen-checkbox:has(input:checked) {
+    border-color: rgba(255, 160, 0, 0.45);
+}
+
+/* Pills de Telas na Tabela */
+.acc-screens-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    max-width: 220px;
+}
+
+.acc-screen-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--clr-text-secondary, #94a3b8);
+}
+
+.acc-badge.is-editor {
+    background: rgba(34, 197, 94, 0.16);
+    color: #22c55e;
+}
+
+.acc-badge.is-viewer {
+    background: rgba(59, 130, 246, 0.16);
+    color: #3b82f6;
+}
+
+/* Modal de Edição de Permissões */
+.edit-acc-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(4, 6, 11, 0.82);
+    backdrop-filter: blur(8px);
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.edit-acc-modal {
+    width: min(520px, 100%);
+    background: var(--clr-surface, #111827);
+    border: 1px solid var(--clr-border, rgba(255, 255, 255, 0.12));
+    border-radius: 20px;
+    box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.7);
+    padding: 28px;
+    color: var(--clr-text, #f5f7fb);
+}
+
+.edit-acc-modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--clr-border, rgba(255, 255, 255, 0.08));
+}
+
+.edit-acc-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 17px;
+    font-weight: 800;
+    margin: 0;
+}
+
+.edit-acc-modal-title .material-icons-round {
+    color: #FFA000;
+}
+
+.edit-acc-modal-close {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--clr-text-secondary, #94a3b8);
+    cursor: pointer;
+}
+
+.edit-acc-modal-close:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.edit-acc-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--clr-border, rgba(255, 255, 255, 0.08));
+}
+
+.btn-acc-cancel {
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: 1px solid var(--clr-border, rgba(255, 255, 255, 0.14));
+    background: transparent;
+    color: var(--clr-text, #f5f7fb);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-acc-save {
+    padding: 10px 22px;
+    border-radius: 10px;
+    border: 0;
+    background: #FFA000;
+    color: #0b0f19;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.btn-acc-save:hover {
+    background: #FFB52E;
+}
+
+/* Regras de Restrição para Modo Visualizador (role-viewer) */
+body.role-viewer .driver-quick-action-btn,
+body.role-viewer .driver-delete-btn,
+body.role-viewer .driver-submit-btn,
+body.role-viewer .btn-acc-tbl.is-danger,
+body.role-viewer .btn-acc-create,
+body.role-viewer .viewer-hide {
+    display: none !important;
+}
+
+body.role-viewer #driverActivityForm {
+    opacity: 0.55;
+    pointer-events: none;
+    user-select: none;
+}
+
+.viewer-readonly-notice {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    color: #60a5fa;
+    font-size: 12.5px;
+    font-weight: 600;
+    margin-bottom: 14px;
+}
+
+body.role-viewer .viewer-readonly-notice {
+    display: flex;
 }
 
 .btn-acc-create {

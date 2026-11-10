@@ -13,11 +13,14 @@
         localStorage.removeItem('car_verify_active_session_v1');
     } catch (e) {}
 
+    var DEFAULT_SCREENS = ['home', 'dashboard', 'drivers'];
+    var DEV_SCREENS = ['home', 'dashboard', 'drivers', 'accounts'];
+
     var DEFAULT_ACCOUNTS = [
-        { login: 'adm.sandro', password: 'manutsandro', role: 'Administração · Manutenção', isDev: false, isCore: true },
-        { login: 'adm.julio',  password: 'frotajulio',  role: 'Administração · Frota',      isDev: false, isCore: true },
-        { login: 'dev.g',      password: 'CVAEgl30!',   role: 'Desenvolvedor Master',       isDev: true,  isCore: true },
-        { login: 'rot.alpha',  password: 'rotalpha1',   role: 'Operação · Roteirização',    isDev: false, isCore: true }
+        { login: 'adm.sandro', password: 'manutsandro', role: 'Administração · Manutenção', accessLevel: 'editor', screens: ['home', 'dashboard', 'drivers'], isDev: false, isCore: true },
+        { login: 'adm.julio',  password: 'frotajulio',  role: 'Administração · Frota',      accessLevel: 'editor', screens: ['home', 'dashboard', 'drivers'], isDev: false, isCore: true },
+        { login: 'dev.g',      password: 'CVAEgl30!',   role: 'Desenvolvedor Master',       accessLevel: 'editor', screens: ['home', 'dashboard', 'drivers', 'accounts'], isDev: true,  isCore: true },
+        { login: 'rot.alpha',  password: 'rotalpha1',   role: 'Operação · Roteirização',    accessLevel: 'editor', screens: ['home', 'dashboard', 'drivers'], isDev: false, isCore: true }
     ];
 
     var revealedPasswords = {};
@@ -27,6 +30,41 @@
         return String(str == null ? '' : str).replace(/[&<>"']/g, function (c) {
             return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
         });
+    }
+
+    function normalizeAccount(acc, def) {
+        var base = def ? Object.assign({}, def, acc) : Object.assign({}, acc);
+        base.accessLevel = (base.accessLevel === 'viewer' || base.accessLevel === 'editor') ? base.accessLevel : 'editor';
+        if (!Array.isArray(base.screens) || base.screens.length === 0) {
+            base.screens = DEFAULT_SCREENS.slice();
+        }
+        if (base.isDev) {
+            base.accessLevel = 'editor';
+            if (base.screens.indexOf('accounts') === -1) {
+                base.screens.push('accounts');
+            }
+        }
+        return base;
+    }
+
+    function canAccessScreen(screenId) {
+        if (!activeSession) return false;
+        if (activeSession.isDev) return true;
+        var screens = Array.isArray(activeSession.screens) ? activeSession.screens : DEFAULT_SCREENS;
+        return screens.indexOf(screenId) !== -1;
+    }
+
+    function canEdit() {
+        if (!activeSession) return false;
+        if (activeSession.isDev) return true;
+        return (activeSession.accessLevel || 'editor') === 'editor';
+    }
+
+    function getFirstAllowedScreen() {
+        if (!activeSession) return 'home';
+        if (activeSession.isDev) return 'home';
+        var screens = Array.isArray(activeSession.screens) ? activeSession.screens : DEFAULT_SCREENS;
+        return screens.length > 0 ? screens[0] : 'home';
     }
 
     function loadAccounts() {
@@ -39,14 +77,21 @@
                     parsed.forEach(function (a) {
                         if (a && a.login) map[a.login.toLowerCase()] = a;
                     });
+                    var defaultMap = {};
                     DEFAULT_ACCOUNTS.forEach(function (def) {
-                        map[def.login.toLowerCase()] = Object.assign({}, map[def.login.toLowerCase()] || {}, def);
+                        defaultMap[def.login.toLowerCase()] = def;
+                        var existing = map[def.login.toLowerCase()];
+                        map[def.login.toLowerCase()] = normalizeAccount(existing || def, def);
                     });
-                    return Object.keys(map).map(function (k) { return map[k]; });
+                    return Object.keys(map).map(function (k) {
+                        var a = map[k];
+                        var def = defaultMap[k];
+                        return normalizeAccount(a, def);
+                    });
                 }
             }
         } catch (e) {}
-        return DEFAULT_ACCOUNTS.slice();
+        return DEFAULT_ACCOUNTS.map(function (d) { return normalizeAccount(d, d); });
     }
 
     function saveAccounts(list) {
@@ -76,12 +121,14 @@
         if (!tbody) return;
 
         accounts = loadAccounts();
-        var adminCount = accounts.filter(function (a) { return a.isDev || a.role.indexOf('Administra') !== -1; }).length;
+        var adminCount = accounts.filter(function (a) { return a.isDev || (a.role && a.role.indexOf('Administra') !== -1); }).length;
         var opsCount = accounts.length - adminCount;
 
         if (kpiTotal) kpiTotal.textContent = String(accounts.length);
         if (kpiAdmins) kpiAdmins.textContent = String(adminCount);
         if (kpiOps) kpiOps.textContent = String(opsCount);
+
+        var screenLabels = { home: 'Início', dashboard: 'Veículos', drivers: 'Motoristas', accounts: 'Contas' };
 
         tbody.innerHTML = accounts.map(function (acc) {
             var key = acc.login.toLowerCase();
@@ -89,6 +136,15 @@
             var pwdDisplay = isShown ? escapeHtml(acc.password) : '••••••••';
             var badgeClass = acc.isDev ? 'acc-badge is-dev' : 'acc-badge';
             var badgeText = acc.isDev ? 'DEV MASTER' : (acc.isCore ? 'VIGENTE PADRÃO' : 'CONTA CRIADA');
+
+            var isEditor = (acc.accessLevel || 'editor') === 'editor';
+            var levelBadgeHtml = '<span class="acc-badge ' + (isEditor ? 'is-editor' : 'is-viewer') + '">'
+                + (isEditor ? 'Editor' : 'Visualização') + '</span>';
+
+            var screensList = Array.isArray(acc.screens) ? acc.screens : DEFAULT_SCREENS;
+            var screensHtml = '<div class="acc-screens-wrap">' + screensList.map(function (s) {
+                return '<span class="acc-screen-pill">' + escapeHtml(screenLabels[s] || s) + '</span>';
+            }).join('') + '</div>';
 
             return ''
                 + '<tr>'
@@ -99,11 +155,14 @@
                 + '    </div>'
                 + '  </td>'
                 + '  <td>' + escapeHtml(acc.role) + '</td>'
+                + '  <td>' + levelBadgeHtml + '</td>'
+                + '  <td>' + screensHtml + '</td>'
                 + '  <td><code class="acc-pwd-code">' + pwdDisplay + '</code></td>'
                 + '  <td>'
                 + '    <div class="acc-actions-cell">'
+                + '      <button type="button" class="btn-acc-tbl" data-acc-action="edit" data-login="' + escapeHtml(acc.login) + '" title="Editar permissões e senha">Editar</button>'
                 + '      <button type="button" class="btn-acc-tbl" data-acc-action="toggle" data-login="' + escapeHtml(acc.login) + '">'
-                +          (isShown ? 'Ocultar senha' : 'Ver senha')
+                +          (isShown ? 'Ocultar' : 'Ver senha')
                 + '      </button>'
                 + '      <button type="button" class="btn-acc-tbl" data-acc-action="copy" data-login="' + escapeHtml(acc.login) + '">Copiar</button>'
                 +        (!acc.isCore ? '<button type="button" class="btn-acc-tbl is-danger" data-acc-action="delete" data-login="' + escapeHtml(acc.login) + '">Remover</button>' : '')
@@ -124,10 +183,15 @@
 
         var overlay = document.getElementById('authGateOverlay');
         var navAccounts = document.getElementById('navAccounts');
+        var navHome = document.getElementById('navHome');
+        var navDashboard = document.getElementById('navDashboard');
+        var navDrivers = document.getElementById('navDrivers');
         var userChip = document.getElementById('headerUserChip');
         var userNameEl = document.getElementById('headerUserName');
+        var levelBadge = document.getElementById('headerUserLevelBadge');
 
         document.body.classList.remove('auth-locked');
+        document.body.classList.toggle('role-viewer', acc.accessLevel === 'viewer');
         if (overlay) overlay.hidden = true;
 
         if (userChip && userNameEl) {
@@ -135,8 +199,39 @@
             userChip.hidden = false;
         }
 
+        if (levelBadge) {
+            if (acc.isDev) {
+                levelBadge.textContent = 'Dev Master';
+                levelBadge.className = 'header-user-level-badge is-dev';
+            } else if (acc.accessLevel === 'viewer') {
+                levelBadge.textContent = 'Visualizador';
+                levelBadge.className = 'header-user-level-badge is-viewer';
+            } else {
+                levelBadge.textContent = 'Editor';
+                levelBadge.className = 'header-user-level-badge is-editor';
+            }
+        }
+
         if (navAccounts) {
             navAccounts.style.display = acc.isDev ? '' : 'none';
+        }
+        if (navHome) {
+            navHome.style.display = canAccessScreen('home') ? '' : 'none';
+        }
+        if (navDashboard) {
+            navDashboard.style.display = canAccessScreen('dashboard') ? '' : 'none';
+        }
+        if (navDrivers) {
+            navDrivers.style.display = canAccessScreen('drivers') ? '' : 'none';
+        }
+
+        // Redireciona se a tela atual não for permitida para este perfil
+        if (typeof window.navigateTo === 'function') {
+            var rawHash = (window.location.hash || '').replace('#', '');
+            var screenFromHash = rawHash === 'inicio' ? 'home' : (rawHash === 'veiculos' ? 'dashboard' : (rawHash === 'motoristas' ? 'drivers' : (rawHash === 'contas' ? 'accounts' : 'home')));
+            if (!canAccessScreen(screenFromHash)) {
+                window.navigateTo(getFirstAllowedScreen(), true);
+            }
         }
 
         renderAccountsScreen();
@@ -385,6 +480,111 @@
         /* Aba Exclusiva de Gestão de Contas (dev.g) na Plataforma */
         var createAccForm = document.getElementById('platformCreateAccountForm');
         var accTableBody = document.getElementById('platformAccountsTableBody');
+        var editModalBackdrop = document.getElementById('editAccountModalBackdrop');
+        var editAccForm = document.getElementById('editAccountForm');
+        var btnCloseEditModal = document.getElementById('btnCloseEditAccModal');
+        var btnCancelEditModal = document.getElementById('btnCancelEditAcc');
+
+        function openEditAccountModal(target) {
+            if (!editModalBackdrop) return;
+            var origLoginEl = document.getElementById('editAccOriginalLogin');
+            var displayLoginEl = document.getElementById('editAccLoginDisplay');
+            var pwdEl = document.getElementById('editAccPassword');
+            var roleEl = document.getElementById('editAccRole');
+            var feedbackEl = document.getElementById('editAccFeedback');
+            if (feedbackEl) feedbackEl.hidden = true;
+
+            if (origLoginEl) origLoginEl.value = target.login;
+            if (displayLoginEl) {
+                displayLoginEl.value = target.login + (target.isDev ? ' (Dev Master)' : (target.isCore ? ' (Conta Padrão)' : ''));
+            }
+            if (pwdEl) pwdEl.value = target.password;
+            if (roleEl) roleEl.value = target.role;
+
+            // Rádios de nível
+            var levelRadios = editModalBackdrop.querySelectorAll('input[name="editAccLevel"]');
+            var targetLevel = target.accessLevel || 'editor';
+            levelRadios.forEach(function (r) {
+                r.checked = (r.value === targetLevel);
+                r.disabled = !!target.isDev;
+            });
+
+            // Checkboxes de telas
+            var screenChecks = editModalBackdrop.querySelectorAll('input[name="editAccScreens"]');
+            var targetScreens = Array.isArray(target.screens) ? target.screens : DEFAULT_SCREENS;
+            screenChecks.forEach(function (c) {
+                c.checked = targetScreens.indexOf(c.value) !== -1;
+                c.disabled = !!target.isDev;
+            });
+
+            editModalBackdrop.style.display = 'grid';
+            if (pwdEl) setTimeout(function () { pwdEl.focus(); }, 60);
+        }
+
+        function closeEditAccountModal() {
+            if (editModalBackdrop) editModalBackdrop.style.display = 'none';
+        }
+
+        if (btnCloseEditModal) btnCloseEditModal.addEventListener('click', closeEditAccountModal);
+        if (btnCancelEditModal) btnCancelEditModal.addEventListener('click', closeEditAccountModal);
+        if (editModalBackdrop) {
+            editModalBackdrop.addEventListener('click', function (e) {
+                if (e.target === editModalBackdrop) closeEditAccountModal();
+            });
+        }
+
+        if (editAccForm) {
+            editAccForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                if (!activeSession || !activeSession.isDev) return;
+
+                var origLoginEl = document.getElementById('editAccOriginalLogin');
+                var pwdEl = document.getElementById('editAccPassword');
+                var roleEl = document.getElementById('editAccRole');
+                var feedbackEl = document.getElementById('editAccFeedback');
+
+                var origLogin = (origLoginEl ? origLoginEl.value : '').toLowerCase();
+                var target = accounts.find(function (a) { return a.login.toLowerCase() === origLogin; });
+                if (!target) return;
+
+                var newPwd = pwdEl.value.trim();
+                var newRole = roleEl.value.trim();
+                if (!newPwd || !newRole) return;
+
+                target.password = newPwd;
+                target.role = newRole;
+
+                if (!target.isDev) {
+                    var checkedRadio = editModalBackdrop.querySelector('input[name="editAccLevel"]:checked');
+                    target.accessLevel = checkedRadio ? checkedRadio.value : 'editor';
+
+                    var selectedScreens = [];
+                    editModalBackdrop.querySelectorAll('input[name="editAccScreens"]:checked').forEach(function (c) {
+                        selectedScreens.push(c.value);
+                    });
+
+                    if (selectedScreens.length === 0) {
+                        if (feedbackEl) {
+                            feedbackEl.textContent = '⚠️ Selecione pelo menos 1 tela permitida.';
+                            feedbackEl.style.color = '#ef4444';
+                            feedbackEl.hidden = false;
+                        }
+                        return;
+                    }
+                    target.screens = selectedScreens;
+                }
+
+                saveAccounts(accounts);
+                renderAccountsScreen();
+
+                // Se alterou a conta atualmente logada, atualiza em tempo real
+                if (activeSession && activeSession.login.toLowerCase() === origLogin) {
+                    applyPlatformSession(target, false);
+                }
+
+                closeEditAccountModal();
+            });
+        }
 
         if (accTableBody) {
             accTableBody.addEventListener('click', function (e) {
@@ -395,20 +595,24 @@
                 var target = accounts.find(function (a) { return a.login.toLowerCase() === loginKey; });
                 if (!target) return;
 
-                if (action === 'toggle') {
+                if (action === 'edit') {
+                    openEditAccountModal(target);
+                } else if (action === 'toggle') {
                     revealedPasswords[loginKey] = !revealedPasswords[loginKey];
                     renderAccountsScreen();
                 } else if (action === 'copy') {
-                    var text = 'Login: ' + target.login + ' | Senha: ' + target.password;
+                    var text = 'Login: ' + target.login + ' | Senha: ' + target.password + ' | Nível: ' + (target.accessLevel || 'editor');
                     if (navigator.clipboard && navigator.clipboard.writeText) {
                         navigator.clipboard.writeText(text);
                     }
                     btnAct.textContent = 'Copiado!';
                     setTimeout(function () { btnAct.textContent = 'Copiar'; }, 1500);
                 } else if (action === 'delete' && !target.isCore) {
-                    accounts = accounts.filter(function (a) { return a.login.toLowerCase() !== loginKey; });
-                    saveAccounts(accounts);
-                    renderAccountsScreen();
+                    if (confirm('Tem certeza que deseja remover permanentemente a conta "' + target.login + '"?')) {
+                        accounts = accounts.filter(function (a) { return a.login.toLowerCase() !== loginKey; });
+                        saveAccounts(accounts);
+                        renderAccountsScreen();
+                    }
                 }
             });
         }
@@ -437,13 +641,34 @@
                     return;
                 }
 
-                accounts.push({
+                var levelRadio = createAccForm.querySelector('input[name="platNewAccLevel"]:checked');
+                var newLevel = levelRadio ? levelRadio.value : 'editor';
+
+                var selectedScreens = [];
+                createAccForm.querySelectorAll('input[name="platNewAccScreens"]:checked').forEach(function (chk) {
+                    selectedScreens.push(chk.value);
+                });
+
+                if (selectedScreens.length === 0) {
+                    if (feedbackEl) {
+                        feedbackEl.textContent = '⚠️ Selecione pelo menos 1 tela permitida para a nova conta.';
+                        feedbackEl.style.color = '#ef4444';
+                        feedbackEl.hidden = false;
+                    }
+                    return;
+                }
+
+                var newAccount = normalizeAccount({
                     login: newLogin,
                     password: newPassword,
                     role: newRole,
+                    accessLevel: newLevel,
+                    screens: selectedScreens,
                     isDev: false,
                     isCore: false
                 });
+
+                accounts.push(newAccount);
                 saveAccounts(accounts);
                 revealedPasswords[newLogin] = true;
                 renderAccountsScreen();
@@ -451,10 +676,10 @@
                 loginEl.value = '';
                 pwdEl.value = '';
                 if (feedbackEl) {
-                    feedbackEl.textContent = '✅ Conta "' + newLogin + '" criada com sucesso e já vigente!';
+                    feedbackEl.textContent = '✅ Conta "' + newLogin + '" criada com sucesso (' + (newLevel === 'viewer' ? 'Visualização' : 'Editor') + ')!';
                     feedbackEl.style.color = '#32d583';
                     feedbackEl.hidden = false;
-                    setTimeout(function () { feedbackEl.hidden = true; }, 4000);
+                    setTimeout(function () { feedbackEl.hidden = true; }, 4500);
                 }
             });
         }
@@ -504,6 +729,9 @@
 
     window.CarVerifyAuth = {
         isDev: function () { return !!(activeSession && activeSession.isDev); },
+        canEdit: canEdit,
+        canAccessScreen: canAccessScreen,
+        getFirstAllowedScreen: getFirstAllowedScreen,
         getSession: function () { return activeSession; },
         renderAccounts: renderAccountsScreen,
         logout: logoutPlatformSession

@@ -16,7 +16,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
     <link rel="stylesheet" href="css/styles.css?v=2.2">
-    <link rel="stylesheet" href="css/auth.css?v=3.0">
+    <link rel="stylesheet" href="css/auth.css?v=3.1">
     <script>
         (function() {
             const saved = localStorage.getItem('theme');
@@ -484,6 +484,7 @@
                 <div class="header-user-chip" id="headerUserChip" hidden>
                     <span class="header-user-dot" aria-hidden="true"></span>
                     <span class="header-user-name" id="headerUserName"></span>
+                    <span class="header-user-level-badge" id="headerUserLevelBadge">Editor</span>
                     <button type="button" class="btn-header-logout" id="btnHeaderLogout" title="Encerrar sessão">
                         <span class="material-icons-round">logout</span>
                         <span>Sair</span>
@@ -781,6 +782,11 @@
 
                 <!-- Main Panel: Views Switcher -->
                 <div class="drivers-main-panel">
+                    <div class="viewer-readonly-notice" role="status">
+                        <span class="material-icons-round">visibility</span>
+                        <span><strong>Modo Visualização:</strong> Sua conta possui acesso apenas para consulta. O registro e alterações de atividades estão bloqueados.</span>
+                    </div>
+
                     <!-- VIEW 1: Visão Geral / Histórico Diário Gradativo -->
                     <div id="driversOverviewView" class="drivers-view-content">
                         <!-- Top Row: Form + KPIs + Top 3 -->
@@ -1018,12 +1024,43 @@
                         <input type="text" id="platNewAccPassword" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="none" placeholder="Digite a senha da conta" required minlength="4">
                     </div>
                     <div class="acc-form-group">
-                        <label for="platNewAccRole">Perfil / Nível de Acesso</label>
+                        <label for="platNewAccRole">Perfil / Descrição da Função</label>
                         <select id="platNewAccRole">
                             <option value="Administração · Frota &amp; Manutenção">Administração · Frota &amp; Manutenção</option>
                             <option value="Operação · Roteirização &amp; Checklists">Operação · Roteirização &amp; Checklists</option>
-                            <option value="Consulta · Relatórios">Consulta · Relatórios</option>
+                            <option value="Consulta · Relatórios da Frota">Consulta · Relatórios da Frota</option>
+                            <option value="Supervisão · Gestão Operacional">Supervisão · Gestão Operacional</option>
                         </select>
+                    </div>
+                    <div class="acc-form-group">
+                        <label>Nível Operacional</label>
+                        <div class="acc-level-radios">
+                            <label class="acc-level-option">
+                                <input type="radio" name="platNewAccLevel" value="editor" checked>
+                                <span>Editor (Edição total)</span>
+                            </label>
+                            <label class="acc-level-option">
+                                <input type="radio" name="platNewAccLevel" value="viewer">
+                                <span>Visualização (Leitura)</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="acc-form-group">
+                        <label>Telas Liberadas</label>
+                        <div class="acc-screens-grid">
+                            <label class="acc-screen-checkbox">
+                                <input type="checkbox" name="platNewAccScreens" value="home" checked>
+                                <span><strong>Início</strong> — Visão geral da frota e conformidade</span>
+                            </label>
+                            <label class="acc-screen-checkbox">
+                                <input type="checkbox" name="platNewAccScreens" value="dashboard" checked>
+                                <span><strong>Veículos</strong> — Painel detalhado por veículo</span>
+                            </label>
+                            <label class="acc-screen-checkbox">
+                                <input type="checkbox" name="platNewAccScreens" value="drivers" checked>
+                                <span><strong>Motoristas</strong> — Controle de atividades dos colaboradores</span>
+                            </label>
+                        </div>
                     </div>
                     <button type="submit" class="btn-acc-create">
                         <span class="material-icons-round">add_circle</span>
@@ -1041,11 +1078,13 @@
                 <p class="accounts-card-desc">Todas as contas habilitadas atualmente para login no painel CAR VERIFY.</p>
 
                 <div class="accounts-table-wrap">
-                    <table class="accounts-table">
+                    <table class="accounts-table" id="platformAccountsTable">
                         <thead>
                             <tr>
                                 <th>Login</th>
-                                <th>Perfil / Permissão</th>
+                                <th>Perfil / Função</th>
+                                <th>Nível</th>
+                                <th>Telas Liberadas</th>
                                 <th>Senha Vigente</th>
                                 <th>Ações</th>
                             </tr>
@@ -1056,6 +1095,71 @@
             </div>
         </div>
     </section>
+
+    <!-- ====== EDIT ACCOUNT MODAL (Dev Master) ====== -->
+    <div class="edit-acc-modal-backdrop" id="editAccountModalBackdrop" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="editAccModalTitle">
+        <div class="edit-acc-modal">
+            <div class="edit-acc-modal-head">
+                <h3 class="edit-acc-modal-title" id="editAccModalTitle">
+                    <span class="material-icons-round">manage_accounts</span>
+                    <span>Editar Permissões da Conta</span>
+                </h3>
+                <button type="button" class="edit-acc-modal-close" id="btnCloseEditAccModal" aria-label="Fechar modal">
+                    <span class="material-icons-round">close</span>
+                </button>
+            </div>
+            <form id="editAccountForm" action="#" method="post">
+                <input type="hidden" id="editAccOriginalLogin">
+                <div class="acc-form-group">
+                    <label for="editAccLoginDisplay">Conta / Login</label>
+                    <input type="text" id="editAccLoginDisplay" readonly style="opacity:0.75;cursor:not-allowed;">
+                </div>
+                <div class="acc-form-group">
+                    <label for="editAccPassword">Senha Vigente</label>
+                    <input type="text" id="editAccPassword" autocomplete="off" spellcheck="false" required minlength="4">
+                </div>
+                <div class="acc-form-group">
+                    <label for="editAccRole">Perfil / Descrição</label>
+                    <input type="text" id="editAccRole" autocomplete="off" spellcheck="false" required>
+                </div>
+                <div class="acc-form-group">
+                    <label>Nível Operacional</label>
+                    <div class="acc-level-radios">
+                        <label class="acc-level-option">
+                            <input type="radio" name="editAccLevel" value="editor">
+                            <span>Editor (Edição total)</span>
+                        </label>
+                        <label class="acc-level-option">
+                            <input type="radio" name="editAccLevel" value="viewer">
+                            <span>Visualização (Leitura)</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="acc-form-group">
+                    <label>Telas Liberadas</label>
+                    <div class="acc-screens-grid">
+                        <label class="acc-screen-checkbox">
+                            <input type="checkbox" name="editAccScreens" value="home">
+                            <span><strong>Início</strong> — Visão geral da frota</span>
+                        </label>
+                        <label class="acc-screen-checkbox">
+                            <input type="checkbox" name="editAccScreens" value="dashboard">
+                            <span><strong>Veículos</strong> — Painel por veículo</span>
+                        </label>
+                        <label class="acc-screen-checkbox">
+                            <input type="checkbox" name="editAccScreens" value="drivers">
+                            <span><strong>Motoristas</strong> — Atividades</span>
+                        </label>
+                    </div>
+                </div>
+                <p id="editAccFeedback" style="margin:8px 0 0;font-size:12.5px;font-weight:600;" hidden></p>
+                <div class="edit-acc-modal-actions">
+                    <button type="button" class="btn-acc-cancel" id="btnCancelEditAcc">Cancelar</button>
+                    <button type="submit" class="btn-acc-save" id="btnSaveEditAcc">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- ====== PPTX EXPORT MODAL ====== -->
     <div class="modal-backdrop" id="pptxModalBackdrop" style="display:none;">
@@ -1219,9 +1323,9 @@
     <script src="js/charts.js?v=2.4"></script>
     <script src="js/pptx-export.js?v=2.4"></script>
     <script src="js/vehicle-report.js?v=2.4"></script>
-    <script src="js/drivers.js?v=2.4"></script>
-    <script src="js/app.js?v=2.4"></script>
-    <script src="js/auth.js?v=3.0"></script>
+    <script src="js/drivers.js?v=3.1"></script>
+    <script src="js/app.js?v=3.1"></script>
+    <script src="js/auth.js?v=3.1"></script>
 
     <!-- CAR VERIFY — Logo entrance animation (GSAP + Motion Design) -->
     <script>
