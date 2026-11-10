@@ -13,14 +13,14 @@
         localStorage.removeItem('car_verify_active_session_v1');
     } catch (e) {}
 
-    var DEFAULT_SCREENS = ['home', 'dashboard', 'drivers'];
-    var DEV_SCREENS = ['home', 'dashboard', 'drivers', 'accounts'];
+    var DEFAULT_SCREENS = ['home', 'dashboard', 'drivers', 'maintenance'];
+    var DEV_SCREENS = ['home', 'dashboard', 'drivers', 'maintenance', 'accounts'];
 
     var DEFAULT_ACCOUNTS = [
-        { login: 'adm.sandro', password: 'manutsandro', role: 'Administração · Manutenção', accessLevel: 'editor', screens: ['home', 'dashboard', 'drivers'], isDev: false, isCore: true },
-        { login: 'adm.julio',  password: 'frotajulio',  role: 'Administração · Frota',      accessLevel: 'editor', screens: ['home', 'dashboard', 'drivers'], isDev: false, isCore: true },
-        { login: 'dev.g',      password: 'CVAEgl30!',   role: 'Desenvolvedor Master',       accessLevel: 'editor', screens: ['home', 'dashboard', 'drivers', 'accounts'], isDev: true,  isCore: true },
-        { login: 'rot.alpha',  password: 'rotalpha1',   role: 'Operação · Roteirização',    accessLevel: 'editor', screens: ['home', 'dashboard', 'drivers'], isDev: false, isCore: true }
+        { login: 'adm.sandro', password: 'manutsandro', role: 'Administração · Manutenção', accessLevel: 'editor', screens: ['home', 'dashboard', 'drivers', 'maintenance'], isDev: false, isCore: true },
+        { login: 'adm.julio',  password: 'frotajulio',  role: 'Administração · Frota',      accessLevel: 'editor', screens: ['home', 'dashboard', 'drivers', 'maintenance'], isDev: false, isCore: true },
+        { login: 'dev.g',      password: 'CVAEgl30!',   role: 'Desenvolvedor Master',       accessLevel: 'editor', screens: ['home', 'dashboard', 'drivers', 'maintenance', 'accounts'], isDev: true,  isCore: true },
+        { login: 'rot.alpha',  password: 'rotalpha1',   role: 'Operação · Roteirização',    accessLevel: 'editor', screens: ['home', 'dashboard', 'drivers', 'maintenance'], isDev: false, isCore: true }
     ];
 
     var revealedPasswords = {};
@@ -38,8 +38,22 @@
         if (!Array.isArray(base.screens) || base.screens.length === 0) {
             base.screens = DEFAULT_SCREENS.slice();
         }
+        if ((base.isCore || base.isDev) && !base._maintMigrated) {
+            if (base.screens.indexOf('maintenance') === -1) {
+                var accIdx = base.screens.indexOf('accounts');
+                if (accIdx !== -1) {
+                    base.screens.splice(accIdx, 0, 'maintenance');
+                } else {
+                    base.screens.push('maintenance');
+                }
+            }
+            base._maintMigrated = true;
+        }
         if (base.isDev) {
             base.accessLevel = 'editor';
+            if (base.screens.indexOf('maintenance') === -1) {
+                base.screens.push('maintenance');
+            }
             if (base.screens.indexOf('accounts') === -1) {
                 base.screens.push('accounts');
             }
@@ -128,7 +142,7 @@
         if (kpiAdmins) kpiAdmins.textContent = String(adminCount);
         if (kpiOps) kpiOps.textContent = String(opsCount);
 
-        var screenLabels = { home: 'Início', dashboard: 'Veículos', drivers: 'Motoristas', accounts: 'Contas' };
+        var screenLabels = { home: 'Início', dashboard: 'Veículos', drivers: 'Motoristas', maintenance: 'Manutenção', accounts: 'Contas' };
 
         tbody.innerHTML = accounts.map(function (acc) {
             var key = acc.login.toLowerCase();
@@ -186,6 +200,7 @@
         var navHome = document.getElementById('navHome');
         var navDashboard = document.getElementById('navDashboard');
         var navDrivers = document.getElementById('navDrivers');
+        var navMaintenance = document.getElementById('navMaintenance');
         var userChip = document.getElementById('headerUserChip');
         var userNameEl = document.getElementById('headerUserName');
         var levelBadge = document.getElementById('headerUserLevelBadge');
@@ -224,11 +239,18 @@
         if (navDrivers) {
             navDrivers.style.display = canAccessScreen('drivers') ? '' : 'none';
         }
+        if (navMaintenance) {
+            navMaintenance.style.display = canAccessScreen('maintenance') ? '' : 'none';
+        }
 
         // Redireciona se a tela atual não for permitida para este perfil
         if (typeof window.navigateTo === 'function') {
             var rawHash = (window.location.hash || '').replace('#', '');
-            var screenFromHash = rawHash === 'inicio' ? 'home' : (rawHash === 'veiculos' ? 'dashboard' : (rawHash === 'motoristas' ? 'drivers' : (rawHash === 'contas' ? 'accounts' : 'home')));
+            var screenFromHash = rawHash === 'inicio' ? 'home'
+                : (rawHash === 'veiculos' ? 'dashboard'
+                : (rawHash === 'motoristas' ? 'drivers'
+                : (rawHash === 'manutencao' ? 'maintenance'
+                : (rawHash === 'contas' ? 'accounts' : 'home'))));
             if (!canAccessScreen(screenFromHash)) {
                 window.navigateTo(getFirstAllowedScreen(), true);
             }

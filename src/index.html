@@ -15,8 +15,9 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-    <link rel="stylesheet" href="css/styles.css?v=3.3">
-    <link rel="stylesheet" href="css/auth.css?v=3.3">
+    <link rel="stylesheet" href="css/styles.css?v=3.4">
+    <link rel="stylesheet" href="css/auth.css?v=3.4">
+    <link rel="stylesheet" href="css/maintenance.css?v=3.4">
     <script>
         (function() {
             const saved = localStorage.getItem('theme');
@@ -494,6 +495,10 @@
                 <button class="nav-btn" id="navDrivers" data-screen="drivers">
                     <span class="material-icons-round">badge</span>
                     <span>Motoristas</span>
+                </button>
+                <button class="nav-btn" id="navMaintenance" data-screen="maintenance">
+                    <span class="material-icons-round">build_circle</span>
+                    <span>Manutenção</span>
                 </button>
                 <button class="nav-btn" id="navAccounts" data-screen="accounts" style="display:none;">
                     <span class="material-icons-round">admin_panel_settings</span>
@@ -999,6 +1004,379 @@
         </div>
     </section>
 
+    <!-- ====== MAINTENANCE & FLEET SCREEN ====== -->
+    <section class="maintenance-screen" id="maintenanceScreen" style="display:none;">
+        <div class="maint-layout">
+            <!-- Sidebar Lateral de Veículos -->
+            <aside class="maint-sidebar">
+                <div class="maint-sidebar-card">
+                    <div class="maint-sidebar-header">
+                        <div class="maint-sidebar-title">
+                            <span class="material-icons-round">local_shipping</span>
+                            <span>Frota Operacional</span>
+                        </div>
+                        <span class="maint-sidebar-count">10 Veículos</span>
+                    </div>
+                    <div class="maint-sidebar-list" id="maintSidebarList">
+                        <!-- Gerado via JS -->
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Painel Principal -->
+            <div class="maint-main-panel">
+                <div class="viewer-readonly-notice" role="status">
+                    <span class="material-icons-round">visibility</span>
+                    <span><strong>Modo Visualização:</strong> Sua conta possui acesso apenas para consulta. Lançamentos de OS, edições e inserção de Notas Fiscais estão bloqueados.</span>
+                </div>
+
+                <!-- Banner contextual (visível quando um veículo é selecionado) -->
+                <div class="card maint-banner" id="maintVehicleBanner" style="display:none;">
+                    <div class="maint-banner-left">
+                        <button type="button" class="maint-banner-back-btn" id="btnBackToFleetOverview">
+                            <span class="material-icons-round" style="font-size:16px;">arrow_back</span>
+                            <span>Visão Geral da Frota</span>
+                        </button>
+                        <div class="maint-banner-avatar" id="maintBannerAvatar">
+                            <span class="material-icons-round">directions_car</span>
+                        </div>
+                        <div class="maint-banner-details">
+                            <h2 id="maintBannerTitle">SUX8H84 — FIORINO</h2>
+                            <span id="maintBannerSub">Motorista Titular: Leonildo Silva</span>
+                        </div>
+                    </div>
+                    <div class="maint-banner-right">
+                        <button type="button" class="maint-banner-action-btn" id="btnOpenMaintReport">
+                            <span class="material-icons-round" style="font-size:16px;">print</span>
+                            <span>Relatório Executivo A4</span>
+                        </button>
+                        <div class="maint-cal-stepper">
+                            <button type="button" class="stepper-btn" id="btnMaintPrevMonth" title="Mês anterior">
+                                <span class="material-icons-round" style="font-size:18px;">chevron_left</span>
+                            </button>
+                            <span class="stepper-label" id="maintCalMonthLabel">Novembro 2026</span>
+                            <button type="button" class="stepper-btn" id="btnMaintNextMonth" title="Próximo mês">
+                                <span class="material-icons-round" style="font-size:18px;">chevron_right</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Row: Formulário (visível ao selecionar placa) + Relatório Diário / KPIs / Gráficos -->
+                <div class="maint-top-row overview-mode" id="maintTopRow">
+                    <!-- Card Esquerdo: Formulário de Registro de Status e Manutenção -->
+                    <div class="card maint-form-card" id="maintFormCard" style="display:none;">
+                        <div class="card-header">
+                            <div class="card-title-group">
+                                <span class="material-icons-round card-icon icon-amber">build_circle</span>
+                                <div>
+                                    <h2 id="maintFormTitle">Sinalizar / Editar Status &amp; Manutenção</h2>
+                                    <span class="card-subtitle">Status diário, período de parada e Nota Fiscal</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <form id="maintForm" class="maint-form">
+                                <!-- Alerta de Vínculo com NOK do Checklist -->
+                                <div class="nok-link-alert" id="nokLinkBanner">
+                                    <span class="material-icons-round" style="font-size:18px;">link</span>
+                                    <div style="flex:1;">
+                                        <strong>Vinculado a Apontamento NOK do Checklist:</strong>
+                                        <div id="nokLinkBannerText">Sistema de freio — FRG7C31</div>
+                                    </div>
+                                </div>
+
+                                <div class="maint-form-row">
+                                    <div class="maint-form-field">
+                                        <label for="maintPlateSelect">Veículo (Placa)</label>
+                                        <select id="maintPlateSelect" class="maint-select" required></select>
+                                    </div>
+                                    <div class="maint-form-field">
+                                        <label for="maintStatusSelect">Status Operacional</label>
+                                        <select id="maintStatusSelect" class="maint-select" required>
+                                            <option value="manutencao">🔧 Manutenção (Oficina)</option>
+                                            <option value="ativo">✅ Ativo (Em Rota)</option>
+                                            <option value="interna">🏢 Atividade Interna</option>
+                                            <option value="off">⛔ Fora de Operação (Off)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="maint-form-row">
+                                    <div class="maint-form-field">
+                                        <label for="maintStartDate">Data Início</label>
+                                        <input type="date" id="maintStartDate" required>
+                                    </div>
+                                    <div class="maint-form-field">
+                                        <label for="maintEndDate">Data Fim (Previsão / Retorno)</label>
+                                        <input type="date" id="maintEndDate" required>
+                                    </div>
+                                </div>
+
+                                <!-- Gaveta Expansível para Manutenção / Oficina -->
+                                <div class="maint-drawer" id="maintDetailsDrawer">
+                                    <div class="maint-form-field">
+                                        <label>Natureza da Intervenção</label>
+                                        <div class="maint-type-toggle">
+                                            <button type="button" class="maint-type-btn corretiva active" data-type="corretiva">
+                                                <span class="material-icons-round" style="font-size:15px;">warning</span>
+                                                Corretiva
+                                            </button>
+                                            <button type="button" class="maint-type-btn preventiva" data-type="preventiva">
+                                                <span class="material-icons-round" style="font-size:15px;">verified_user</span>
+                                                Preventiva
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="maint-form-field">
+                                        <label>Sistemas Mecânicos Afetados (Múltipla Seleção)</label>
+                                        <div class="maint-chips-grid" id="maintSystemsGrid"></div>
+                                    </div>
+
+                                    <!-- Leitura Efêmera de PDF (Extract-and-Discard) -->
+                                    <div class="maint-form-field">
+                                        <label style="display:flex;align-items:center;justify-content:space-between;">
+                                            <span>Nota Fiscal (PDF) &amp; Agente IA</span>
+                                            <span style="font-size:9px;color:#10b981;font-weight:800;text-transform:none;">⚡ Extract &amp; Discard (0 MB no banco)</span>
+                                        </label>
+                                        <input type="file" id="nfFileInput" accept=".pdf,image/*" style="display:none;">
+                                        <div class="maint-nf-dropzone" id="nfDropzone" title="Clique para selecionar o PDF da Nota Fiscal (o arquivo será lido em memória e descartado)">
+                                            <div class="maint-nf-dropzone-left">
+                                                <div class="maint-nf-icon">
+                                                    <span class="material-icons-round" style="font-size:18px;">picture_as_pdf</span>
+                                                </div>
+                                                <div class="maint-nf-text">
+                                                    <strong id="nfFileTitle">Ler PDF da Nota Fiscal (Extração Efêmera)</strong>
+                                                    <span id="nfFileSub">Extrai Nº NF, Fornecedor, Valor R$ e Sistemas · O arquivo PDF é descartado após a leitura</span>
+                                                </div>
+                                            </div>
+                                            <span class="maint-nf-badge">IA Auto-Read</span>
+                                        </div>
+                                        <button type="button" class="maint-ai-btn" id="btnSimulateAiNf" style="margin-top:5px;">
+                                            <span class="material-icons-round" style="font-size:15px;">auto_awesome</span>
+                                            <span>Simular Leitura Inteligente de NF em PDF (Agente IA)</span>
+                                        </button>
+                                    </div>
+
+                                    <div class="maint-form-row three-cols">
+                                        <div class="maint-form-field">
+                                            <label for="maintNfNumber">Nº Nota Fiscal</label>
+                                            <input type="text" id="maintNfNumber" placeholder="Ex: NF-e 004.892">
+                                        </div>
+                                        <div class="maint-form-field">
+                                            <label for="maintSupplier">Oficina / Fornecedor</label>
+                                            <input type="text" id="maintSupplier" placeholder="Ex: Bosch Service">
+                                        </div>
+                                        <div class="maint-form-field">
+                                            <label for="maintCost">Valor Total (R$)</label>
+                                            <input type="number" step="0.01" min="0" id="maintCost" placeholder="0,00">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="maint-form-field">
+                                    <label for="maintNote">Observação / Serviços Executados</label>
+                                    <input type="text" id="maintNote" placeholder="Ex: Troca de jogo de pastilhas dianteiras, retífica de disco e sangria...">
+                                </div>
+
+                                <button type="submit" class="maint-submit-btn" id="maintSubmitBtn">
+                                    <span class="material-icons-round" style="font-size:18px;">save</span>
+                                    <span id="maintSubmitLabel">Salvar Registro da Frota</span>
+                                </button>
+                                <button type="button" class="maint-cancel-edit-btn" id="btnCancelEdit">
+                                    Cancelar Edição
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Coluna Direita: Relatório Diário (Visão Geral) + 6 KPIs + 3 Gráficos -->
+                    <div class="maint-right-analytics">
+                        <!-- Relatório Diário de Status da Frota (Visão Geral) -->
+                        <div class="card daily-status-report-card" id="maintDailyStatusReportCard">
+                            <div class="card-header">
+                                <div class="card-title-group">
+                                    <span class="material-icons-round card-icon icon-green">calendar_view_day</span>
+                                    <div>
+                                        <h2>Relatório Diário de Status da Frota</h2>
+                                        <span class="card-subtitle" id="dailyReportSubtitle">Selecione o mês e clique em um dia na linha abaixo para inspecionar o status das 10 placas</span>
+                                    </div>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                                    <div style="display:flex;align-items:center;gap:6px;">
+                                        <span class="material-icons-round" style="font-size:16px;color:var(--clr-amber);">event</span>
+                                        <select id="dailyReportMonthSelect" class="maint-select" style="width:auto;padding:6px 12px;font-size:12px;font-weight:800;"></select>
+                                    </div>
+                                    <span class="sys-badge" style="color:#16a34a;border-color:rgba(34,197,94,0.3);background:rgba(34,197,94,0.1);">
+                                        <span class="material-icons-round" style="font-size:13px;">bolt</span> Padrão Automático: Dias Úteis = Ativo
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="card-body daily-report-body">
+                                <div class="days-single-line-wrapper">
+                                    <div class="days-single-line" id="maintDaysSingleLine"></div>
+                                </div>
+                                <div class="plates-status-header">
+                                    <div style="display:flex;align-items:center;gap:8px;">
+                                        <span class="material-icons-round" style="font-size:16px;color:#3b82f6;">today</span>
+                                        <strong id="selectedReportDateLabel" style="font-size:12.5px;">Status em --/--/----</strong>
+                                    </div>
+                                    <div class="plates-status-summary" id="selectedReportSummary"></div>
+                                </div>
+                                <div class="plates-status-grid" id="maintPlatesStatusGrid"></div>
+                            </div>
+                        </div>
+
+                        <!-- Card dos 6 KPIs -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title-group">
+                                    <span class="material-icons-round card-icon icon-blue">analytics</span>
+                                    <div>
+                                        <h2 id="maintKpiTitle">Indicadores de Disponibilidade &amp; Custos</h2>
+                                        <span class="card-subtitle" id="maintKpiSubtitle">Visão Consolidada da Frota</span>
+                                    </div>
+                                </div>
+                                <button type="button" class="maint-banner-action-btn" id="btnOpenFleetReportOverview">
+                                    <span class="material-icons-round" style="font-size:15px;">description</span>
+                                    <span>Relatório Executivo A4</span>
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="kpi-grid-6" id="maintKpiGrid"></div>
+                            </div>
+                        </div>
+
+                        <!-- 3 Gráficos Analíticos -->
+                        <div class="stacked-charts-under-kpis">
+                            <div class="card stacked-chart-card">
+                                <div class="card-header">
+                                    <div class="card-title-group">
+                                        <span class="material-icons-round card-icon icon-amber">bar_chart</span>
+                                        <div>
+                                            <h2>1. Incidência por Sistema Mecânico</h2>
+                                            <span class="card-subtitle">Ranking de falhas e manutenções por subsistema</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-box">
+                                        <canvas id="chartMaintBySystem"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card stacked-chart-card">
+                                <div class="card-header">
+                                    <div class="card-title-group">
+                                        <span class="material-icons-round card-icon icon-blue">paid</span>
+                                        <div>
+                                            <h2>2. Investimento (R$) por Veículo</h2>
+                                            <span class="card-subtitle">Custo acumulado de Notas Fiscais por placa</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-box">
+                                        <canvas id="chartMaintByCost"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card stacked-chart-card">
+                                <div class="card-header">
+                                    <div class="card-title-group">
+                                        <span class="material-icons-round card-icon icon-red">local_Fire_department</span>
+                                        <div>
+                                            <h2>3. Dias Parados por Veículo</h2>
+                                            <span class="card-subtitle">Total de dias em oficina ou inoperante por placa</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-box">
+                                        <canvas id="chartMaintByVehicle"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calendário Mensal do Veículo (visível quando uma placa está selecionada) -->
+                <div class="card" id="maintCalendarCard" style="display:none;">
+                    <div class="card-header">
+                        <div class="card-title-group">
+                            <span class="material-icons-round card-icon icon-purple">calendar_month</span>
+                            <div>
+                                <h2 id="maintCalTitle">Calendário Operacional e de Manutenção do Veículo</h2>
+                                <span class="card-subtitle">Clique em qualquer dia para lançar ou editar o status/manutenção da placa</span>
+                            </div>
+                        </div>
+                        <div class="calendar-legend" style="display:flex;gap:8px;flex-wrap:wrap;font-size:11px;">
+                            <span class="veh-pill p-ativo">● Ativo</span>
+                            <span class="veh-pill p-interna">● Ativ. Interna</span>
+                            <span class="veh-pill p-manutencao">● Manutenção</span>
+                            <span class="veh-pill p-off">● Inativo (Off)</span>
+                            <span class="veh-pill p-feriado">● Feriado</span>
+                            <span class="veh-pill p-ferias">● Férias Motorista</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="veh-cal-grid" id="maintCalendarGrid"></div>
+                    </div>
+                </div>
+
+                <!-- Tabela de Histórico de Manutenção e Notas Fiscais -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title-group">
+                            <span class="material-icons-round card-icon icon-green">receipt_long</span>
+                            <div>
+                                <h2>Histórico de Manutenções, Status &amp; Notas Fiscais</h2>
+                                <span class="card-subtitle" id="maintTableSubtitle">Exibindo todos os registros operacionais e de oficina</span>
+                            </div>
+                        </div>
+                        <div class="maint-table-filter-bar">
+                            <select id="maintTableFilterPlate" class="maint-select" style="width:auto;padding:6px 10px;font-size:12px;">
+                                <option value="all">Todos os Veículos (10)</option>
+                            </select>
+                            <select id="maintTableFilterStatus" class="maint-select" style="width:auto;padding:6px 10px;font-size:12px;">
+                                <option value="all">Todos os Status</option>
+                                <option value="manutencao">🔧 Apenas Manutenção</option>
+                                <option value="interna">🏢 Atividade Interna</option>
+                                <option value="off">⛔ Fora de Operação</option>
+                                <option value="ativo">✅ Ativo Manual</option>
+                            </select>
+                            <select id="maintTableFilterSystem" class="maint-select" style="width:auto;padding:6px 10px;font-size:12px;">
+                                <option value="all">Todos os Sistemas</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding-top:4px;">
+                        <div class="fleet-table-wrap">
+                            <table class="fleet-table">
+                                <thead>
+                                    <tr>
+                                        <th>Veículo</th>
+                                        <th>Status / Tipo</th>
+                                        <th>Sistemas / Detalhe</th>
+                                        <th>Período (Dias)</th>
+                                        <th>Nota Fiscal &amp; Fornecedor</th>
+                                        <th>Custo (R$)</th>
+                                        <th style="text-align:right;">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="maintTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- ====== ACCOUNTS MANAGEMENT SCREEN (EXCLUSIVO dev.g) ====== -->
     <section class="accounts-screen" id="accountsScreen" style="display:none;">
         <div class="accounts-hero-bar">
@@ -1080,6 +1458,10 @@
                             <label class="acc-screen-checkbox">
                                 <input type="checkbox" name="platNewAccScreens" value="drivers" checked>
                                 <span><strong>Motoristas</strong> — Controle de atividades dos colaboradores</span>
+                            </label>
+                            <label class="acc-screen-checkbox">
+                                <input type="checkbox" name="platNewAccScreens" value="maintenance" checked>
+                                <span><strong>Manutenção</strong> — Controle de oficina, NFs e disponibilidade</span>
                             </label>
                         </div>
                     </div>
@@ -1170,6 +1552,10 @@
                         <label class="acc-screen-checkbox">
                             <input type="checkbox" name="editAccScreens" value="drivers">
                             <span><strong>Motoristas</strong> — Atividades</span>
+                        </label>
+                        <label class="acc-screen-checkbox">
+                            <input type="checkbox" name="editAccScreens" value="maintenance">
+                            <span><strong>Manutenção</strong> — Oficina, NFs e custos</span>
                         </label>
                     </div>
                 </div>
@@ -1334,19 +1720,126 @@
         </div>
     </div>
 
+    <!-- ====== MODAL DE INSERÇÃO DE NF EM 2º ESTÁGIO (HISTÓRICO DE MANUTENÇÃO) ====== -->
+    <div id="quickNfModalBackdrop" style="display:none;position:fixed;inset:0;background:rgba(6,8,14,0.82);backdrop-filter:blur(6px);z-index:995;align-items:center;justify-content:center;padding:20px;">
+        <div class="card" style="width:100%;max-width:540px;box-shadow:0 24px 56px rgba(0,0,0,0.65);border-color:rgba(168,85,247,0.4);">
+            <div class="card-header">
+                <div class="card-title-group">
+                    <span class="material-icons-round card-icon icon-purple">receipt_long</span>
+                    <div>
+                        <h2 id="quickNfModalTitle">Inserir / Atualizar Nota Fiscal</h2>
+                        <span class="card-subtitle" id="quickNfModalSubtitle">Veículo: — · Período: —</span>
+                    </div>
+                </div>
+                <button type="button" class="action-btn" id="btnCloseQuickNfModal" title="Fechar">
+                    <span class="material-icons-round">close</span>
+                </button>
+            </div>
+            <div class="card-body">
+                <form id="quickNfForm" class="maint-form">
+                    <div class="maint-form-field">
+                        <label style="display:flex;align-items:center;justify-content:space-between;">
+                            <span>Leitura Automática do PDF da NF (Agente IA)</span>
+                            <span style="font-size:9px;color:#10b981;font-weight:800;text-transform:none;">⚡ Extract &amp; Discard (0 MB no banco)</span>
+                        </label>
+                        <input type="file" id="quickNfFileInput" accept=".pdf,image/*" style="display:none;">
+                        <div class="maint-nf-dropzone" id="quickNfDropzone" title="Selecione o PDF da NF para extração efêmera em memória">
+                            <div class="maint-nf-dropzone-left">
+                                <div class="maint-nf-icon">
+                                    <span class="material-icons-round" style="font-size:18px;">picture_as_pdf</span>
+                                </div>
+                                <div class="maint-nf-text">
+                                    <strong id="quickNfDropTitle">Anexar PDF da NF para Leitura Automática (Extract &amp; Discard)</strong>
+                                    <span id="quickNfDropSub">Extrai Nº NF, Fornecedor, Valor R$ e Sistemas · Descarta o PDF após leitura</span>
+                                </div>
+                            </div>
+                            <span class="maint-nf-badge">IA Auto-Read</span>
+                        </div>
+                        <button type="button" class="maint-ai-btn" id="btnQuickSimulateAiNf" style="margin-top:6px;">
+                            <span class="material-icons-round" style="font-size:15px;">auto_awesome</span>
+                            <span>Simular Extração Inteligente de NF via Agente IA</span>
+                        </button>
+                    </div>
+
+                    <div class="maint-form-row">
+                        <div class="maint-form-field">
+                            <label for="quickNfNumber">Nº Nota Fiscal</label>
+                            <input type="text" id="quickNfNumber" placeholder="Ex: NF-e 004.892" required>
+                        </div>
+                        <div class="maint-form-field">
+                            <label for="quickNfCost">Valor Total (R$)</label>
+                            <input type="number" step="0.01" min="0" id="quickNfCost" placeholder="0,00" required>
+                        </div>
+                    </div>
+
+                    <div class="maint-form-field">
+                        <label for="quickNfSupplier">Oficina / Fornecedor</label>
+                        <input type="text" id="quickNfSupplier" placeholder="Ex: Auto Mecânica &amp; Freios Sorocaba Ltda" required>
+                    </div>
+
+                    <div class="maint-form-field">
+                        <label>Confirmar / Atualizar Sistemas Mecânicos da NF</label>
+                        <div class="maint-chips-grid" id="quickNfSystemsGrid"></div>
+                    </div>
+
+                    <div class="maint-form-field">
+                        <label for="quickNfNote">Descrição dos Serviços / Peças na NF</label>
+                        <input type="text" id="quickNfNote" placeholder="Resumo das peças e mão de obra discriminadas na NF...">
+                    </div>
+
+                    <div style="display:flex;gap:8px;margin-top:4px;">
+                        <button type="button" class="action-btn" id="btnCancelQuickNf" style="flex:1;justify-content:center;padding:10px;">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="maint-submit-btn" style="flex:2;">
+                            <span class="material-icons-round" style="font-size:18px;">check_circle</span>
+                            <span>Salvar Dados da NF no Histórico</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== MODAL RELATÓRIO EXECUTIVO A4 DE MANUTENÇÃO ====== -->
+    <div id="maintReportModalBackdrop" style="display:none;position:fixed;inset:0;background:rgba(6,8,14,0.82);backdrop-filter:blur(6px);z-index:990;align-items:center;justify-content:center;padding:24px;overflow-y:auto;">
+        <div style="width:100%;max-width:920px;display:flex;flex-direction:column;gap:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;background:var(--bg-card);padding:12px 18px;border-radius:12px;border:1px solid var(--clr-border);">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span class="material-icons-round" style="color:var(--clr-amber);">description</span>
+                    <strong style="font-size:14px;">Relatório Executivo de Manutenção &amp; Disponibilidade (Formato A4)</strong>
+                </div>
+                <div style="display:flex;gap:8px;">
+                    <button type="button" class="maint-banner-action-btn" id="btnPrintMaintA4">
+                        <span class="material-icons-round" style="font-size:16px;">print</span>
+                        <span>Imprimir / Salvar PDF</span>
+                    </button>
+                    <button type="button" class="action-btn" id="btnCloseMaintReport">
+                        <span class="material-icons-round" style="font-size:16px;">close</span>
+                        <span>Fechar</span>
+                    </button>
+                </div>
+            </div>
+            <div class="a4-sheet" id="a4ReportSheet">
+                <!-- Preenchido via JS -->
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/security-utils.js?v=2.4"></script>
-    <script src="js/supabase-config.js?v=2.4"></script>
-    <script src="js/holidays.js?v=2.4"></script>
-    <script src="js/calendar.js?v=2.4"></script>
-    <script src="js/charts.js?v=2.4"></script>
-    <script src="js/pptx-export.js?v=2.4"></script>
-    <script src="js/vehicle-report.js?v=2.4"></script>
-    <script src="js/drivers.js?v=3.1"></script>
-    <script src="js/app.js?v=3.1"></script>
-    <script src="js/auth.js?v=3.1"></script>
+    <script src="js/security-utils.js?v=3.4"></script>
+    <script src="js/supabase-config.js?v=3.4"></script>
+    <script src="js/holidays.js?v=3.4"></script>
+    <script src="js/calendar.js?v=3.4"></script>
+    <script src="js/charts.js?v=3.4"></script>
+    <script src="js/pptx-export.js?v=3.4"></script>
+    <script src="js/vehicle-report.js?v=3.4"></script>
+    <script src="js/drivers.js?v=3.4"></script>
+    <script src="js/maintenance.js?v=3.4"></script>
+    <script src="js/app.js?v=3.4"></script>
+    <script src="js/auth.js?v=3.4"></script>
 
     <!-- CAR VERIFY — Logo entrance animation (GSAP + Motion Design) -->
     <script>

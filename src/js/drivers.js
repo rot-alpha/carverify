@@ -588,6 +588,31 @@ const DriversModule = (function() {
             return null;
         }
 
+        // 0. Checa se o veículo possui registro de Manutenção / Atividade Interna / Off na data
+        if (window.MaintenanceModule && typeof window.MaintenanceModule.getRecordForPlateDate === 'function') {
+            const maintRec = window.MaintenanceModule.getRecordForPlateDate(plate, dateKey);
+            if (maintRec && maintRec.status !== 'ativo') {
+                const titular = getVehicleHabitualDriver(plate) || 'Titular';
+                const isMaint = maintRec.status === 'manutencao';
+                const isInt = maintRec.status === 'interna';
+                const label = isMaint
+                    ? `Manutenção (${maintRec.maintType === 'preventiva' ? 'Preventiva' : 'Corretiva'})`
+                    : (isInt ? 'Atividade Interna' : 'Fora de Operação (Off)');
+                return {
+                    plate,
+                    driver: titular,
+                    habitualDriver: titular,
+                    status: maintRec.status,
+                    label,
+                    statusLabel: label,
+                    badgeClass: isMaint ? 'gap-ferias' : (isInt ? 'gap-banco' : 'gap-falta'),
+                    shortCode: isMaint ? 'MAN' : (isInt ? 'INT' : 'OFF'),
+                    text: `Veículo sem rota: ${label}${maintRec.note ? ' — ' + maintRec.note : ''}.`,
+                    justification: `Veículo sem checklist na data devido a ${label}${maintRec.nfNumber ? ' (' + maintRec.nfNumber + ')' : ''}.`
+                };
+            }
+        }
+
         // 1. Checa se o dia é feriado oficial (Sem expediente geral da frota)
         const holiday = window.Holidays ? window.Holidays.getHoliday(dateKey) : null;
         if (holiday) {

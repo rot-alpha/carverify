@@ -1024,6 +1024,10 @@ const SCREEN_MAP = {
     'motoristas': 'drivers',
     '#drivers': 'drivers',
     '#motoristas': 'drivers',
+    'maintenance': 'maintenance',
+    'manutencao': 'maintenance',
+    '#maintenance': 'maintenance',
+    '#manutencao': 'maintenance',
     'accounts': 'accounts',
     'contas': 'accounts',
     '#accounts': 'accounts',
@@ -1034,6 +1038,7 @@ const SCREEN_HASH_MAP = {
     'home': '#inicio',
     'dashboard': '#veiculos',
     'drivers': '#motoristas',
+    'maintenance': '#manutencao',
     'accounts': '#contas'
 };
 
@@ -1079,24 +1084,28 @@ function navigateTo(screen, updateHistory = true) {
     const homeEl = document.getElementById('homeScreen');
     const dashEl = document.getElementById('dashboardScreen');
     const driversEl = document.getElementById('driversScreen');
+    const maintEl = document.getElementById('maintenanceScreen');
     const accountsEl = document.getElementById('accountsScreen');
     const tabsEl = document.getElementById('vehicleTabs');
     const toolbarEl = document.getElementById('vehicleToolbar');
     const navHome = document.getElementById('navHome');
     const navDash = document.getElementById('navDashboard');
     const navDrivers = document.getElementById('navDrivers');
+    const navMaintenance = document.getElementById('navMaintenance');
     const navAccounts = document.getElementById('navAccounts');
 
     // Hide all screens
     if (homeEl) homeEl.style.display = 'none';
     if (dashEl) dashEl.style.display = 'none';
     if (driversEl) driversEl.style.display = 'none';
+    if (maintEl) maintEl.style.display = 'none';
     if (accountsEl) accountsEl.style.display = 'none';
     if (tabsEl) tabsEl.style.display = 'none';
     if (toolbarEl) toolbarEl.style.display = 'none';
     if (navHome) navHome.classList.remove('active');
     if (navDash) navDash.classList.remove('active');
     if (navDrivers) navDrivers.classList.remove('active');
+    if (navMaintenance) navMaintenance.classList.remove('active');
     if (navAccounts) navAccounts.classList.remove('active');
 
     if (validScreen === 'home') {
@@ -1132,6 +1141,13 @@ function navigateTo(screen, updateHistory = true) {
         }
         if (driversMod) {
             driversMod.init();
+        }
+    } else if (validScreen === 'maintenance') {
+        if (maintEl) maintEl.style.display = '';
+        if (navMaintenance) navMaintenance.classList.add('active');
+        if (charts) charts.destroyAll();
+        if (window.MaintenanceModule && typeof window.MaintenanceModule.init === 'function') {
+            window.MaintenanceModule.init();
         }
     } else if (validScreen === 'accounts') {
         if (accountsEl) accountsEl.style.display = '';
@@ -1768,17 +1784,32 @@ function renderChecklistTable(questionOk, questionNok) {
         `;
     }
 
+    const currentVehicle = VEHICLES[state.activeVehicle];
+    const plate = currentVehicle ? currentVehicle.plate : '';
+    const calMonth = calendar ? calendar.getMonth() : null;
+    const monthCtx = calMonth ? `${calMonth.year}-${String(calMonth.month + 1).padStart(2, '0')}` : 'compiled';
+
     const tbody = document.getElementById('checklistBody');
     tbody.innerHTML = QUESTIONS.map(q => {
         const ok = questionOk[q] || 0;
         const nok = questionNok[q] || 0;
         const total = ok + nok;
         const pct = total > 0 ? Math.round((ok / total) * 100) : 0;
+
+        let nokHtml = '<span style="opacity:0.3">0</span>';
+        if (nok > 0) {
+            if (window.MaintenanceModule && typeof window.MaintenanceModule.getQuestionNokTriageHtml === 'function') {
+                nokHtml = window.MaintenanceModule.getQuestionNokTriageHtml(plate, q, monthCtx, `${nok}x NOK`);
+            } else {
+                nokHtml = String(nok);
+            }
+        }
+
         return `
             <tr>
                 <td class="col-question"><span class="question-text">${q}</span></td>
                 <td class="col-ok">${ok}</td>
-                <td class="col-nok">${nok > 0 ? nok : '<span style="opacity:0.3">0</span>'}</td>
+                <td class="col-nok">${nokHtml}</td>
                 <td class="col-bar">
                     <div class="progress-bar-wrapper">
                         <div class="progress-bar">
@@ -1789,6 +1820,10 @@ function renderChecklistTable(questionOk, questionNok) {
                 </td>
             </tr>`;
     }).join('');
+
+    if (window.MaintenanceModule && typeof window.MaintenanceModule.bindChecklistNokEvents === 'function') {
+        window.MaintenanceModule.bindChecklistNokEvents(tbody);
+    }
 }
 
 function renderChecklistTableSingleDay(questions) {
@@ -1803,6 +1838,10 @@ function renderChecklistTableSingleDay(questions) {
             <th class="col-nok"><span class="badge badge-nok">NOK</span></th>
         `;
     }
+
+    const currentVehicle = VEHICLES[state.activeVehicle];
+    const plate = currentVehicle ? currentVehicle.plate : '';
+    const dateCtx = state.selectedDate || '';
 
     const tbody = document.getElementById('checklistBody');
     tbody.innerHTML = QUESTIONS.map(q => {
@@ -1820,11 +1859,15 @@ function renderChecklistTableSingleDay(questions) {
                     OK
                 </span>`;
         } else if (isNok) {
-            nokCellHtml = `
-                <span class="status-indicator status-indicator--nok">
-                    <span class="material-icons-round">cancel</span>
-                    NOK
-                </span>`;
+            if (window.MaintenanceModule && typeof window.MaintenanceModule.getQuestionNokTriageHtml === 'function') {
+                nokCellHtml = window.MaintenanceModule.getQuestionNokTriageHtml(plate, q, dateCtx, 'NOK');
+            } else {
+                nokCellHtml = `
+                    <span class="status-indicator status-indicator--nok">
+                        <span class="material-icons-round">cancel</span>
+                        NOK
+                    </span>`;
+            }
         }
 
         return `
@@ -1834,6 +1877,10 @@ function renderChecklistTableSingleDay(questions) {
                 <td class="col-nok">${nokCellHtml}</td>
             </tr>`;
     }).join('');
+
+    if (window.MaintenanceModule && typeof window.MaintenanceModule.bindChecklistNokEvents === 'function') {
+        window.MaintenanceModule.bindChecklistNokEvents(tbody);
+    }
 }
 
 function renderComments(daysObj) {
@@ -1954,6 +2001,9 @@ async function syncWithRemote() {
     if (window.DriversModule && typeof window.DriversModule.sync === 'function') {
         window.DriversModule.sync().catch(e => console.warn('Drivers sync error:', e));
     }
+    if (window.MaintenanceModule && typeof window.MaintenanceModule.sync === 'function') {
+        window.MaintenanceModule.sync().catch(e => console.warn('Maintenance sync error:', e));
+    }
 
     // 1. Tenta carregar dados em tempo real direto do Supabase
     let loadedFromSupabase = false;
@@ -2052,8 +2102,10 @@ function initTheme() {
                 charts.destroyAll();
                 if (state.screen === 'home') {
                     renderHome();
-                } else {
+                } else if (state.screen === 'dashboard') {
                     updateDashboard();
+                } else if (state.screen === 'maintenance' && window.MaintenanceModule) {
+                    window.MaintenanceModule.render();
                 }
             }
         });
@@ -2166,9 +2218,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (navDash) navDash.addEventListener('click', () => navigateTo('dashboard'));
     const navDrivers = document.getElementById('navDrivers');
     if (navDrivers) navDrivers.addEventListener('click', () => navigateTo('drivers'));
+    const navMaintenance = document.getElementById('navMaintenance');
+    if (navMaintenance) navMaintenance.addEventListener('click', () => navigateTo('maintenance'));
     const navAccounts = document.getElementById('navAccounts');
     if (navAccounts) navAccounts.addEventListener('click', () => navigateTo('accounts'));
     window.navigateTo = navigateTo;
+    window.updateDashboard = updateDashboard;
 
     if (headerBrand) {
         headerBrand.addEventListener('click', () => navigateTo('home'));

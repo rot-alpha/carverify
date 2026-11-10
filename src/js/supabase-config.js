@@ -294,6 +294,96 @@
                 console.error('[SUPABASE] Exceção ao deletar férias:', err);
                 return false;
             }
+        },
+
+        /**
+         * Busca todos os registros de manutenção e status operacional de veículos
+         */
+        async fetchMaintenanceRecords() {
+            if (!client) return null;
+            try {
+                const { data, error } = await client
+                    .from('vehicle_maintenance')
+                    .select('*')
+                    .order('data_inicio', { ascending: false });
+
+                if (error) {
+                    console.warn('[SUPABASE] Tabela vehicle_maintenance indisponível ou sem registros (fallback local ativo):', error.message || error);
+                    return null;
+                }
+                return data;
+            } catch (err) {
+                console.warn('[SUPABASE] Exceção ao consultar vehicle_maintenance:', err);
+                return null;
+            }
+        },
+
+        /**
+         * Salva ou atualiza um registro de manutenção no Supabase
+         */
+        async upsertMaintenanceRecord(record) {
+            if (!client || !record) return false;
+            try {
+                const payload = {
+                    veiculo_placa: record.plate,
+                    status: record.status,
+                    maint_type: record.maintType || null,
+                    systems: Array.isArray(record.systems) ? record.systems : [],
+                    data_inicio: record.start,
+                    data_fim: record.end,
+                    nf_numero: record.nfNumber || null,
+                    fornecedor: record.supplier || null,
+                    valor_total: Number(record.cost || 0),
+                    nf_attachment_name: record.nfFileName || null,
+                    observacao: record.note || null,
+                    linked_nok: record.linkedNok || null,
+                    updated_at: new Date().toISOString()
+                };
+                if (record.uuid && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(record.uuid)) {
+                    payload.id = record.uuid;
+                }
+                const { data, error } = await client
+                    .from('vehicle_maintenance')
+                    .upsert(payload)
+                    .select()
+                    .single();
+
+                if (error) {
+                    console.warn('[SUPABASE] Aviso ao salvar manutenção na nuvem (salvo localmente):', error.message || error);
+                    return false;
+                }
+                return data || true;
+            } catch (err) {
+                console.warn('[SUPABASE] Exceção ao salvar manutenção na nuvem:', err);
+                return false;
+            }
+        },
+
+        /**
+         * Remove um registro de manutenção do Supabase
+         */
+        async deleteMaintenanceRecord(record) {
+            if (!client || !record) return false;
+            try {
+                let query = client.from('vehicle_maintenance').delete();
+                if (record.uuid && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(record.uuid)) {
+                    query = query.eq('id', record.uuid);
+                } else {
+                    query = query
+                        .eq('veiculo_placa', record.plate)
+                        .eq('data_inicio', record.start)
+                        .eq('data_fim', record.end);
+                }
+                const { error } = await query;
+                if (error) {
+                    console.warn('[SUPABASE] Aviso ao remover manutenção na nuvem:', error.message || error);
+                    return false;
+                }
+                return true;
+            } catch (err) {
+                console.warn('[SUPABASE] Exceção ao remover manutenção na nuvem:', err);
+                return false;
+            }
         }
     };
 })();
