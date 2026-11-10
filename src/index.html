@@ -1088,12 +1088,9 @@
                                     </div>
                                 </div>
 
+                                <input type="hidden" id="maintPlateSelect" value="">
                                 <div class="maint-form-row">
-                                    <div class="maint-form-field">
-                                        <label for="maintPlateSelect">Veículo (Placa)</label>
-                                        <select id="maintPlateSelect" class="maint-select" required></select>
-                                    </div>
-                                    <div class="maint-form-field">
+                                    <div class="maint-form-field" style="flex:1;">
                                         <label for="maintStatusSelect">Status Operacional</label>
                                         <select id="maintStatusSelect" class="maint-select" required>
                                             <option value="manutencao">🔧 Manutenção (Oficina)</option>
@@ -1136,28 +1133,28 @@
                                         <div class="maint-chips-grid" id="maintSystemsGrid"></div>
                                     </div>
 
-                                    <!-- Leitura Efêmera de PDF (Extract-and-Discard) -->
+                                    <!-- Leitura Digital de Nota Fiscal (PDF) -->
                                     <div class="maint-form-field">
                                         <label style="display:flex;align-items:center;justify-content:space-between;">
-                                            <span>Nota Fiscal (PDF) &amp; Agente IA</span>
-                                            <span style="font-size:9px;color:#10b981;font-weight:800;text-transform:none;">⚡ Extract &amp; Discard (0 MB no banco)</span>
+                                            <span>Nota Fiscal (PDF)</span>
+                                            <span style="font-size:10px;color:var(--accent-primary,#3b82f6);font-weight:700;text-transform:none;">Leitura Digital</span>
                                         </label>
                                         <input type="file" id="nfFileInput" accept=".pdf,image/*" style="display:none;">
-                                        <div class="maint-nf-dropzone" id="nfDropzone" title="Clique para selecionar o PDF da Nota Fiscal (o arquivo será lido em memória e descartado)">
+                                        <div class="maint-nf-dropzone" id="nfDropzone" title="Clique para selecionar o PDF da Nota Fiscal">
                                             <div class="maint-nf-dropzone-left">
                                                 <div class="maint-nf-icon">
                                                     <span class="material-icons-round" style="font-size:18px;">picture_as_pdf</span>
                                                 </div>
                                                 <div class="maint-nf-text">
-                                                    <strong id="nfFileTitle">Ler PDF da Nota Fiscal (Extração Efêmera)</strong>
-                                                    <span id="nfFileSub">Extrai Nº NF, Fornecedor, Valor R$ e Sistemas · O arquivo PDF é descartado após a leitura</span>
+                                                    <strong id="nfFileTitle">Anexar Nota Fiscal (PDF)</strong>
+                                                    <span id="nfFileSub">Preenchimento automático do Nº da NF, Fornecedor, Valor e Sistemas</span>
                                                 </div>
                                             </div>
-                                            <span class="maint-nf-badge">IA Auto-Read</span>
+                                            <span class="maint-nf-badge">Leitura Automática</span>
                                         </div>
                                         <button type="button" class="maint-ai-btn" id="btnSimulateAiNf" style="margin-top:5px;">
                                             <span class="material-icons-round" style="font-size:15px;">auto_awesome</span>
-                                            <span>Simular Leitura Inteligente de NF em PDF (Agente IA)</span>
+                                            <span>Leitura Automática da Nota Fiscal</span>
                                         </button>
                                     </div>
 
@@ -1741,25 +1738,25 @@
                 <form id="quickNfForm" class="maint-form">
                     <div class="maint-form-field">
                         <label style="display:flex;align-items:center;justify-content:space-between;">
-                            <span>Leitura Automática do PDF da NF (Agente IA)</span>
-                            <span style="font-size:9px;color:#10b981;font-weight:800;text-transform:none;">⚡ Extract &amp; Discard (0 MB no banco)</span>
+                            <span>Nota Fiscal (PDF)</span>
+                            <span style="font-size:10px;color:var(--accent-primary,#3b82f6);font-weight:700;text-transform:none;">Leitura Digital</span>
                         </label>
                         <input type="file" id="quickNfFileInput" accept=".pdf,image/*" style="display:none;">
-                        <div class="maint-nf-dropzone" id="quickNfDropzone" title="Selecione o PDF da NF para extração efêmera em memória">
+                        <div class="maint-nf-dropzone" id="quickNfDropzone" title="Selecione o PDF da Nota Fiscal">
                             <div class="maint-nf-dropzone-left">
                                 <div class="maint-nf-icon">
                                     <span class="material-icons-round" style="font-size:18px;">picture_as_pdf</span>
                                 </div>
                                 <div class="maint-nf-text">
-                                    <strong id="quickNfDropTitle">Anexar PDF da NF para Leitura Automática (Extract &amp; Discard)</strong>
-                                    <span id="quickNfDropSub">Extrai Nº NF, Fornecedor, Valor R$ e Sistemas · Descarta o PDF após leitura</span>
+                                    <strong id="quickNfDropTitle">Anexar Nota Fiscal (PDF)</strong>
+                                    <span id="quickNfDropSub">Preenchimento automático do Nº da NF, Fornecedor, Valor e Sistemas</span>
                                 </div>
                             </div>
-                            <span class="maint-nf-badge">IA Auto-Read</span>
+                            <span class="maint-nf-badge">Leitura Automática</span>
                         </div>
                         <button type="button" class="maint-ai-btn" id="btnQuickSimulateAiNf" style="margin-top:6px;">
                             <span class="material-icons-round" style="font-size:15px;">auto_awesome</span>
-                            <span>Simular Extração Inteligente de NF via Agente IA</span>
+                            <span>Leitura Automática da Nota Fiscal</span>
                         </button>
                     </div>
 

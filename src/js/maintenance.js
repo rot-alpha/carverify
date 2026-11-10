@@ -1,6 +1,6 @@
 /* ============================================================================
    CAR · VERIFY — Módulo Oficial de Manutenção & Frota (maintenance.js)
-   Arquitetura Master-Detail (Opção C) + Relatório Diário + Agente IA NF + A4
+   Arquitetura Master-Detail (Opção C) + Relatório Diário + Importação de NF + A4
    ============================================================================ */
 
 const MaintenanceModule = (function () {
@@ -1346,7 +1346,7 @@ const MaintenanceModule = (function () {
         showToast('Registro excluído com sucesso');
     }
 
-    // ─── EXTRAÇÃO EFÊMERA DE NF (AGENTE IA EXTRACT-AND-DISCARD) ───────────────
+    // ─── LEITURA E IMPORTAÇÃO AUTOMÁTICA DE NF (PDF) ─────────────────────────
     function simulateAiExtraction(fileName = null) {
         const tpl = AI_NF_TEMPLATES[state.aiTemplateIdx % AI_NF_TEMPLATES.length];
         state.aiTemplateIdx++;
@@ -1371,10 +1371,10 @@ const MaintenanceModule = (function () {
         state.uploadedNfFileName = sourcePdfName;
         const fileTitle = document.getElementById('nfFileTitle');
         const fileSub = document.getElementById('nfFileSub');
-        if (fileTitle) fileTitle.textContent = `✔ Dados extraídos de: ${sourcePdfName}`;
-        if (fileSub) fileSub.textContent = 'PDF descartado da memória (0 bytes) · Apenas dados estruturados retidos';
+        if (fileTitle) fileTitle.textContent = `✔ Dados importados: ${sourcePdfName}`;
+        if (fileSub) fileSub.textContent = 'Nº NF, Fornecedor, Valor e Sistemas preenchidos com sucesso';
 
-        showToast(`Agente IA extraiu ${tpl.nfNumber} (${formatCurrency(tpl.cost)}) e descartou o PDF!`);
+        showToast(`Dados da Nota Fiscal ${tpl.nfNumber} (${formatCurrency(tpl.cost)}) importados com sucesso!`);
     }
 
     // ─── MODAL DE 2º ESTÁGIO: INSERIR NF NA TABELA DE HISTÓRICO ───────────────
@@ -1424,8 +1424,8 @@ const MaintenanceModule = (function () {
         document.getElementById('quickNfSupplier').value = rec.supplier || '';
         document.getElementById('quickNfNote').value = rec.note || '';
 
-        document.getElementById('quickNfDropTitle').textContent = 'Anexar PDF da NF para Leitura Automática (Extract & Discard)';
-        document.getElementById('quickNfDropSub').textContent = 'Extrai Nº NF, Fornecedor, Valor R$ e Sistemas · Descarta o PDF após leitura';
+        document.getElementById('quickNfDropTitle').textContent = 'Anexar Nota Fiscal (PDF)';
+        document.getElementById('quickNfDropSub').textContent = 'Preenchimento automático do Nº da NF, Fornecedor, Valor e Sistemas';
 
         renderQuickNfSystemChips();
 
@@ -1454,10 +1454,10 @@ const MaintenanceModule = (function () {
         const sourcePdf = customFileName || tpl.fileName;
         state.quickNfFileName = sourcePdf;
 
-        document.getElementById('quickNfDropTitle').textContent = `✔ Dados extraídos de: ${sourcePdf}`;
-        document.getElementById('quickNfDropSub').textContent = 'PDF descartado da memória (0 bytes) · Dados prontos para salvar';
+        document.getElementById('quickNfDropTitle').textContent = `✔ Dados importados: ${sourcePdf}`;
+        document.getElementById('quickNfDropSub').textContent = 'Nº NF, Fornecedor, Valor e Sistemas preenchidos com sucesso';
 
-        showToast(`IA preencheu ${tpl.nfNumber} (${formatCurrency(tpl.cost)})!`);
+        showToast(`Dados da Nota Fiscal ${tpl.nfNumber} (${formatCurrency(tpl.cost)}) importados com sucesso!`);
     }
 
     // ─── TRIAGEM INLINE DE NOK NA ABA VEÍCULOS (OPÇÃO C) ───────────────────────
@@ -1760,7 +1760,7 @@ const MaintenanceModule = (function () {
         const filterSysSel = document.getElementById('maintTableFilterSystem');
         const monthSel = document.getElementById('dailyReportMonthSelect');
 
-        if (plateSel) {
+        if (plateSel && plateSel.tagName === 'SELECT') {
             plateSel.innerHTML = `<option value="">Selecione a placa...</option>` +
                 FLEET.map(v => `<option value="${v.plate}">${v.plate} — ${v.model} (${v.habitual.split(' ')[0]})</option>`).join('');
         }
@@ -1874,7 +1874,7 @@ const MaintenanceModule = (function () {
                 showToast('Ação bloqueada: perfil de apenas visualização.', 'warning');
                 return;
             }
-            const plate = document.getElementById('maintPlateSelect').value;
+            const plate = (document.getElementById('maintPlateSelect')?.value || state.selectedVehicleFilter || '').trim();
             const status = document.getElementById('maintStatusSelect').value;
             const start = document.getElementById('maintStartDate').value;
             const end = document.getElementById('maintEndDate').value || start;
