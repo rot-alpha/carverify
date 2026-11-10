@@ -565,6 +565,34 @@ let state = {
 let calendar;
 let charts;
 
+// ─── DRIVER & HELPER VALIDATION HELPERS ────
+const KNOWN_HELPERS = ['alan', 'cristian', 'wesley', 'jailton', 'luis gustavo'];
+
+function isValidDriverName(name) {
+    if (!name) return false;
+    const clean = String(name).trim();
+    const lower = clean.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (!lower || lower === 'sem ajudante' || lower === 'nao informado' || lower === 'sem motorista' || lower === '-' || lower === '—' || lower === 'null' || lower === 'undefined') {
+        return false;
+    }
+    if (window.DriversModule && typeof window.DriversModule.isHelper === 'function') {
+        if (window.DriversModule.isHelper(clean)) return false;
+    } else if (window.isAjudante && window.isAjudante(clean)) {
+        return false;
+    } else if (KNOWN_HELPERS.some(h => lower.startsWith(h))) {
+        return false;
+    }
+    return true;
+}
+
+function cleanAndMergeDrivers(currentDriver, newDriver) {
+    const parts1 = (currentDriver || '').split('/').map(s => s.trim()).filter(isValidDriverName);
+    const parts2 = (newDriver || '').split('/').map(s => s.trim()).filter(isValidDriverName);
+    const unique = Array.from(new Set([...parts1, ...parts2]));
+    if (unique.length > 0) return unique.join(' / ');
+    return isValidDriverName(newDriver) ? newDriver.trim() : (isValidDriverName(currentDriver) ? currentDriver.trim() : (newDriver || currentDriver || '').trim());
+}
+
 // ─── CSV PARSER ────────────────────────────
 function parseCSV(csv) {
     // Parser que respeita quebras de linha dentro de campos entre aspas
@@ -687,8 +715,8 @@ function resolveChecklistDate(rawManualDate, rawCarimbo) {
             if (km > existing.km) existing.km = km;
             if (!existing.helper && helper) existing.helper = helper;
             if (!existing.leader && leader) existing.leader = leader;
-            if (existing.driver && driver && existing.driver !== driver && !existing.driver.includes(driver)) {
-                existing.driver += ` / ${driver}`;
+            if (driver) {
+                existing.driver = cleanAndMergeDrivers(existing.driver, driver);
             }
         } else {
             data[plate].days[dateStr] = {
@@ -801,6 +829,11 @@ function parseSupabaseChecklists(rows) {
     VEHICLES.forEach(v => { data[v.plate] = { days: {} }; });
 
     rows.forEach(r => {
+        // Ignora registros anômalos (testes técnicos pontuais ou linhas com colunas deslocadas)
+        if (r.id === '5f9c8efc-6738-4a18-a7d3-1557afbb964d' || r.id === '408e4b25-512a-4744-adf3-548ff4fc8da2') return;
+        if (r.observacoes && String(r.observacoes).toLowerCase().includes('teste de webhook')) return;
+        if (r.motorista === 'Sem Ajudante' && r.ajudante && String(r.ajudante).includes('GMT')) return;
+
         const plate = (r.veiculo_placa || '').trim();
         if (!data[plate]) return;
 
@@ -831,14 +864,14 @@ function parseSupabaseChecklists(rows) {
             if (km > existing.km) existing.km = km;
             if (!existing.helper && r.ajudante) existing.helper = r.ajudante;
             if (!existing.leader && r.lider_responsavel) existing.leader = r.lider_responsavel;
-            if (existing.driver && r.motorista && existing.driver !== r.motorista && !existing.driver.includes(r.motorista)) {
-                existing.driver += ` / ${r.motorista}`;
+            if (r.motorista) {
+                existing.driver = cleanAndMergeDrivers(existing.driver, r.motorista);
             }
         } else {
             data[plate].days[dateStr] = {
                 count: 1,
                 km: km,
-                driver: r.motorista || '',
+                driver: (r.motorista || '').trim(),
                 helper: r.ajudante || '',
                 leader: r.lider_responsavel || '',
                 questions: answers,
@@ -990,13 +1023,18 @@ const SCREEN_MAP = {
     'drivers': 'drivers',
     'motoristas': 'drivers',
     '#drivers': 'drivers',
-    '#motoristas': 'drivers'
+    '#motoristas': 'drivers',
+    'accounts': 'accounts',
+    'contas': 'accounts',
+    '#accounts': 'accounts',
+    '#contas': 'accounts'
 };
 
 const SCREEN_HASH_MAP = {
     'home': '#inicio',
     'dashboard': '#veiculos',
-    'drivers': '#motoristas'
+    'drivers': '#motoristas',
+    'accounts': '#contas'
 };
 
 function getActiveScreenFromUrlOrStorage() {
@@ -1015,7 +1053,10 @@ function getActiveScreenFromUrlOrStorage() {
 
 // ─── NAVIGATION ────────────────────────────
 function navigateTo(screen, updateHistory = true) {
-    const validScreen = SCREEN_MAP[screen] || 'home';
+    let validScreen = SCREEN_MAP[screen] || 'home';
+    if (validScreen === 'accounts' && !(window.CarVerifyAuth && window.CarVerifyAuth.isDev())) {
+        validScreen = 'home';
+    }
     state.screen = validScreen;
 
     // Persist active screen
@@ -1034,21 +1075,25 @@ function navigateTo(screen, updateHistory = true) {
     const homeEl = document.getElementById('homeScreen');
     const dashEl = document.getElementById('dashboardScreen');
     const driversEl = document.getElementById('driversScreen');
+    const accountsEl = document.getElementById('accountsScreen');
     const tabsEl = document.getElementById('vehicleTabs');
     const toolbarEl = document.getElementById('vehicleToolbar');
     const navHome = document.getElementById('navHome');
     const navDash = document.getElementById('navDashboard');
     const navDrivers = document.getElementById('navDrivers');
+    const navAccounts = document.getElementById('navAccounts');
 
     // Hide all screens
     if (homeEl) homeEl.style.display = 'none';
     if (dashEl) dashEl.style.display = 'none';
     if (driversEl) driversEl.style.display = 'none';
+    if (accountsEl) accountsEl.style.display = 'none';
     if (tabsEl) tabsEl.style.display = 'none';
     if (toolbarEl) toolbarEl.style.display = 'none';
     if (navHome) navHome.classList.remove('active');
     if (navDash) navDash.classList.remove('active');
     if (navDrivers) navDrivers.classList.remove('active');
+    if (navAccounts) navAccounts.classList.remove('active');
 
     if (validScreen === 'home') {
         if (homeEl) homeEl.style.display = '';
@@ -1083,6 +1128,13 @@ function navigateTo(screen, updateHistory = true) {
         }
         if (driversMod) {
             driversMod.init();
+        }
+    } else if (validScreen === 'accounts') {
+        if (accountsEl) accountsEl.style.display = '';
+        if (navAccounts) navAccounts.classList.add('active');
+        if (charts) charts.destroyAll();
+        if (window.CarVerifyAuth && typeof window.CarVerifyAuth.renderAccounts === 'function') {
+            window.CarVerifyAuth.renderAccounts();
         }
     }
 }
@@ -1326,17 +1378,25 @@ function renderDriverAbsenteeism() {
     Object.values(state.data).forEach(vehicleData => {
         Object.entries(vehicleData.days).forEach(([date, dayData]) => {
             if (!dayData.driver) return; // Skip if no driver info
-            const driver = dayData.driver.trim();
-            if (!driver || driver.toLowerCase() === 'não informado' || driver === '—') return;
 
             // date format: YYYY-MM-DD
             const [y, m] = date.split('-');
             const monthKey = `${y}-${m}`;
 
-            if (!stats[monthKey]) stats[monthKey] = {};
-            if (!stats[monthKey][driver]) stats[monthKey][driver] = 0;
-            
-            stats[monthKey][driver]++;
+            // Separa motoristas caso haja múltiplos ('/') e ignora ajudantes e valores inválidos
+            const parts = dayData.driver.split('/').map(d => d.trim()).filter(Boolean);
+            const validDayDrivers = new Set();
+            parts.forEach(drv => {
+                if (isValidDriverName(drv)) {
+                    validDayDrivers.add(drv);
+                }
+            });
+
+            validDayDrivers.forEach(drv => {
+                if (!stats[monthKey]) stats[monthKey] = {};
+                if (!stats[monthKey][drv]) stats[monthKey][drv] = 0;
+                stats[monthKey][drv]++;
+            });
         });
     });
 
@@ -2102,6 +2162,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (navDash) navDash.addEventListener('click', () => navigateTo('dashboard'));
     const navDrivers = document.getElementById('navDrivers');
     if (navDrivers) navDrivers.addEventListener('click', () => navigateTo('drivers'));
+    const navAccounts = document.getElementById('navAccounts');
+    if (navAccounts) navAccounts.addEventListener('click', () => navigateTo('accounts'));
+    window.navigateTo = navigateTo;
 
     if (headerBrand) {
         headerBrand.addEventListener('click', () => navigateTo('home'));
