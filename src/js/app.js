@@ -1218,17 +1218,6 @@ function renderTabs() {
 
     tabsContainer.innerHTML = html;
 
-    // Resumo da toolbar à direita
-    const summ = document.getElementById('vehicleTabSummary');
-    if (summ) {
-        if (state.activeVehicle !== null && VEHICLES[state.activeVehicle]) {
-            const vObj = VEHICLES[state.activeVehicle];
-            summ.innerHTML = `Veículo selecionado: <strong>${vObj.plate} (${vObj.model})</strong> · Condutor: <strong>${vObj.driver}</strong>`;
-        } else {
-            summ.textContent = `Visão Compilada da Frota (10 Veículos monitorados)`;
-        }
-    }
-
     tabsContainer.querySelectorAll('.vehicle-tab').forEach(tab => {
         tab.addEventListener('click', () => {
             if (tab.dataset.index === 'all') {

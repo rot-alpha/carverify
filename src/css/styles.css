@@ -318,7 +318,7 @@ button {
 .vehicle-tabs {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     padding: 6px 8px;
@@ -327,34 +327,27 @@ button {
     border-radius: 16px;
     box-shadow: var(--shadow-card);
     width: 100%;
-    scrollbar-width: thin;
-    scrollbar-color: var(--clr-border) transparent;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
 .vehicle-tabs::-webkit-scrollbar {
-    height: 4px;
-}
-
-.vehicle-tabs::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.vehicle-tabs::-webkit-scrollbar-thumb {
-    background: var(--clr-border);
-    border-radius: var(--radius-full);
+    display: none;
+    width: 0;
+    height: 0;
 }
 
 .vehicle-tab {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 9px 16px;
+    gap: 6px;
+    padding: 8px 12px;
     border-radius: 11px;
     font-family: var(--font-display);
-    font-size: 0.8125rem;
+    font-size: 0.8rem;
     font-weight: 800;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.03em;
     white-space: nowrap;
     color: var(--clr-text-secondary);
     background: var(--clr-border-light);
@@ -4248,18 +4241,6 @@ button {
 /* =========================================================================
    ESTILOS DE ALINHAMENTO COM O PROTÓTIPO: ABA VEÍCULOS & TABELA 5 COLUNAS (OPÇÃO C)
    ========================================================================= */
-.vehicle-tab-summary {
-    font-size: 12px;
-    color: var(--clr-text-secondary);
-    font-weight: 600;
-    white-space: nowrap;
-    padding: 0 12px;
-    flex-shrink: 0;
-}
-.vehicle-tab-summary strong {
-    color: var(--clr-text-primary);
-}
-
 .vehicle-tab.tab-all {
     display: inline-flex;
     align-items: center;
