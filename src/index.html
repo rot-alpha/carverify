@@ -15,8 +15,8 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-    <link rel="stylesheet" href="css/styles.css?v=3.2">
-    <link rel="stylesheet" href="css/auth.css?v=3.2">
+    <link rel="stylesheet" href="css/styles.css?v=3.3">
+    <link rel="stylesheet" href="css/auth.css?v=3.3">
     <script>
         (function() {
             const saved = localStorage.getItem('theme');
@@ -311,6 +311,27 @@
                 </div>
             </section>
         </div>
+    </div>
+
+    <!-- ====== PLATFORM AMBIENT BACKGROUND (GLOW + RODA GIRANDO) ====== -->
+    <div class="platform-ambient-bg" aria-hidden="true">
+        <div class="platform-page-glow"></div>
+        <div class="platform-wheel-glow"></div>
+        <svg class="platform-wm-wheel" viewBox="0 0 48 48" aria-hidden="true">
+            <defs>
+                <path id="platformMarkBlade" d="M23.2 20.8 C24.6 17.2 27.2 15 30.8 14.4 C30.2 18 28.2 20.8 25.4 22.4 Z"/>
+            </defs>
+            <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="2.4"/>
+            <circle cx="24" cy="24" r="16.6" fill="none" stroke="#FFA000" stroke-width="0.75"/>
+            <g fill="currentColor" transform="translate(24 24) scale(1.35) translate(-24 -24)">
+                <use href="#platformMarkBlade"/>
+                <use href="#platformMarkBlade" transform="rotate(72 24 24)"/>
+                <use href="#platformMarkBlade" transform="rotate(144 24 24)"/>
+                <use href="#platformMarkBlade" transform="rotate(216 24 24)"/>
+                <use href="#platformMarkBlade" transform="rotate(288 24 24)"/>
+            </g>
+            <circle cx="24" cy="24" r="3.6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+        </svg>
     </div>
 
     <!-- ====== HEADER ====== -->
