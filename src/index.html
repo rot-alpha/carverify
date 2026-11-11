@@ -15,9 +15,9 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-    <link rel="stylesheet" href="css/styles.css?v=3.4">
-    <link rel="stylesheet" href="css/auth.css?v=3.4">
-    <link rel="stylesheet" href="css/maintenance.css?v=3.4">
+    <link rel="stylesheet" href="css/styles.css?v=3.5">
+    <link rel="stylesheet" href="css/auth.css?v=3.5">
+    <link rel="stylesheet" href="css/maintenance.css?v=3.5">
     <script>
         (function() {
             const saved = localStorage.getItem('theme');
@@ -699,7 +699,7 @@
                 <div class="card-header">
                     <div class="card-title-group">
                         <span class="material-icons-round card-icon icon-purple">fact_check</span>
-                        <h2>Respostas do Checklist — Interação com Itens NOK (Opção C)</h2>
+                        <h2>Respostas do Checklist</h2>
                     </div>
                     <div class="card-header-right" id="checklistMeta">
                         <span class="checklist-hint-text" style="font-size:12px;color:var(--clr-text-secondary);">
@@ -1132,29 +1132,25 @@
                                         <div class="maint-chips-grid" id="maintSystemsGrid"></div>
                                     </div>
 
-                                    <!-- Leitura Digital de Nota Fiscal (PDF) -->
+                                    <!-- Anexo de Nota Fiscal (PDF) -->
                                     <div class="maint-form-field">
                                         <label style="display:flex;align-items:center;justify-content:space-between;">
                                             <span>Nota Fiscal (PDF)</span>
-                                            <span style="font-size:10px;color:var(--accent-primary,#3b82f6);font-weight:700;text-transform:none;">Leitura Digital</span>
+                                            <span style="font-size:10px;color:var(--text-muted);font-weight:600;text-transform:none;">Opcional</span>
                                         </label>
                                         <input type="file" id="nfFileInput" accept=".pdf,image/*" style="display:none;">
-                                        <div class="maint-nf-dropzone" id="nfDropzone" title="Clique para selecionar o PDF da Nota Fiscal">
+                                        <div class="maint-nf-dropzone" id="nfDropzone" title="Clique para anexar o PDF da Nota Fiscal">
                                             <div class="maint-nf-dropzone-left">
                                                 <div class="maint-nf-icon">
                                                     <span class="material-icons-round" style="font-size:18px;">picture_as_pdf</span>
                                                 </div>
                                                 <div class="maint-nf-text">
                                                     <strong id="nfFileTitle">Anexar Nota Fiscal (PDF)</strong>
-                                                    <span id="nfFileSub">Preenchimento automático do Nº da NF, Fornecedor, Valor e Sistemas</span>
+                                                    <span id="nfFileSub">Clique para selecionar o arquivo da NF-e e preencher os dados manualmente</span>
                                                 </div>
                                             </div>
-                                            <span class="maint-nf-badge">Leitura Automática</span>
+                                            <span class="maint-nf-badge">Anexar</span>
                                         </div>
-                                        <button type="button" class="maint-ai-btn" id="btnSimulateAiNf" style="margin-top:5px;">
-                                            <span class="material-icons-round" style="font-size:15px;">auto_awesome</span>
-                                            <span>Leitura Automática da Nota Fiscal</span>
-                                        </button>
                                     </div>
 
                                     <div class="maint-form-row three-cols">
@@ -1738,7 +1734,7 @@
                     <div class="maint-form-field">
                         <label style="display:flex;align-items:center;justify-content:space-between;">
                             <span>Nota Fiscal (PDF)</span>
-                            <span style="font-size:10px;color:var(--accent-primary,#3b82f6);font-weight:700;text-transform:none;">Leitura Digital</span>
+                            <span style="font-size:10px;color:var(--text-muted);font-weight:600;text-transform:none;">Opcional</span>
                         </label>
                         <input type="file" id="quickNfFileInput" accept=".pdf,image/*" style="display:none;">
                         <div class="maint-nf-dropzone" id="quickNfDropzone" title="Selecione o PDF da Nota Fiscal">
@@ -1748,15 +1744,11 @@
                                 </div>
                                 <div class="maint-nf-text">
                                     <strong id="quickNfDropTitle">Anexar Nota Fiscal (PDF)</strong>
-                                    <span id="quickNfDropSub">Preenchimento automático do Nº da NF, Fornecedor, Valor e Sistemas</span>
+                                    <span id="quickNfDropSub">Clique para selecionar o arquivo da NF-e e preencher os dados manualmente</span>
                                 </div>
                             </div>
-                            <span class="maint-nf-badge">Leitura Automática</span>
+                            <span class="maint-nf-badge">Anexar</span>
                         </div>
-                        <button type="button" class="maint-ai-btn" id="btnQuickSimulateAiNf" style="margin-top:6px;">
-                            <span class="material-icons-round" style="font-size:15px;">auto_awesome</span>
-                            <span>Leitura Automática da Nota Fiscal</span>
-                        </button>
                     </div>
 
                     <div class="maint-form-row">
@@ -1772,7 +1764,7 @@
 
                     <div class="maint-form-field">
                         <label for="quickNfSupplier">Oficina / Fornecedor</label>
-                        <input type="text" id="quickNfSupplier" placeholder="Ex: Auto Mecânica &amp; Freios Sorocaba Ltda" required>
+                        <input type="text" id="quickNfSupplier" placeholder="Ex: Nome da oficina ou fornecedor" required>
                     </div>
 
                     <div class="maint-form-field">
@@ -1827,17 +1819,17 @@
     <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/security-utils.js?v=3.4"></script>
-    <script src="js/supabase-config.js?v=3.4"></script>
-    <script src="js/holidays.js?v=3.4"></script>
-    <script src="js/calendar.js?v=3.4"></script>
-    <script src="js/charts.js?v=3.4"></script>
-    <script src="js/pptx-export.js?v=3.4"></script>
-    <script src="js/vehicle-report.js?v=3.4"></script>
-    <script src="js/drivers.js?v=3.4"></script>
-    <script src="js/maintenance.js?v=3.4"></script>
-    <script src="js/app.js?v=3.4"></script>
-    <script src="js/auth.js?v=3.4"></script>
+    <script src="js/security-utils.js?v=3.5"></script>
+    <script src="js/supabase-config.js?v=3.5"></script>
+    <script src="js/holidays.js?v=3.5"></script>
+    <script src="js/calendar.js?v=3.5"></script>
+    <script src="js/charts.js?v=3.5"></script>
+    <script src="js/pptx-export.js?v=3.5"></script>
+    <script src="js/vehicle-report.js?v=3.5"></script>
+    <script src="js/drivers.js?v=3.5"></script>
+    <script src="js/maintenance.js?v=3.5"></script>
+    <script src="js/app.js?v=3.5"></script>
+    <script src="js/auth.js?v=3.5"></script>
 
     <!-- CAR VERIFY — Logo entrance animation (GSAP + Motion Design) -->
     <script>

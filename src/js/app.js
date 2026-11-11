@@ -12,148 +12,185 @@ const escapeHtml = (window.CarVerifySecurity && window.CarVerifySecurity.escapeH
 
 // ─── CONFIG: REAL VEHICLES ─────────────────
 const VEHICLES = [
-    { plate: 'SUX8H84', model: 'FIORINO', driver: 'Leonildo Silva',   km: 141281, color: '#3b82f6' },
-    { plate: 'SUE7D02', model: 'FIORINO', driver: 'Anderson Barbosa', km: 148472, color: '#10b981' },
-    { plate: 'SVJ3H89', model: 'FIORINO', driver: 'Evaldo Aparecido', km: 146439, color: '#f59e0b' },
-    { plate: 'SUW7B16', model: 'FIORINO', driver: 'Ricardo Rodrigues',km: 153416, color: '#8b5cf6' },
-    { plate: 'STA0F48', model: 'FIORINO', driver: 'Anderson Luiz',    km: 153745, color: '#ec4899' },
-    { plate: 'FRG7C31', model: 'IVECO',   driver: 'Alex Schuermann',  km: 284211, color: '#06b6d4' },
-    { plate: 'FPF8A23', model: 'IVECO',   driver: 'Carlos Alberto',   km: 281357, color: '#6366f1' },
-    { plate: 'FXI0C35', model: 'IVECO',   driver: 'Rafael Da Silva',  km: 187144, color: '#14b8a6' },
-    { plate: 'ECF3235', model: 'IVECO',   driver: 'José Lucivaldo',   km: 387035, color: '#f97316' },
-    { plate: 'FJF7817', model: 'IVECO',   driver: 'Rogério Ribeiro',  km: 473286, color: '#84cc16' }
+    { plate: 'SUX8H84', model: 'FIORINO', driver: 'Leonildo Silva',    color: '#3b82f6' },
+    { plate: 'SUE7D02', model: 'FIORINO', driver: 'Anderson Barbosa',  color: '#10b981' },
+    { plate: 'SVJ3H89', model: 'FIORINO', driver: 'Evaldo Aparecido',  color: '#f59e0b' },
+    { plate: 'SUW7B16', model: 'FIORINO', driver: 'Ricardo Rodrigues', color: '#8b5cf6' },
+    { plate: 'STA0F48', model: 'FIORINO', driver: 'Anderson Luiz',     color: '#ec4899' },
+    { plate: 'FRG7C31', model: 'IVECO',   driver: 'Alex Schuermann',   color: '#06b6d4' },
+    { plate: 'FPF8A23', model: 'IVECO',   driver: 'Carlos Alberto',    color: '#6366f1' },
+    { plate: 'FXI0C35', model: 'IVECO',   driver: 'Rafael Da Silva',   color: '#14b8a6' },
+    { plate: 'ECF3235', model: 'IVECO',   driver: 'José Lucivaldo',    color: '#f97316' },
+    { plate: 'FJF7817', model: 'IVECO',   driver: 'Rogério Ribeiro',   color: '#84cc16' }
 ];
 
-// ─── CONFIG: ITENS DO CHECKLIST & NÃO CONFORMIDADES (PROTÓTIPO OPÇÃO C) ───
-const V_CHECKLIST_QUESTIONS = [
-    { id: 'q_luz_freio', label: 'Luz de Freio / Lanternas Traseiras', defaultSys: 'Elétrica / Iluminação' },
-    { id: 'q_farois', label: 'Faróis Dianteiros / Luz Alta e Baixa', defaultSys: 'Elétrica / Iluminação' },
-    { id: 'q_suspensao', label: 'Ruído na Suspensão Dianteira / Buchas', defaultSys: 'Suspensão / Amortecedor' },
-    { id: 'q_pneus', label: 'Estado Geral dos Pneus / Calibragem', defaultSys: 'Pneus / Alinhamento' },
-    { id: 'q_freio_pedal', label: 'Freio de Serviço / Pedal e Estacionamento', defaultSys: 'Freios' },
-    { id: 'q_oleo_motor', label: 'Nível de Óleo do Motor / Arrefecimento', defaultSys: 'Motor' },
-    { id: 'q_cambio', label: 'Sistema de Embreagem / Pedal Duro', defaultSys: 'Câmbio / Embreagem' },
-    { id: 'q_thermoking', label: 'Unidade Thermo King / Oscilação Temperatura', defaultSys: 'Thermo King / Refrig.' },
-    { id: 'q_limpador', label: 'Palhetas do Limpador de Para-brisa', defaultSys: 'Carroceria / Baú' },
-    { id: 'q_cinto', label: 'Cintos de Segurança / Retrovisores', defaultSys: 'Segurança' },
-    { id: 'q_carroceria', label: 'Lataria / Pequeno risco no para-choque', defaultSys: 'Carroceria / Baú' }
-];
+// Limpa armazenamento legado do protótipo caso tenha ficado salvo no navegador
+try {
+    localStorage.removeItem('carverify_checklist_nok_items');
+} catch (e) {}
 
-const INITIAL_CHECKLIST_NOK_ITEMS = [
-    {
-        id: 'nok_1',
-        plate: 'SUX8H84',
-        model: 'FIORINO',
-        driver: 'Leonildo Silva',
-        km: 141281,
-        questionId: 'q_luz_freio',
-        questionLabel: 'Luz de Freio / Lanternas Traseiras',
-        mappedSystem: 'Elétrica / Iluminação',
-        dates: ['2026-10-14', '2026-10-15'],
-        driverObs: 'Motorista relatou no Google Forms: Lanterna de freio traseira direita intermitente.',
-        status: 'pendente',
-        resolutionNote: '',
-        linkedRecordId: null
-    },
-    {
-        id: 'nok_2',
-        plate: 'SUE7D02',
-        model: 'FIORINO',
-        driver: 'Anderson Barbosa',
-        km: 148472,
-        questionId: 'q_suspensao',
-        questionLabel: 'Ruído na Suspensão Dianteira / Buchas',
-        mappedSystem: 'Suspensão / Amortecedor',
-        dates: ['2026-10-13', '2026-10-14', '2026-10-15'],
-        driverObs: 'Motorista relatou: Pequeno estalo na bucha da bandeja ao passar em lombada.',
-        status: 'pendente',
-        resolutionNote: '',
-        linkedRecordId: null
-    },
-    {
-        id: 'nok_3',
-        plate: 'FRG7C31',
-        model: 'IVECO',
-        driver: 'Alex Schuermann',
-        km: 284211,
-        questionId: 'q_thermoking',
-        questionLabel: 'Unidade Thermo King / Oscilação Temperatura',
-        mappedSystem: 'Thermo King / Refrig.',
-        dates: ['2026-10-15'],
-        driverObs: 'Motorista relatou: Oscilação de 2°C no visor do Thermo King durante rota.',
-        status: 'pendente',
-        resolutionNote: '',
-        linkedRecordId: null
-    },
-    {
-        id: 'nok_4',
-        plate: 'FXI0C35',
-        model: 'IVECO',
-        driver: 'Rafael Da Silva',
-        km: 187144,
-        questionId: 'q_pneus',
-        questionLabel: 'Estado Geral dos Pneus / Calibragem',
-        mappedSystem: 'Pneus / Alinhamento',
-        dates: ['2026-10-14', '2026-10-15'],
-        driverObs: 'Motorista relatou: Pneu traseiro externo direito próximo da marcação TWI.',
-        status: 'pendente',
-        resolutionNote: '',
-        linkedRecordId: null
-    },
-    {
-        id: 'nok_5',
-        plate: 'STA0F48',
-        model: 'FIORINO',
-        driver: 'Anderson Luiz',
-        km: 153745,
-        questionId: 'q_cambio',
-        questionLabel: 'Sistema de Embreagem / Pedal Duro',
-        mappedSystem: 'Câmbio / Embreagem',
-        dates: ['2026-10-14', '2026-10-15'],
-        driverObs: 'Motorista relatou: Pedal de embreagem pesado ao engatar 1ª e ré.',
-        status: 'em_manutencao',
-        resolutionNote: 'Vinculado à OS #1 (Auto Mecânica Sorocaba - NF-e 004.892)',
-        linkedRecordId: 1
-    },
-    {
-        id: 'nok_6',
-        plate: 'SVJ3H89',
-        model: 'FIORINO',
-        driver: 'Evaldo Aparecido',
-        km: 146439,
-        questionId: 'q_carroceria',
-        questionLabel: 'Lataria / Pequeno risco no para-choque',
-        mappedSystem: 'Carroceria / Baú',
-        dates: ['2026-10-10', '2026-10-11'],
-        driverObs: 'Motorista relatou: Risco superficial no canto plástico do para-choque.',
-        status: 'baixa_prioridade',
-        resolutionNote: 'Baixa Prioridade: Detalhe estético sem impacto operacional — avaliar na próxima preventiva',
-        linkedRecordId: null
-    }
-];
-
-let checklistNokItems = (function() {
-    try {
-        const saved = localStorage.getItem('carverify_checklist_nok_items');
-        if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return JSON.parse(JSON.stringify(INITIAL_CHECKLIST_NOK_ITEMS));
-})();
-
-function saveChecklistNokItems() {
-    try {
-        localStorage.setItem('carverify_checklist_nok_items', JSON.stringify(checklistNokItems));
-    } catch (e) {}
-}
-
+// ─── TRIAGEM REAL DE NÃO CONFORMIDADES (INTEGRADA AO CHECKLIST & MANUTENÇÃO) ───
 let activeNokPopoverId = null;
 let activeNokReasonId = null;
+let latestRenderedNokMap = new Map();
+
+function getActiveScopeMonthStr() {
+    if (typeof calendar !== 'undefined' && calendar && typeof calendar.getMonth === 'function') {
+        const cm = calendar.getMonth();
+        return `${cm.year}-${String(cm.month + 1).padStart(2, '0')}`;
+    }
+    if (typeof state !== 'undefined' && state.conformityMonth) {
+        return state.conformityMonth;
+    }
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function getSafeNokKey(plate, question) {
+    const qIdx = typeof QUESTIONS !== 'undefined' ? QUESTIONS.indexOf(question) : -1;
+    const suffix = qIdx >= 0 ? `q${qIdx}` : encodeURIComponent(question).replace(/[^a-zA-Z0-9_]/g, '_');
+    return `${plate}__${suffix}`;
+}
+
+function getSystemMetaForQuestion(question) {
+    if (window.MaintenanceModule && typeof window.MaintenanceModule.getSystemForQuestion === 'function') {
+        return window.MaintenanceModule.getSystemForQuestion(question);
+    }
+    return { id: 'preventiva', label: 'Geral / Preventiva' };
+}
+
+function formatBrShort(isoDate) {
+    if (!isoDate || isoDate.length < 10) return isoDate || '—';
+    const [, m, d] = isoDate.split('-');
+    return `${d}/${m}`;
+}
+
+function formatBrFull(isoDate) {
+    if (!isoDate || isoDate.length < 10) return isoDate || '—';
+    const [y, m, d] = isoDate.split('-');
+    return `${d}/${m}/${y}`;
+}
+
+function showToast(msg, type = 'success') {
+    const existing = document.querySelector('.driver-toast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.className = `driver-toast driver-toast-${type}`;
+    toast.innerHTML = `
+        <span class="material-icons-round">${type === 'success' ? 'check_circle' : 'warning'}</span>
+        <span>${escapeHtml(msg)}</span>
+    `;
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 2800);
+}
+window.showToast = showToast;
+
+function canEditNokTriage() {
+    if (window.CarVerifyAuth && typeof window.CarVerifyAuth.canEdit === 'function') {
+        return window.CarVerifyAuth.canEdit();
+    }
+    return true;
+}
+
+/**
+ * Extrai apenas os itens realmente apontados como NOK nos checklists reais (`state.data`)
+ * dentro do escopo selecionado (placa específica ou toda a frota, dia único ou mês ativo).
+ */
+function getRealChecklistNokEntries(targetPlate = null, monthStr = null, selectedDate = null) {
+    const scopedMonth = monthStr || (selectedDate ? selectedDate.substring(0, 7) : getActiveScopeMonthStr());
+    const vehiclesScope = targetPlate
+        ? VEHICLES.filter(v => v.plate === targetPlate)
+        : VEHICLES;
+
+    const grouped = new Map();
+
+    vehiclesScope.forEach(v => {
+        const vDays = (state.data && state.data[v.plate] && state.data[v.plate].days) ? state.data[v.plate].days : {};
+        const dates = selectedDate
+            ? (vDays[selectedDate] ? [selectedDate] : [])
+            : Object.keys(vDays).filter(d => d.startsWith(scopedMonth)).sort();
+
+        dates.forEach(dateStr => {
+            const dayData = vDays[dateStr];
+            if (!dayData || !dayData.questions) return;
+
+            const rawDriver = (dayData.driver || '').trim();
+            const validDriver = (rawDriver && !['null', 'undefined', '-', ''].includes(rawDriver.toLowerCase()))
+                ? rawDriver
+                : v.driver;
+            const rawComment = (dayData.comment || '').trim();
+            const hasUsefulComment = rawComment.length > 3 && !/^(não|nao|sim|ok)$/i.test(rawComment);
+
+            QUESTIONS.forEach(question => {
+                if (dayData.questions[question] !== 'NOK') return;
+
+                const nokKey = getSafeNokKey(v.plate, question);
+                if (!grouped.has(nokKey)) {
+                    const sysMeta = getSystemMetaForQuestion(question);
+                    grouped.set(nokKey, {
+                        id: nokKey,
+                        plate: v.plate,
+                        model: v.model,
+                        color: v.color,
+                        question,
+                        sysId: sysMeta.id || 'preventiva',
+                        mappedSystem: sysMeta.label || 'Geral / Preventiva',
+                        dates: [],
+                        drivers: [],
+                        comments: []
+                    });
+                }
+
+                const entry = grouped.get(nokKey);
+                if (!entry.dates.includes(dateStr)) entry.dates.push(dateStr);
+                if (validDriver && !entry.drivers.includes(validDriver)) entry.drivers.push(validDriver);
+                if (hasUsefulComment) {
+                    const commentTag = `${formatBrShort(dateStr)}: ${rawComment}`;
+                    if (!entry.comments.includes(commentTag)) {
+                        entry.comments.push(commentTag);
+                    }
+                }
+            });
+        });
+    });
+
+    const entries = Array.from(grouped.values()).map(entry => {
+        entry.dates.sort();
+        entry.latestDate = entry.dates[entry.dates.length - 1] || '';
+        const triage = (window.MaintenanceModule && typeof window.MaintenanceModule.getQuestionNokTriage === 'function')
+            ? window.MaintenanceModule.getQuestionNokTriage(entry.plate, entry.question, scopedMonth, selectedDate || entry.latestDate)
+            : { type: 'pendente' };
+
+        return {
+            ...entry,
+            status: triage.type || 'pendente',
+            triage
+        };
+    });
+
+    return entries.sort((a, b) => {
+        if (b.dates.length !== a.dates.length) return b.dates.length - a.dates.length;
+        return b.latestDate.localeCompare(a.latestDate);
+    });
+}
 
 function getVehiclePendingNoks(plate) {
-    return checklistNokItems.filter(x => x.plate === plate && x.status === 'pendente').length;
+    const scopedMonth = getActiveScopeMonthStr();
+    const selectedDate = (typeof state !== 'undefined') ? state.selectedDate : null;
+    const entries = getRealChecklistNokEntries(plate, scopedMonth, selectedDate);
+    return entries.filter(x => x.status === 'pendente').length;
 }
 
 function toggleNokActions(nokId) {
+    if (!canEditNokTriage()) {
+        if (typeof showToast === 'function') showToast('Modo Visualização: triagem de NOK desabilitada.', 'warning');
+        return;
+    }
     if (activeNokPopoverId === nokId) {
         activeNokPopoverId = null;
         activeNokReasonId = null;
@@ -166,40 +203,84 @@ function toggleNokActions(nokId) {
 window.toggleNokActions = toggleNokActions;
 
 function openLowPriorityReasons(nokId) {
+    if (!canEditNokTriage()) {
+        if (typeof showToast === 'function') showToast('Modo Visualização: triagem de NOK desabilitada.', 'warning');
+        return;
+    }
     activeNokReasonId = (activeNokReasonId === nokId) ? null : nokId;
     renderChecklistTable();
 }
 window.openLowPriorityReasons = openLowPriorityReasons;
 
 function confirmLowPriorityNok(nokId, reasonText) {
-    const item = checklistNokItems.find(x => x.id === nokId);
+    if (!canEditNokTriage()) {
+        if (typeof showToast === 'function') showToast('Modo Visualização: triagem de NOK desabilitada.', 'warning');
+        return;
+    }
+    const item = latestRenderedNokMap.get(nokId);
     if (!item) return;
-    item.status = 'baixa_prioridade';
-    item.resolutionNote = `Baixa Prioridade: ${reasonText}`;
+
+    const scopedMonth = getActiveScopeMonthStr();
+    const dateCtx = (typeof state !== 'undefined' && state.selectedDate) ? state.selectedDate : item.latestDate;
+    if (window.MaintenanceModule && typeof window.MaintenanceModule.setLowPriorityTriage === 'function') {
+        const ok = window.MaintenanceModule.setLowPriorityTriage(item.plate, item.question, scopedMonth, dateCtx, reasonText);
+        if (!ok) return;
+    }
+
     activeNokPopoverId = null;
     activeNokReasonId = null;
-    saveChecklistNokItems();
     renderTabs();
     renderChecklistTable();
-    showToast(`⚡ NOK da placa ${item.plate} (${item.questionLabel}) justificado como Baixa Prioridade!`);
+    renderRecurrences();
+    if (typeof showToast === 'function') {
+        showToast(`NOK da placa ${item.plate} (${item.question}) justificado como Baixa Prioridade.`);
+    }
 }
 window.confirmLowPriorityNok = confirmLowPriorityNok;
 
+function confirmCustomLowPriorityNok(nokId) {
+    const input = document.getElementById(`nokCustomReason_${nokId}`);
+    const val = (input ? input.value : '').trim();
+    if (!val) {
+        if (typeof showToast === 'function') showToast('Informe o motivo da baixa prioridade.', 'warning');
+        if (input) input.focus();
+        return;
+    }
+    confirmLowPriorityNok(nokId, val);
+}
+window.confirmCustomLowPriorityNok = confirmCustomLowPriorityNok;
+
 function reopenNokItem(nokId) {
-    const item = checklistNokItems.find(x => x.id === nokId);
+    if (!canEditNokTriage()) {
+        if (typeof showToast === 'function') showToast('Modo Visualização: triagem de NOK desabilitada.', 'warning');
+        return;
+    }
+    const item = latestRenderedNokMap.get(nokId);
     if (!item) return;
-    item.status = 'pendente';
-    item.resolutionNote = '';
+
+    const scopedMonth = getActiveScopeMonthStr();
+    const dateCtx = (typeof state !== 'undefined' && state.selectedDate) ? state.selectedDate : item.latestDate;
+    if (window.MaintenanceModule && typeof window.MaintenanceModule.clearNokTriage === 'function') {
+        window.MaintenanceModule.clearNokTriage(item.plate, item.question, scopedMonth, dateCtx);
+    }
+
     activeNokPopoverId = nokId;
-    saveChecklistNokItems();
+    activeNokReasonId = null;
     renderTabs();
     renderChecklistTable();
-    showToast(`🔄 NOK de ${item.plate} reaberto para nova decisão.`);
+    renderRecurrences();
+    if (typeof showToast === 'function') {
+        showToast(`NOK de ${item.plate} reaberto para nova decisão.`);
+    }
 }
 window.reopenNokItem = reopenNokItem;
 
 function triggerMaintenanceFromNok(nokId) {
-    const item = checklistNokItems.find(x => x.id === nokId);
+    if (!canEditNokTriage()) {
+        if (typeof showToast === 'function') showToast('Modo Visualização: triagem de NOK desabilitada.', 'warning');
+        return;
+    }
+    const item = latestRenderedNokMap.get(nokId);
     if (!item) return;
 
     activeNokPopoverId = null;
@@ -212,13 +293,11 @@ function triggerMaintenanceFromNok(nokId) {
     if (window.MaintenanceModule && typeof window.MaintenanceModule.triggerFromChecklistNok === 'function') {
         window.MaintenanceModule.triggerFromChecklistNok({
             plate: item.plate,
-            question: item.questionLabel,
-            date: item.dates[item.dates.length - 1] || '2026-10-15',
-            system: item.mappedSystem
+            question: item.question,
+            date: item.latestDate || getActiveScopeMonthStr() + '-01',
+            system: item.sysId
         });
     }
-
-    showToast(`🔧 Tela de Manutenção aberta p/ ${item.plate} com sistema "${item.mappedSystem}" pré-selecionado!`);
 }
 window.triggerMaintenanceFromNok = triggerMaintenanceFromNok;
 
@@ -1814,7 +1893,58 @@ function updateVehicleConformity(vehicleData, monthDays, selectedDate) {
         'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
     ];
 
-    if (selectedDate) {
+    if (isCompiled) {
+        if (selectedDate) {
+            // Soma real veículo-a-veículo para não perder respostas ao mesclar datas
+            let dayOk = 0, dayNok = 0, vehiclesChecked = 0;
+            VEHICLES.forEach(v => {
+                const dData = state.data[v.plate] && state.data[v.plate].days && state.data[v.plate].days[selectedDate];
+                if (!dData) return;
+                vehiclesChecked += (dData.count || 1);
+                Object.values(dData.questions || {}).forEach(val => {
+                    if (val === 'OK') dayOk++;
+                    else if (val === 'NOK') dayNok++;
+                });
+            });
+            charts.updateConformity(dayOk, dayNok);
+            const footer = document.getElementById('conformityFooter');
+            if (footer) {
+                const [, m, d] = selectedDate.split('-');
+                if (vehiclesChecked > 0) {
+                    footer.textContent = `Frota Total · ${vehiclesChecked} vistoria(s) em ${parseInt(d)}/${parseInt(m)}`;
+                } else {
+                    footer.textContent = `Sem vistorias na frota em ${parseInt(d)}/${parseInt(m)}`;
+                }
+            }
+        } else {
+            // === COMPILED MONTH FOR ALL FLEET (SEM DADOS FICTÍCIOS) ===
+            let monthOk = 0, monthNok = 0, totalVistorias = 0;
+            VEHICLES.forEach(v => {
+                const vDays = (state.data[v.plate] && state.data[v.plate].days) ? state.data[v.plate].days : {};
+                Object.entries(vDays).forEach(([dateStr, dayData]) => {
+                    if (!currentCalYm || !dateStr.startsWith(currentCalYm)) return;
+                    totalVistorias += (dayData.count || 1);
+                    Object.values(dayData.questions || {}).forEach(ans => {
+                        if (ans === 'OK') monthOk++;
+                        else if (ans === 'NOK') monthNok++;
+                    });
+                });
+            });
+
+            charts.updateConformity(monthOk, monthNok);
+
+            const footer = document.getElementById('conformityFooter');
+            if (footer) {
+                if (totalVistorias > 0 && calMonth) {
+                    footer.textContent = `Frota (10 veículos) · ${totalVistorias} ${totalVistorias === 1 ? 'vistoria' : 'vistorias'} em ${monthNames[calMonth.month]} ${calMonth.year}`;
+                } else if (calMonth) {
+                    footer.textContent = `Nenhuma vistoria na frota em ${monthNames[calMonth.month]} ${calMonth.year}`;
+                } else {
+                    footer.textContent = 'Nenhuma vistoria registrada neste período';
+                }
+            }
+        }
+    } else if (selectedDate) {
         // === SINGLE DAY FOR SELECTED VEHICLE ===
         const dayData = (vehicleData.days && vehicleData.days[selectedDate]) || null;
         let dayOk = 0, dayNok = 0;
@@ -1829,7 +1959,7 @@ function updateVehicleConformity(vehicleData, monthDays, selectedDate) {
             if (footer) {
                 const [, m, d] = selectedDate.split('-');
                 const countSuffix = (dayData.count && dayData.count > 1) ? ` · ${dayData.count}x vistorias realizadas` : ` · Vistoria em ${parseInt(d)}/${parseInt(m)}`;
-                footer.textContent = isCompiled ? `Frota Total${countSuffix}` : `Placa ${plate}${countSuffix}`;
+                footer.textContent = `Placa ${plate}${countSuffix}`;
             }
         } else {
             charts.updateConformity(0, 0);
@@ -1840,7 +1970,7 @@ function updateVehicleConformity(vehicleData, monthDays, selectedDate) {
                 if (gap) {
                     footer.innerHTML = `<span style="color:#2563eb;font-weight:600;"><span class="material-icons-round" style="font-size:14px;vertical-align:middle;">info</span> ${escapeHtml(plate)} sem vistoria em ${parseInt(d)}/${parseInt(m)} (${escapeHtml(gap.text)})</span>`;
                 } else {
-                    footer.textContent = isCompiled ? `Sem vistorias na frota em ${parseInt(d)}/${parseInt(m)}` : `Sem vistoria para ${plate} em ${parseInt(d)}/${parseInt(m)}`;
+                    footer.textContent = `Sem vistoria para ${plate} em ${parseInt(d)}/${parseInt(m)}`;
                 }
             }
         }
@@ -1856,55 +1986,50 @@ function updateVehicleConformity(vehicleData, monthDays, selectedDate) {
             });
         });
 
-        // Se compilado da frota e sem dados crus no mês ativo, usa padrão de conformidade consolidado (1.428 OK e 5 NOK)
-        if (isCompiled && monthOk === 0 && monthNok === 0) {
-            monthOk = 1428;
-            monthNok = 5;
-        }
-
         charts.updateConformity(monthOk, monthNok);
 
         const footer = document.getElementById('conformityFooter');
         if (footer) {
             if (daysCount > 0 && calMonth) {
-                footer.textContent = isCompiled
-                    ? `Frota total monitorada (10 veículos) em ${monthNames[calMonth.month]} ${calMonth.year}`
-                    : `Placa ${plate} · ${daysCount} ${daysCount === 1 ? 'vistoria' : 'vistorias'} em ${monthNames[calMonth.month]} ${calMonth.year}`;
+                footer.textContent = `Placa ${plate} · ${daysCount} ${daysCount === 1 ? 'vistoria' : 'vistorias'} em ${monthNames[calMonth.month]} ${calMonth.year}`;
             } else {
-                footer.textContent = isCompiled
-                    ? `Frota total monitorada pelo Painel (10 veículos)`
-                    : `Nenhuma vistoria para ${plate} neste mês`;
+                footer.textContent = `Nenhuma vistoria para ${plate} neste mês`;
             }
         }
     }
 }
 
 function renderSingleDayGap(date, plate, vehicle, gap) {
+    const isCompiled = (state.activeVehicle === null);
     const table = document.getElementById('checklistTable');
     if (table) table.classList.remove('single-day-mode');
     const thead = table ? table.querySelector('thead tr') : null;
     if (thead) {
         thead.innerHTML = `
-            <th class="col-question">Pergunta</th>
-            <th class="col-ok"><span class="badge badge-ok">OK</span></th>
-            <th class="col-nok"><span class="badge badge-nok">NOK</span></th>
-            <th class="col-bar">Distribuição</th>
+            <th>Pergunta / Item Verificado</th>
+            <th style="width:90px;text-align:center;">Status</th>
+            <th>Veículo &amp; Motorista</th>
+            <th>Relato do Condutor</th>
+            <th style="width:280px;text-align:right;">Ações de Resolução</th>
         `;
     }
     charts.updateKmChart([], []);
     document.getElementById('kmValue').textContent = '—';
-    document.getElementById('kmSubtitle').textContent = 'Veículo inoperante neste dia';
+    document.getElementById('kmSubtitle').textContent = isCompiled ? 'Sem vistorias na frota neste dia' : 'Veículo sem vistoria neste dia';
 
     const [y, m, d] = date.split('-');
     const formattedDate = `${parseInt(d)}/${parseInt(m)}/${y}`;
+    const targetTitle = isCompiled
+        ? 'Frota Completa'
+        : `${escapeHtml(plate)}${vehicle && vehicle.model ? ` (${escapeHtml(vehicle.model)})` : ''}`;
     const metaContainer = document.getElementById('checklistMeta');
     if (metaContainer) {
         metaContainer.innerHTML = `
             <div class="gap-day-banner ${gap ? gap.badgeClass : ''}">
                 <span class="material-icons-round gap-banner-icon">event_busy</span>
                 <div class="gap-banner-info">
-                    <strong>Sem Vistoria em ${formattedDate} — ${escapeHtml(plate)} (${vehicle ? escapeHtml(vehicle.model) : ''})</strong>
-                    <span>${gap ? escapeHtml(gap.text) : 'Nenhuma vistoria registrada nesta data (veículo no pátio).'}</span>
+                    <strong>Sem Vistoria em ${formattedDate} — ${targetTitle}</strong>
+                    <span>${gap ? escapeHtml(gap.text) : 'Nenhuma vistoria registrada nesta data.'}</span>
                 </div>
             </div>
         `;
@@ -1912,13 +2037,13 @@ function renderSingleDayGap(date, plate, vehicle, gap) {
 
     const isHol = gap && gap.status === 'feriado';
     document.getElementById('checklistBody').innerHTML = `
-        <tr><td colspan="4" class="empty-state" style="padding:40px">
+        <tr><td colspan="5" class="empty-state" style="padding:40px">
             <span class="material-icons-round" style="font-size:32px;color:${isHol ? '#7c3aed' : '#2563eb'};opacity:0.9">${isHol ? 'event_available' : 'event_busy'}</span>
             <p style="margin-top:8px;font-weight:700;color:var(--clr-text-primary);font-size:14px;">
-                ${gap ? gap.text : 'Veículo inoperante / sem vistoria registrada nesta data.'}
+                ${gap ? escapeHtml(gap.text) : 'Sem vistoria registrada nesta data.'}
             </p>
             <p style="margin-top:4px;font-size:12px;color:var(--clr-text-secondary)">
-                ${isHol ? 'Feriado oficial sem expediente das operações da frota.' : 'O veículo não realizou rota e permaneceu no pátio, justificando a ausência do checklist.'}
+                ${isHol ? 'Feriado oficial sem expediente das operações da frota.' : 'Nenhum checklist enviado nesta data.'}
             </p>
         </td></tr>`;
 
@@ -1949,6 +2074,8 @@ function updateDashboard() {
     } else if (selectedDate && !monthDays[selectedDate]) {
         const gap = window.getVehicleGapJustification ? window.getVehicleGapJustification(plate, selectedDate) : null;
         renderSingleDayGap(selectedDate, plate, currentVehicle, gap);
+    } else if (Object.keys(monthDays).length === 0) {
+        renderEmpty();
     } else {
         renderCompiled(monthDays);
     }
@@ -1956,31 +2083,91 @@ function updateDashboard() {
     renderRecurrences(monthDays);
 }
 
+/**
+ * Calcula quilometragem percorrida real pela frota veículo-a-veículo em um mês (até `upToDate` se informado).
+ */
+function computeCompiledFleetKm(monthStr, upToDate = null) {
+    const dateSet = new Set();
+    const dailyDrivenMap = {};
+    const vehiclesCheckedPerDay = {};
+    let totalDrivenKm = 0;
+    let totalVistorias = 0;
+
+    VEHICLES.forEach(v => {
+        const vDays = (state.data && state.data[v.plate] && state.data[v.plate].days) ? state.data[v.plate].days : {};
+        const vDates = Object.keys(vDays)
+            .filter(d => d.startsWith(monthStr) && (!upToDate || d <= upToDate))
+            .sort();
+
+        let prevKm = null;
+        vDates.forEach(d => {
+            const dInfo = vDays[d];
+            dateSet.add(d);
+            totalVistorias += (dInfo.count || 1);
+            vehiclesCheckedPerDay[d] = (vehiclesCheckedPerDay[d] || 0) + (dInfo.count || 1);
+
+            const km = Number(dInfo.km || 0);
+            if (km > 0) {
+                if (prevKm !== null && km >= prevKm) {
+                    const delta = km - prevKm;
+                    // Descarta salto atípico de erro de digitação (> 5000 km entre leituras)
+                    if (delta < 5000) {
+                        dailyDrivenMap[d] = (dailyDrivenMap[d] || 0) + delta;
+                        totalDrivenKm += delta;
+                    }
+                }
+                prevKm = km;
+            }
+        });
+    });
+
+    const dates = Array.from(dateSet).sort();
+    const labels = dates.map(d => d.split('-')[2]);
+    const values = dates.map(d => dailyDrivenMap[d] || 0);
+
+    return {
+        dates,
+        labels,
+        values,
+        dailyDrivenMap,
+        totalDrivenKm,
+        totalVistorias,
+        vehiclesCheckedOnDay: upToDate ? (vehiclesCheckedPerDay[upToDate] || 0) : 0
+    };
+}
+
 function renderCompiled(monthDays) {
     const isCompiled = (state.activeVehicle === null);
     const dates = Object.keys(monthDays).sort();
 
-    const kmLabels = dates.map(d => d.split('-')[2]);
-    const kmValues = dates.map(d => monthDays[d].km);
-    const totalKmDiff = isCompiled
-        ? 2285876
-        : (kmValues.length > 1 ? kmValues[kmValues.length - 1] - kmValues[0] : (kmValues[0] || 0));
+    if (isCompiled) {
+        const fleetKm = computeCompiledFleetKm(getActiveScopeMonthStr());
+        document.getElementById('kmValue').textContent = fleetKm.totalDrivenKm.toLocaleString('pt-BR');
+        document.getElementById('kmSubtitle').textContent = fleetKm.dates.length > 1
+            ? `Total percorrido pela frota no mês (${fleetKm.dates.length} dias · ${fleetKm.totalVistorias} vistorias)`
+            : `Frota no mês (${fleetKm.totalVistorias} vistoria(s) · aguardando próximas leituras)`;
+        if (charts && typeof charts.updateKmChart === 'function') {
+            charts.updateKmChart(fleetKm.labels, fleetKm.values);
+        }
+    } else {
+        const kmLabels = dates.map(d => d.split('-')[2]);
+        const kmValues = dates.map(d => monthDays[d].km);
+        const totalKmDiff = kmValues.length > 1 ? kmValues[kmValues.length - 1] - kmValues[0] : (kmValues[0] || 0);
 
-    document.getElementById('kmValue').textContent = totalKmDiff.toLocaleString('pt-BR');
-    document.getElementById('kmSubtitle').textContent = isCompiled
-        ? 'Frota total monitorada pelo Painel'
-        : `Total percorrido no mês (${dates.length} dias)`;
-    if (charts && typeof charts.updateKmChart === 'function') {
-        charts.updateKmChart(kmLabels, kmValues);
+        document.getElementById('kmValue').textContent = totalKmDiff.toLocaleString('pt-BR');
+        document.getElementById('kmSubtitle').textContent = kmValues.length > 1
+            ? `Total percorrido no mês (${dates.length} dias)`
+            : `Odômetro registrado (${dates.length} dia)`;
+        if (charts && typeof charts.updateKmChart === 'function') {
+            charts.updateKmChart(kmLabels, kmValues);
+        }
     }
 
     const metaContainer = document.getElementById('checklistMeta');
     if (metaContainer) {
-        metaContainer.innerHTML = `
-            <span style="font-size:12px;color:var(--clr-text-secondary);">
-                Clique no botão vermelho <strong>"❌ NOK"</strong> para abrir <strong>[Baixa Prioridade]</strong> ou <strong>[Manutenção]</strong>
-            </span>
-        `;
+        metaContainer.innerHTML = canEditNokTriage()
+            ? `<span style="font-size:12px;color:var(--clr-text-secondary);">Clique no botão vermelho <strong>"❌ NOK"</strong> para abrir <strong>[Baixa Prioridade]</strong> ou <strong>[Manutenção]</strong></span>`
+            : `<span style="font-size:12px;color:var(--clr-text-secondary);">Resumo consolidado das respostas do checklist no período selecionado</span>`;
     }
 
     renderChecklistTable();
@@ -1989,37 +2176,59 @@ function renderCompiled(monthDays) {
 
 function renderSingleDay(date, dayData, allMonthDays) {
     const isCompiled = (state.activeVehicle === null);
-    const sortedDates = Object.keys(allMonthDays).sort();
-    const upToDates = sortedDates.filter(d => d <= date);
-    const kmLabels = upToDates.map(d => d.split('-')[2]);
-    const kmValues = upToDates.map(d => allMonthDays[d].km);
-    const kmSum = kmValues.length > 1 ? kmValues[kmValues.length - 1] - kmValues[0] : 0;
 
-    document.getElementById('kmValue').textContent = dayData.km.toLocaleString('pt-BR');
-    document.getElementById('kmSubtitle').textContent = `Leitura do dia · Percorrido até aqui: ${kmSum.toLocaleString('pt-BR')} km`;
-    if (charts && typeof charts.updateKmChart === 'function') {
-        charts.updateKmChart(kmLabels, kmValues);
-    }
+    if (isCompiled) {
+        const fleetKm = computeCompiledFleetKm(date.substring(0, 7), date);
+        const dayDelta = fleetKm.dailyDrivenMap[date] || 0;
+        const displayKm = dayDelta > 0 ? dayDelta : fleetKm.totalDrivenKm;
 
-    const driverName = dayData.driver ? dayData.driver.trim() : '';
-    const hasValidDriver = driverName && !['null', 'undefined', '-', ''].includes(driverName.toLowerCase());
-    const driverBadgeHtml = hasValidDriver 
-        ? `<span class="meta-driver-badge"><span class="material-icons-round">person</span> Motorista: <strong>${escapeHtml(driverName)}</strong></span>` 
-        : '';
+        document.getElementById('kmValue').textContent = displayKm.toLocaleString('pt-BR');
+        document.getElementById('kmSubtitle').textContent = `${fleetKm.vehiclesCheckedOnDay} veículo(s) em ${formatBrShort(date)} · Acumulado no mês: ${fleetKm.totalDrivenKm.toLocaleString('pt-BR')} km`;
+        if (charts && typeof charts.updateKmChart === 'function') {
+            charts.updateKmChart(fleetKm.labels, fleetKm.values);
+        }
 
-    const multBadgeHtml = (dayData.count && dayData.count > 1) 
-        ? `<span class="badge-multiple-checklists" title="${dayData.count} checklists registrados neste mesmo dia"><span class="material-icons-round" style="font-size:14px">content_copy</span> ${dayData.count}x Checklists</span>` 
-        : '';
+        const metaContainer = document.getElementById('checklistMeta');
+        if (metaContainer) {
+            metaContainer.innerHTML = `
+                <span style="font-size:12px;color:var(--clr-text-secondary);">
+                    ${formatDateLong(date)} · <strong>${fleetKm.vehiclesCheckedOnDay}</strong> vistoria(s) na frota
+                </span>
+            `;
+        }
+    } else {
+        const sortedDates = Object.keys(allMonthDays).sort();
+        const upToDates = sortedDates.filter(d => d <= date);
+        const kmLabels = upToDates.map(d => d.split('-')[2]);
+        const kmValues = upToDates.map(d => allMonthDays[d].km);
+        const kmSum = kmValues.length > 1 ? kmValues[kmValues.length - 1] - kmValues[0] : 0;
 
-    const metaContainer = document.getElementById('checklistMeta');
-    if (metaContainer) {
-        metaContainer.innerHTML = `
-            <span style="font-size:12px;color:var(--clr-text-secondary);">
-                ${formatDateLong(date)} · Clique no botão vermelho <strong>"❌ NOK"</strong> para abrir <strong>[Baixa Prioridade]</strong> ou <strong>[Manutenção]</strong>
-            </span>
-            ${multBadgeHtml}
-            ${driverBadgeHtml}
-        `;
+        document.getElementById('kmValue').textContent = (dayData.km || 0).toLocaleString('pt-BR');
+        document.getElementById('kmSubtitle').textContent = `Leitura do dia · Percorrido até aqui: ${kmSum.toLocaleString('pt-BR')} km`;
+        if (charts && typeof charts.updateKmChart === 'function') {
+            charts.updateKmChart(kmLabels, kmValues);
+        }
+
+        const driverName = dayData.driver ? dayData.driver.trim() : '';
+        const hasValidDriver = driverName && !['null', 'undefined', '-', ''].includes(driverName.toLowerCase());
+        const driverBadgeHtml = hasValidDriver 
+            ? `<span class="meta-driver-badge"><span class="material-icons-round">person</span> Motorista: <strong>${escapeHtml(driverName)}</strong></span>` 
+            : '';
+
+        const multBadgeHtml = (dayData.count && dayData.count > 1) 
+            ? `<span class="badge-multiple-checklists" title="${dayData.count} checklists registrados neste mesmo dia"><span class="material-icons-round" style="font-size:14px">content_copy</span> ${dayData.count}x Checklists</span>` 
+            : '';
+
+        const metaContainer = document.getElementById('checklistMeta');
+        if (metaContainer) {
+            metaContainer.innerHTML = `
+                <span style="font-size:12px;color:var(--clr-text-secondary);">
+                    ${formatDateLong(date)}${canEditNokTriage() ? ' · Clique no botão vermelho <strong>"❌ NOK"</strong> para classificar pendências' : ''}
+                </span>
+                ${multBadgeHtml}
+                ${driverBadgeHtml}
+            `;
+        }
     }
 
     renderChecklistTable();
@@ -2047,6 +2256,10 @@ function renderEmpty() {
     }
     document.getElementById('kmValue').textContent = '—';
     document.getElementById('kmSubtitle').textContent = 'Nenhum dado neste mês';
+    const metaContainer = document.getElementById('checklistMeta');
+    if (metaContainer) {
+        metaContainer.innerHTML = '<span style="font-size:12px;color:var(--clr-text-secondary);">Nenhuma vistoria registrada para o período selecionado</span>';
+    }
     renderChecklistTable();
     renderComments({});
 }
@@ -2070,68 +2283,144 @@ function renderChecklistTable() {
     if (!tbody) return;
 
     const isCompiled = (state.activeVehicle === null);
-    const selectedPlate = !isCompiled && VEHICLES[state.activeVehicle] ? VEHICLES[state.activeVehicle].plate : null;
+    const selectedVehicle = !isCompiled && VEHICLES[state.activeVehicle] ? VEHICLES[state.activeVehicle] : null;
+    const selectedPlate = selectedVehicle ? selectedVehicle.plate : null;
+    const scopedMonth = getActiveScopeMonthStr();
+    const selectedDate = state.selectedDate || null;
 
-    const noksSource = selectedPlate
-        ? checklistNokItems.filter(x => x.plate === selectedPlate)
-        : checklistNokItems;
+    // Conta vistorias reais existentes no escopo
+    let checklistCount = 0;
+    let activeDayDriver = selectedVehicle ? selectedVehicle.driver : '';
+    const scopeVehicles = selectedPlate ? [selectedVehicle] : VEHICLES;
+    scopeVehicles.forEach(v => {
+        const vDays = (state.data && state.data[v.plate] && state.data[v.plate].days) ? state.data[v.plate].days : {};
+        if (selectedDate) {
+            if (vDays[selectedDate]) {
+                checklistCount += (vDays[selectedDate].count || 1);
+                if (!isCompiled && vDays[selectedDate].driver) activeDayDriver = vDays[selectedDate].driver;
+            }
+        } else {
+            Object.entries(vDays).forEach(([d, dInfo]) => {
+                if (d.startsWith(scopedMonth)) {
+                    checklistCount += (dInfo.count || 1);
+                }
+            });
+        }
+    });
 
+    latestRenderedNokMap = new Map();
+
+    if (checklistCount === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="empty-state" style="padding:36px;">
+                    <span class="material-icons-round" style="font-size:32px;opacity:0.65;">fact_check</span>
+                    <p style="margin-top:8px;font-weight:700;color:var(--clr-text-primary);font-size:13.5px;">
+                        Nenhuma vistoria registrada para ${selectedPlate ? escapeHtml(selectedPlate) : 'a frota'} neste período.
+                    </p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    const realNoks = getRealChecklistNokEntries(selectedPlate, scopedMonth, selectedDate);
+    realNoks.forEach(entry => latestRenderedNokMap.set(entry.id, entry));
+
+    // Agrupa por pergunta mantendo as com NOK primeiro e demais perguntas OK logo abaixo
+    const noksByQuestion = new Map();
+    realNoks.forEach(entry => {
+        if (!noksByQuestion.has(entry.question)) noksByQuestion.set(entry.question, []);
+        noksByQuestion.get(entry.question).push(entry);
+    });
+
+    const orderedQuestions = [
+        ...QUESTIONS.filter(q => noksByQuestion.has(q)),
+        ...QUESTIONS.filter(q => !noksByQuestion.has(q))
+    ];
+
+    const canEdit = canEditNokTriage();
     let html = '';
-    V_CHECKLIST_QUESTIONS.forEach(q => {
-        const nokMatches = noksSource.filter(x => x.questionId === q.id);
+
+    orderedQuestions.forEach(question => {
+        const nokMatches = noksByQuestion.get(question) || [];
 
         if (nokMatches.length > 0) {
             nokMatches.forEach(item => {
-                const v = VEHICLES.find(x => x.plate === item.plate) || { color: '#ef4444' };
                 const isPopoverOpen = (activeNokPopoverId === item.id);
                 const isReasonOpen = (activeNokReasonId === item.id);
+                const datesBr = item.dates.map(formatBrShort);
+                const datesSummary = datesBr.length <= 3
+                    ? datesBr.join(', ')
+                    : `${datesBr[0]} … ${datesBr[datesBr.length - 1]} (${datesBr.length} dias)`;
+
+                const driversLabel = item.drivers.length > 0 ? item.drivers.join(' / ') : 'Condutor';
+                const obsHtml = item.comments.length > 0
+                    ? `"${escapeHtml(item.comments.join(' | '))}"`
+                    : `<span style="opacity:0.75;font-style:italic;">Apontado como NOK em ${escapeHtml(datesSummary)} (sem observação textual no formulário)</span>`;
 
                 let actHtml = '';
                 if (item.status === 'pendente') {
-                    actHtml = `
-                        <div class="nok-interaction-zone" style="justify-content:flex-end;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                            <button type="button" class="btn-nok-trigger ${isPopoverOpen ? 'active-open' : ''}"
-                                    onclick="toggleNokActions('${item.id}')"
-                                    title="Clique no NOK para abrir Baixa Prioridade ou Manutenção">
-                                <span class="material-icons-round" style="font-size:14px">report_problem</span>
-                                ❌ NOK
-                                <span class="material-icons-round" style="font-size:14px">${isPopoverOpen ? 'chevron_left' : 'chevron_right'}</span>
-                            </button>
+                    if (canEdit) {
+                        actHtml = `
+                            <div class="nok-interaction-zone" style="justify-content:flex-end;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                                <button type="button" class="btn-nok-trigger ${isPopoverOpen ? 'active-open' : ''}"
+                                        onclick="toggleNokActions('${item.id}')"
+                                        title="Clique no NOK para abrir Baixa Prioridade ou Manutenção">
+                                    <span class="material-icons-round" style="font-size:14px">report_problem</span>
+                                    ❌ NOK
+                                    <span class="material-icons-round" style="font-size:14px">${isPopoverOpen ? 'chevron_left' : 'chevron_right'}</span>
+                                </button>
 
-                            <div class="nok-side-actions ${isPopoverOpen ? 'open' : ''}">
-                                <button type="button" class="btn-nok-low" onclick="openLowPriorityReasons('${item.id}')" title="Justificar como baixa prioridade sem oficina">
-                                    <span class="material-icons-round" style="font-size:14px">low_priority</span>
-                                    Baixa Prioridade
-                                </button>
-                                <button type="button" class="btn-nok-maint" onclick="triggerMaintenanceFromNok('${item.id}')" title="Abrir tela de Manutenção">
-                                    <span class="material-icons-round" style="font-size:14px">build</span>
-                                    Manutenção
-                                </button>
+                                <div class="nok-side-actions ${isPopoverOpen ? 'open' : ''}">
+                                    <button type="button" class="btn-nok-low" onclick="openLowPriorityReasons('${item.id}')" title="Justificar como baixa prioridade sem oficina">
+                                        <span class="material-icons-round" style="font-size:14px">low_priority</span>
+                                        Baixa Prioridade
+                                    </button>
+                                    <button type="button" class="btn-nok-maint" onclick="triggerMaintenanceFromNok('${item.id}')" title="Abrir tela de Manutenção">
+                                        <span class="material-icons-round" style="font-size:14px">build</span>
+                                        Manutenção
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                        <div class="nok-low-reasons ${isReasonOpen ? 'open' : ''}" style="margin-top:6px;justify-content:flex-end;">
-                            <span style="font-size:10.5px;font-weight:700;color:var(--clr-blue,#3b82f6);">Motivo:</span>
-                            <button type="button" class="reason-chip" onclick="confirmLowPriorityNok('${item.id}', 'Detalhe estético / Sem risco')">Sem risco à rota</button>
-                            <button type="button" class="reason-chip" onclick="confirmLowPriorityNok('${item.id}', 'Aguardar próxima Preventiva')">Próx. Preventiva</button>
-                            <button type="button" class="reason-chip" onclick="confirmLowPriorityNok('${item.id}', 'Verificado no pátio')">Normal no pátio</button>
-                        </div>
-                    `;
+                            <div class="nok-low-reasons ${isReasonOpen ? 'open' : ''}" style="margin-top:6px;justify-content:flex-end;flex-wrap:wrap;gap:5px;">
+                                <span style="font-size:10.5px;font-weight:700;color:var(--clr-blue,#3b82f6);">Motivo:</span>
+                                <button type="button" class="reason-chip" onclick="confirmLowPriorityNok('${item.id}', 'Detalhe estético / Sem risco')">Sem risco à rota</button>
+                                <button type="button" class="reason-chip" onclick="confirmLowPriorityNok('${item.id}', 'Aguardar próxima Preventiva')">Próx. Preventiva</button>
+                                <button type="button" class="reason-chip" onclick="confirmLowPriorityNok('${item.id}', 'Verificado no pátio')">Normal no pátio</button>
+                                <div style="display:flex;gap:4px;align-items:center;">
+                                    <input type="text" id="nokCustomReason_${item.id}" placeholder="Outro motivo..." style="font-size:11px;padding:3px 7px;border-radius:6px;border:1px solid var(--clr-border);background:var(--clr-bg-card);color:var(--clr-text-primary);width:130px;">
+                                    <button type="button" class="reason-chip" onclick="confirmCustomLowPriorityNok('${item.id}')">Salvar</button>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        actHtml = `
+                            <span style="font-size:11px;color:var(--clr-text-muted);" title="Perfil apenas visualização">
+                                Pendente de triagem
+                            </span>
+                        `;
+                    }
                 } else if (item.status === 'baixa_prioridade') {
                     actHtml = `
                         <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap;">
                             <span class="nok-resolution-pill res-low" style="font-size:11px;">
                                 <span class="material-icons-round" style="font-size:13px">check_circle</span>
-                                ${escapeHtml(item.resolutionNote)}
+                                Baixa Prioridade: ${escapeHtml(item.triage.reason)}
                             </span>
-                            <button type="button" class="btn-cancel-edit" onclick="reopenNokItem('${item.id}')" style="padding:3px 7px;font-size:11px;cursor:pointer;">Desfazer</button>
+                            ${canEdit ? `<button type="button" class="btn-cancel-edit" onclick="reopenNokItem('${item.id}')" style="padding:3px 7px;font-size:11px;cursor:pointer;">Desfazer</button>` : ''}
                         </div>
                     `;
                 } else if (item.status === 'em_manutencao') {
+                    const rec = item.triage.record || {};
+                    const nfPart = rec.nfNumber ? `NF ${rec.nfNumber}` : '';
+                    const supPart = rec.supplier || 'Manutenção registrada';
+                    const detailsText = [supPart, nfPart].filter(Boolean).join(' · ');
                     actHtml = `
                         <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap;">
                             <span class="nok-resolution-pill res-maint" style="font-size:11px;">
                                 <span class="material-icons-round" style="font-size:13px">build_circle</span>
-                                ${escapeHtml(item.resolutionNote)}
+                                OS vinculada (${escapeHtml(detailsText)})
                             </span>
                             <button type="button" class="btn-cancel-edit" onclick="navigateToMaintenanceForPlate('${item.plate}')" style="padding:3px 7px;font-size:11px;cursor:pointer;">Ver no Módulo</button>
                         </div>
@@ -2141,16 +2430,18 @@ function renderChecklistTable() {
                 html += `
                     <tr style="background:rgba(239, 68, 68, 0.04);">
                         <td>
-                            <strong>${escapeHtml(item.questionLabel)}</strong>
-                            <div style="font-size:11px;color:var(--clr-text-secondary);margin-top:2px;">De-Para Mecânico: <strong>${escapeHtml(item.mappedSystem)}</strong> · ${item.dates.length} dia(s) consecutivos</div>
+                            <strong>${escapeHtml(item.question)}</strong>
+                            <div style="font-size:11px;color:var(--clr-text-secondary);margin-top:2px;">
+                                De-Para Mecânico: <strong>${escapeHtml(item.mappedSystem)}</strong> · ${item.dates.length} dia(s) (${escapeHtml(datesSummary)})
+                            </div>
                         </td>
                         <td style="text-align:center;"><span class="badge-pill-nok">NOK</span></td>
                         <td>
-                            <strong style="color:${v.color}">${escapeHtml(item.plate)}</strong> <span style="font-size:11px;color:var(--clr-text-secondary);">(${escapeHtml(item.model)})</span>
-                            <div style="font-size:11px;color:var(--clr-text-secondary);">${escapeHtml(item.driver)}</div>
+                            <strong style="color:${item.color}">${escapeHtml(item.plate)}</strong> <span style="font-size:11px;color:var(--clr-text-secondary);">(${escapeHtml(item.model)})</span>
+                            <div style="font-size:11px;color:var(--clr-text-secondary);">${escapeHtml(driversLabel)}</div>
                         </td>
                         <td style="font-size:11.5px;color:var(--clr-text-secondary);">
-                            "${escapeHtml(item.driverObs)}"
+                            ${obsHtml}
                         </td>
                         <td>${actHtml}</td>
                     </tr>
@@ -2159,24 +2450,24 @@ function renderChecklistTable() {
         } else if (isCompiled) {
             html += `
                 <tr>
-                    <td><strong>${escapeHtml(q.label)}</strong></td>
+                    <td><strong>${escapeHtml(question)}</strong></td>
                     <td style="text-align:center;"><span class="badge-pill-ok">OK</span></td>
-                    <td colspan="2" style="color:var(--clr-text-secondary);font-size:11.5px;">Conforme em todos os checklists respondidos no período</td>
+                    <td colspan="2" style="color:var(--clr-text-secondary);font-size:11.5px;">Conforme em todos os ${checklistCount} checklists respondidos no período</td>
                     <td style="text-align:right;"><span style="color:#22c55e;font-size:11px;font-weight:700;">✓ 100% Conforme</span></td>
                 </tr>
             `;
         } else {
-            const v = VEHICLES.find(x => x.plate === selectedPlate) || {};
+            const v = selectedVehicle || {};
             html += `
                 <tr>
-                    <td><strong>${escapeHtml(q.label)}</strong></td>
+                    <td><strong>${escapeHtml(question)}</strong></td>
                     <td style="text-align:center;"><span class="badge-pill-ok">OK</span></td>
                     <td>
-                        <strong style="color:${v.color}">${escapeHtml(v.plate)}</strong> <span style="font-size:11px;color:var(--clr-text-secondary);">(${escapeHtml(v.model)})</span>
-                        <div style="font-size:11px;color:var(--clr-text-secondary);">${escapeHtml(v.driver)}</div>
+                        <strong style="color:${v.color || '#3b82f6'}">${escapeHtml(v.plate || '')}</strong> <span style="font-size:11px;color:var(--clr-text-secondary);">(${escapeHtml(v.model || '')})</span>
+                        <div style="font-size:11px;color:var(--clr-text-secondary);">${escapeHtml(activeDayDriver || v.driver || '')}</div>
                     </td>
                     <td style="color:var(--clr-text-secondary);font-size:11.5px;">—</td>
-                    <td style="text-align:right;"><span style="color:#22c55e;font-size:11px;font-weight:700;">✓ 100% Conforme</span></td>
+                    <td style="text-align:right;"><span style="color:#22c55e;font-size:11px;font-weight:700;">✓ Conforme</span></td>
                 </tr>
             `;
         }
@@ -2195,35 +2486,34 @@ function renderComments(daysObj) {
 
     const isCompiled = (state.activeVehicle === null);
     const selectedPlate = !isCompiled && VEHICLES[state.activeVehicle] ? VEHICLES[state.activeVehicle].plate : null;
+    const targetDates = new Set(Object.keys(daysObj || {}));
+    const itemsToShow = [];
 
-    const defaultComments = [
-        { driver: 'Leonildo Silva', plate: 'SUX8H84', date: '15/10/2026', text: 'Lanterna de freio traseira direita intermitente ao pisar forte no pedal.', color: '#3b82f6' },
-        { driver: 'Anderson Barbosa', plate: 'SUE7D02', date: '15/10/2026', text: 'Pequeno estalo na bucha da bandeja ao passar em lombada com carga total.', color: '#10b981' },
-        { driver: 'Alex Schuermann', plate: 'FRG7C31', date: '15/10/2026', text: 'Oscilação de 2°C no visor do Thermo King durante rota rodoviária.', color: '#06b6d4' }
-    ];
+    if (targetDates.size > 0) {
+        const vehiclesScope = selectedPlate
+            ? VEHICLES.filter(v => v.plate === selectedPlate)
+            : VEHICLES;
 
-    const dynamicComments = [];
-    Object.entries(daysObj || {}).forEach(([date, dayData]) => {
-        if (dayData.comment && dayData.comment.trim().length > 3) {
-            if (/^(não|nao|sim|ok)$/i.test(dayData.comment.trim())) return;
-            const [, m, d] = date.split('-');
-            const vObj = VEHICLES.find(x => x.plate === selectedPlate) || { color: '#3b82f6' };
-            dynamicComments.push({
-                driver: dayData.driver || (vObj ? vObj.driver : 'Condutor'),
-                plate: selectedPlate || 'FROTA',
-                date: `${d}/${m}/2026`,
-                text: dayData.comment.trim(),
-                color: vObj.color
+        vehiclesScope.forEach(v => {
+            const vDays = (state.data && state.data[v.plate] && state.data[v.plate].days) ? state.data[v.plate].days : {};
+            Object.entries(vDays).forEach(([date, dayData]) => {
+                if (!targetDates.has(date)) return;
+                const comment = (dayData.comment || '').trim();
+                if (comment.length > 3 && !/^(não|nao|sim|ok)$/i.test(comment)) {
+                    const [y, m, d] = date.split('-');
+                    itemsToShow.push({
+                        rawDate: date,
+                        driver: (dayData.driver && !['null', 'undefined', '-', ''].includes(dayData.driver.trim().toLowerCase())) ? dayData.driver.trim() : v.driver,
+                        plate: v.plate,
+                        date: `${d}/${m}/${y}`,
+                        text: comment,
+                        color: v.color
+                    });
+                }
             });
-        }
-    });
+        });
 
-    let itemsToShow = dynamicComments.length > 0 ? dynamicComments : defaultComments;
-    if (selectedPlate) {
-        itemsToShow = itemsToShow.filter(c => c.plate === selectedPlate);
-        if (itemsToShow.length === 0 && defaultComments.some(c => c.plate === selectedPlate)) {
-            itemsToShow = defaultComments.filter(c => c.plate === selectedPlate);
-        }
+        itemsToShow.sort((a, b) => b.rawDate.localeCompare(a.rawDate) || a.plate.localeCompare(b.plate));
     }
 
     const countEl = document.getElementById('commentCount');
@@ -2233,7 +2523,7 @@ function renderComments(daysObj) {
         cList.innerHTML = `
             <div class="empty-state">
                 <span class="material-icons-round">speaker_notes_off</span>
-                <p>Nenhuma observação registrada para ${selectedPlate || 'este período'}.</p>
+                <p>Nenhuma observação registrada para ${selectedPlate ? escapeHtml(selectedPlate) : 'este período'}.</p>
             </div>`;
         return;
     }
@@ -2255,40 +2545,71 @@ function renderRecurrences(daysObj) {
 
     const isCompiled = (state.activeVehicle === null);
     const selectedPlate = !isCompiled && VEHICLES[state.activeVehicle] ? VEHICLES[state.activeVehicle].plate : null;
+    const scopedMonth = getActiveScopeMonthStr();
 
-    const defaultRecurrences = [
-        {
-            plate: 'SUE7D02',
-            color: '#ef4444',
-            title: 'Reincidência de Suspensão',
-            desc: 'Apontado 3 dias consecutivos (13/10 a 15/10). Recomenda-se envio para revisão na oficina ou preventiva.'
-        },
-        {
-            plate: 'SUX8H84',
-            color: '#f59e0b',
-            title: 'Reincidência Elétrica / Luz de Freio',
-            desc: 'Apontado 2 dias seguidos. Baixa prioridade pode ser aplicada se resolvido com troca de lâmpada no pátio.'
+    const recurrences = [];
+
+    // 1. Reincidências reais de mesmo item marcado como NOK em >= 2 dias no mês
+    const monthNoks = getRealChecklistNokEntries(selectedPlate, scopedMonth, null);
+    monthNoks.forEach(entry => {
+        if (entry.dates.length < 2) return;
+        const firstDateBr = formatBrShort(entry.dates[0]);
+        const lastDateBr = formatBrShort(entry.dates[entry.dates.length - 1]);
+        let statusSuffix = 'Aguardando definição (Manutenção ou Baixa Prioridade).';
+        if (entry.status === 'em_manutencao') {
+            statusSuffix = 'Já possui Ordem de Serviço vinculada no módulo de Manutenção.';
+        } else if (entry.status === 'baixa_prioridade') {
+            statusSuffix = `Classificado como Baixa Prioridade (${entry.triage.reason}).`;
         }
-    ];
+        recurrences.push({
+            count: entry.dates.length,
+            plate: entry.plate,
+            color: entry.dates.length >= 3 ? '#ef4444' : '#f59e0b',
+            title: `Reincidência (${entry.mappedSystem}) — ${entry.question}`,
+            desc: `Apontado em ${entry.dates.length} dias no mês (${firstDateBr} a ${lastDateBr}). ${statusSuffix}`
+        });
+    });
 
-    let itemsToShow = defaultRecurrences;
-    if (selectedPlate) {
-        itemsToShow = defaultRecurrences.filter(r => r.plate === selectedPlate);
-    }
+    // 2. Clusters semânticos NLP reais nos relatos de texto dos motoristas no mês
+    const vehiclesScope = selectedPlate
+        ? VEHICLES.filter(v => v.plate === selectedPlate)
+        : VEHICLES;
+
+    vehiclesScope.forEach(v => {
+        const vDays = (state.data && state.data[v.plate] && state.data[v.plate].days) ? state.data[v.plate].days : {};
+        const monthOnlyDays = {};
+        Object.entries(vDays).forEach(([d, info]) => {
+            if (d.startsWith(scopedMonth)) monthOnlyDays[d] = info;
+        });
+        const clusters = detectRecurrences(monthOnlyDays);
+        clusters.forEach(cl => {
+            const firstBr = formatBrShort(cl.items[0]?.date);
+            const lastBr = formatBrShort(cl.items[cl.items.length - 1]?.date);
+            recurrences.push({
+                count: cl.count,
+                plate: v.plate,
+                color: cl.count >= 3 ? '#ef4444' : '#f59e0b',
+                title: `Relato recorrente: ${cl.theme}`,
+                desc: `${cl.count} registros similares nas observações (${firstBr} a ${lastBr} · ${cl.avgSimilarity}% similaridade).`
+            });
+        });
+    });
+
+    recurrences.sort((a, b) => b.count - a.count || a.plate.localeCompare(b.plate));
 
     const countEl = document.getElementById('recurrenceCount');
-    if (countEl) countEl.textContent = itemsToShow.length;
+    if (countEl) countEl.textContent = recurrences.length;
 
-    if (itemsToShow.length === 0) {
+    if (recurrences.length === 0) {
         rList.innerHTML = `
             <div class="empty-state">
                 <span class="material-icons-round">verified</span>
-                <p>Nenhuma reincidência detectada para ${selectedPlate || 'a frota'}.</p>
+                <p>Nenhuma reincidência detectada para ${selectedPlate ? escapeHtml(selectedPlate) : 'a frota neste mês'}.</p>
             </div>`;
         return;
     }
 
-    rList.innerHTML = itemsToShow.map(r => `
+    rList.innerHTML = recurrences.map(r => `
         <div class="v-obs-card" style="border-left:3px solid ${r.color};">
             <strong style="color:${r.color};">⚠️ ${escapeHtml(r.title)} — ${escapeHtml(r.plate)}</strong>
             <span style="color:var(--clr-text-secondary);">${escapeHtml(r.desc)}</span>
@@ -2397,6 +2718,7 @@ async function syncWithRemote() {
             renderHome();
         } else if (state.screen === 'dashboard') {
             if (charts) charts.destroyAll();
+            renderTabs();
             updateDashboard();
         }
         if (window.DriversModule && typeof window.DriversModule.render === 'function') {
@@ -2466,6 +2788,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         renderHome();
                     } else if (state.screen === 'dashboard') {
                         charts.destroyAll();
+                        renderTabs();
                         updateDashboard();
                     }
                     if (window.DriversModule && typeof window.DriversModule.render === 'function') {
@@ -2514,6 +2837,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (monthChanged) {
                 charts.destroyAll();
             }
+            renderTabs();
             updateDashboard();
         }
     });
@@ -2553,6 +2877,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (navAccounts) navAccounts.addEventListener('click', () => navigateTo('accounts'));
     window.navigateTo = navigateTo;
     window.updateDashboard = updateDashboard;
+    window.renderTabs = renderTabs;
 
     if (headerBrand) {
         headerBrand.addEventListener('click', () => navigateTo('home'));
@@ -2582,6 +2907,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderHome();
             } else if (state.screen === 'dashboard') {
                 charts.destroyAll();
+                renderTabs();
                 updateDashboard();
             }
             
@@ -2597,6 +2923,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             renderHome();
                         } else if (state.screen === 'dashboard') {
                             charts.destroyAll();
+                            renderTabs();
                             updateDashboard();
                         }
                     });

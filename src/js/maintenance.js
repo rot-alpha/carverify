@@ -94,45 +94,6 @@ const MaintenanceModule = (function () {
         'Lâmpada/item reserva já reposto'
     ];
 
-    const AI_NF_TEMPLATES = [
-        {
-            nfNumber: 'NF-e 004.892',
-            supplier: 'Auto Mecânica & Freios Sorocaba Ltda',
-            cost: 1840.00,
-            maintType: 'corretiva',
-            systems: ['freios', 'suspensao'],
-            fileName: 'DANFE_004892_Freios_Sorocaba.pdf',
-            note: 'Substituição de jogo de pastilhas dianteiras, retífica de discos, troca de 2 amortecedores e buchas da barra estabilizadora.'
-        },
-        {
-            nfNumber: 'NF-e 019.304',
-            supplier: 'ThermoFrio Refrigeração de Transporte',
-            cost: 2390.50,
-            maintType: 'corretiva',
-            systems: ['thermoking', 'eletrica'],
-            fileName: 'DANFE_019304_ThermoFrio.pdf',
-            note: 'Recarga de gás refrigerante R404A, troca de correia do compressor Thermo King e reparo no chicote do sensor.'
-        },
-        {
-            nfNumber: 'NF-e 008.115',
-            supplier: 'Centro Automotivo LubriFrota SP',
-            cost: 760.00,
-            maintType: 'preventiva',
-            systems: ['oleo_filtro', 'preventiva'],
-            fileName: 'DANFE_008115_Preventiva_Oleo.pdf',
-            note: 'Revisão preventiva de 10.000 km: óleo sintético 5W30, filtro de óleo, filtro de combustível e filtro de ar.'
-        },
-        {
-            nfNumber: 'NF-e 012.771',
-            supplier: 'Pneus & Cia Alinhamento Pesado',
-            cost: 3120.00,
-            maintType: 'corretiva',
-            systems: ['pneus', 'suspensao'],
-            fileName: 'DANFE_012771_Pneus_Alinhamento.pdf',
-            note: '2 pneus Michelin 215/75 R17.5 novos, alinhamento computadorizado e balanceamento dianteiro.'
-        }
-    ];
-
     function getCurrentYm() {
         const now = new Date();
         return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -143,122 +104,35 @@ const MaintenanceModule = (function () {
         return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     }
 
-    // ─── REGISTROS INICIAIS PADRÃO (CASO LOCALSTORAGE VAZIO) ──────────────────
-    function getDefaultRecords() {
-        const ym = getCurrentYm();
-        return [
-            {
-                id: 'rec-1',
-                plate: 'FRG7C31',
-                status: 'manutencao',
-                maintType: 'corretiva',
-                systems: ['freios', 'suspensao'],
-                start: `${ym}-06`,
-                end: `${ym}-08`,
-                nfNumber: 'NF-e 004.512',
-                supplier: 'Iveco Trucão Assistência Técnica',
-                cost: 2890.00,
-                nfFileName: 'DANFE_004512_Iveco.pdf',
-                note: 'Substituição de cilindro mestre de freio, ajuste de folga na caixa de direção e troca de buchas de suspensão dianteira.'
-            },
-            {
-                id: 'rec-2',
-                plate: 'STA0F48',
-                status: 'manutencao',
-                maintType: 'corretiva',
-                systems: ['motor', 'suspensao'],
-                start: `${ym}-13`,
-                end: `${ym}-15`,
-                nfNumber: 'NF-e 007.980',
-                supplier: 'Oficina Diesel & Utilidades Alpha',
-                cost: 1950.00,
-                nfFileName: 'DANFE_007980_AlphaDiesel.pdf',
-                note: 'Troca de coxins superiores do motor (vibração excessiva relatada no checklist) e par de amortecedores traseiros.'
-            },
-            {
-                id: 'rec-3',
-                plate: 'SVJ3H89',
-                status: 'manutencao',
-                maintType: 'preventiva',
-                systems: ['oleo_filtro', 'pneus', 'eletrica'],
-                start: `${ym}-16`,
-                end: `${ym}-16`,
-                nfNumber: 'NF-e 008.210',
-                supplier: 'Auto Center Sorocaba Pneus',
-                cost: 1120.00,
-                nfFileName: 'DANFE_008210_AutoCenter.pdf',
-                note: 'Troca de óleo e filtros + alinhamento, balanceamento e substituição de lâmpada de farol H7.'
-            },
-            {
-                id: 'rec-4',
-                plate: 'ECF3235',
-                status: 'manutencao',
-                maintType: 'corretiva',
-                systems: ['pneus', 'freios', 'transmissao'],
-                start: `${ym}-20`,
-                end: `${ym}-22`,
-                nfNumber: 'NF-e 011.402',
-                supplier: 'Pneus & Freios Rodoviários SP',
-                cost: 3450.00,
-                nfFileName: 'DANFE_011402_Rodoviarios.pdf',
-                note: 'Troca de 2 pneus dianteiros, revisão de rolamento de eixo e regulagem do pedal de embreagem.'
-            },
-            {
-                id: 'rec-5',
-                plate: 'FXI0C35',
-                status: 'interna',
-                maintType: null,
-                systems: [],
-                start: `${ym}-09`,
-                end: `${ym}-09`,
-                nfNumber: '',
-                supplier: 'Pátio Matriz Alpha Candies',
-                cost: 0,
-                nfFileName: '',
-                note: 'Movimentação interna de paletes entre docas e higienização profunda do baú.'
-            },
-            {
-                id: 'rec-6',
-                plate: 'SUX8H84',
-                status: 'manutencao',
-                maintType: 'corretiva',
-                systems: ['freios', 'eletrica'],
-                start: `${ym}-23`,
-                end: `${ym}-23`,
-                nfNumber: '',
-                supplier: 'Auto Elétrica & Freios Rápido',
-                cost: 0,
-                nfFileName: '',
-                note: 'Abertura de OS: Revisão do sensor do pedal de freio e troca de pastilhas dianteiras (aguardando emissão de NF).'
-            },
-            {
-                id: 'rec-7',
-                plate: 'FJF7817',
-                status: 'off',
-                maintType: 'corretiva',
-                systems: ['thermoking'],
-                start: `${ym}-27`,
-                end: `${ym}-28`,
-                nfNumber: 'NF-e 019.882',
-                supplier: 'ThermoFrio Refrigeração',
-                cost: 1680.00,
-                nfFileName: 'DANFE_019882_ThermoFrio.pdf',
-                note: 'Veículo retido aguardando válvula solenóide do equipamento de refrigeração do baú.'
-            }
-        ];
-    }
+    // Remove registros fictícios herdados do protótipo caso já estejam salvos no navegador
+    const LEGACY_PROTO_SIGNATURES = new Set([
+        'rec-1|FRG7C31|Iveco Trucão Assistência Técnica',
+        'rec-2|STA0F48|Oficina Diesel & Utilidades Alpha',
+        'rec-3|SVJ3H89|Auto Center Sorocaba Pneus',
+        'rec-4|ECF3235|Pneus & Freios Rodoviários SP',
+        'rec-5|FXI0C35|Pátio Matriz Alpha Candies',
+        'rec-6|SUX8H84|Auto Elétrica & Freios Rápido',
+        'rec-7|FJF7817|ThermoFrio Refrigeração'
+    ]);
 
     function loadRecordsFromStorage() {
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
             if (raw) {
                 const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                if (Array.isArray(parsed)) {
+                    const cleaned = parsed.filter(r => {
+                        const sig = `${r && r.id}|${r && r.plate}|${r && r.supplier}`;
+                        return !LEGACY_PROTO_SIGNATURES.has(sig);
+                    });
+                    if (cleaned.length !== parsed.length) {
+                        saveRecordsToStorage(cleaned);
+                    }
+                    return cleaned;
+                }
             }
         } catch (e) {}
-        const defs = getDefaultRecords();
-        saveRecordsToStorage(defs);
-        return defs;
+        return [];
     }
 
     function saveRecordsToStorage(records) {
@@ -424,6 +298,8 @@ const MaintenanceModule = (function () {
                 if (document.getElementById('maintenanceScreen')?.style.display !== 'none') {
                     renderAll();
                 }
+                if (typeof window.renderTabs === 'function') window.renderTabs();
+                if (typeof window.updateDashboard === 'function') window.updateDashboard();
             }
         } catch (err) {
             console.warn('[MaintenanceModule] Erro ao sincronizar do Supabase:', err);
@@ -1144,8 +1020,8 @@ const MaintenanceModule = (function () {
                 : (needsNf
                     ? `<div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;">
                            <span style="font-size:10.5px;color:#f59e0b;font-weight:700;">⏳ Aguardando NF</span>
-                           <button type="button" class="btn-insert-nf" data-quick-nf="${r.id}" title="Ler PDF da NF com IA ou digitar dados fiscais">
-                               <span class="material-icons-round" style="font-size:13px;">upload_file</span> Inserir NF (IA / Manual)
+                           <button type="button" class="btn-insert-nf" data-quick-nf="${r.id}" title="Inserir dados e vincular Nota Fiscal">
+                               <span class="material-icons-round" style="font-size:13px;">upload_file</span> Inserir Nota Fiscal
                            </button>
                        </div>`
                     : `<span style="color:var(--clr-text-secondary);font-size:11.5px;">Sem NF</span>`);
@@ -1255,10 +1131,16 @@ const MaintenanceModule = (function () {
         state.uploadedNfFileName = rec.nfFileName || '';
 
         const fileTitle = document.getElementById('nfFileTitle');
+        const fileSub = document.getElementById('nfFileSub');
         if (fileTitle) {
             fileTitle.textContent = rec.nfFileName
-                ? `Metadados: ${rec.nfFileName}`
-                : 'Ler PDF da Nota Fiscal (Extração Efêmera)';
+                ? `✔ Arquivo vinculado: ${rec.nfFileName}`
+                : 'Anexar Nota Fiscal (PDF)';
+        }
+        if (fileSub) {
+            fileSub.textContent = rec.nfFileName
+                ? 'Arquivo vinculado pelo nome · Confira ou atualize os dados fiscais abaixo'
+                : 'Selecione o PDF da Nota Fiscal e preencha os dados abaixo';
         }
 
         document.querySelectorAll('#maintenanceScreen .maint-type-btn').forEach(b => {
@@ -1307,8 +1189,8 @@ const MaintenanceModule = (function () {
 
         const fileTitle = document.getElementById('nfFileTitle');
         const fileSub = document.getElementById('nfFileSub');
-        if (fileTitle) fileTitle.textContent = 'Ler PDF da Nota Fiscal (Extração Efêmera)';
-        if (fileSub) fileSub.textContent = 'Extrai Nº NF, Fornecedor, Valor R$ e Sistemas · O arquivo PDF é descartado após a leitura';
+        if (fileTitle) fileTitle.textContent = 'Anexar Nota Fiscal (PDF)';
+        if (fileSub) fileSub.textContent = 'Selecione o PDF da Nota Fiscal e preencha os dados abaixo';
 
         state.uploadedNfFileName = '';
         state.maintType = 'corretiva';
@@ -1338,43 +1220,35 @@ const MaintenanceModule = (function () {
         if (!confirm(`Remover registro de ${rec.plate} (${formatDateBr(rec.start)})?`)) return;
 
         state.records = state.records.filter(r => r.id !== recId);
+        // Remove eventual marcação de triagem vinculada a esta OS excluída
+        Object.keys(state.nokTriage).forEach(k => {
+            if (state.nokTriage[k]?.recordId === recId) {
+                delete state.nokTriage[k];
+            }
+        });
+        saveTriageToStorage(state.nokTriage);
         saveRecordsToStorage(state.records);
         if (window.CarVerifySupabase && typeof window.CarVerifySupabase.deleteMaintenanceRecord === 'function') {
             window.CarVerifySupabase.deleteMaintenanceRecord(rec);
         }
         renderAll();
+        if (typeof window.renderTabs === 'function') window.renderTabs();
+        if (typeof window.updateDashboard === 'function') window.updateDashboard();
         showToast('Registro excluído com sucesso');
     }
 
-    // ─── LEITURA E IMPORTAÇÃO AUTOMÁTICA DE NF (PDF) ─────────────────────────
-    function simulateAiExtraction(fileName = null) {
-        const tpl = AI_NF_TEMPLATES[state.aiTemplateIdx % AI_NF_TEMPLATES.length];
-        state.aiTemplateIdx++;
-
-        document.getElementById('maintStatusSelect').value = 'manutencao';
-        updateDrawerVisibility();
-
-        state.maintType = tpl.maintType;
-        document.querySelectorAll('#maintenanceScreen .maint-type-btn').forEach(b => {
-            b.classList.toggle('active', b.dataset.type === state.maintType);
-        });
-
-        state.selectedSystems = new Set(tpl.systems);
-        renderSystemChips();
-
-        document.getElementById('maintNfNumber').value = tpl.nfNumber;
-        document.getElementById('maintSupplier').value = tpl.supplier;
-        document.getElementById('maintCost').value = tpl.cost.toFixed(2);
-        document.getElementById('maintNote').value = tpl.note;
-
-        const sourcePdfName = fileName || tpl.fileName;
-        state.uploadedNfFileName = sourcePdfName;
+    // ─── VINCULAÇÃO DE ARQUIVO DA NOTA FISCAL (PDF) ──────────────────────────
+    function attachNfFile(fileName) {
+        if (!fileName) return;
+        state.uploadedNfFileName = fileName;
         const fileTitle = document.getElementById('nfFileTitle');
         const fileSub = document.getElementById('nfFileSub');
-        if (fileTitle) fileTitle.textContent = `✔ Dados importados: ${sourcePdfName}`;
-        if (fileSub) fileSub.textContent = 'Nº NF, Fornecedor, Valor e Sistemas preenchidos com sucesso';
+        if (fileTitle) fileTitle.textContent = `✔ Arquivo vinculado: ${fileName}`;
+        if (fileSub) fileSub.textContent = 'Confira ou preencha o Nº da NF, Fornecedor e Valor abaixo';
 
-        showToast(`Dados da Nota Fiscal ${tpl.nfNumber} (${formatCurrency(tpl.cost)}) importados com sucesso!`);
+        const nfInput = document.getElementById('maintNfNumber');
+        if (nfInput) nfInput.focus();
+        showToast(`Arquivo "${fileName}" vinculado. Preencha os dados da NF.`);
     }
 
     // ─── MODAL DE 2º ESTÁGIO: INSERIR NF NA TABELA DE HISTÓRICO ───────────────
@@ -1424,8 +1298,10 @@ const MaintenanceModule = (function () {
         document.getElementById('quickNfSupplier').value = rec.supplier || '';
         document.getElementById('quickNfNote').value = rec.note || '';
 
-        document.getElementById('quickNfDropTitle').textContent = 'Anexar Nota Fiscal (PDF)';
-        document.getElementById('quickNfDropSub').textContent = 'Preenchimento automático do Nº da NF, Fornecedor, Valor e Sistemas';
+        document.getElementById('quickNfDropTitle').textContent = rec.nfFileName
+            ? `✔ Arquivo vinculado: ${rec.nfFileName}`
+            : 'Anexar Nota Fiscal (PDF)';
+        document.getElementById('quickNfDropSub').textContent = 'Selecione o PDF da Nota Fiscal e preencha os dados abaixo';
 
         renderQuickNfSystemChips();
 
@@ -1439,30 +1315,116 @@ const MaintenanceModule = (function () {
         state.quickNfRecordId = null;
     }
 
-    function simulateQuickNfAiExtraction(customFileName = null) {
-        const tpl = AI_NF_TEMPLATES[state.aiTemplateIdx % AI_NF_TEMPLATES.length];
-        state.aiTemplateIdx++;
+    function attachQuickNfFile(customFileName) {
+        if (!customFileName) return;
+        state.quickNfFileName = customFileName;
 
-        document.getElementById('quickNfNumber').value = tpl.nfNumber;
-        document.getElementById('quickNfCost').value = tpl.cost.toFixed(2);
-        document.getElementById('quickNfSupplier').value = tpl.supplier;
-        document.getElementById('quickNfNote').value = tpl.note;
+        document.getElementById('quickNfDropTitle').textContent = `✔ Arquivo vinculado: ${customFileName}`;
+        document.getElementById('quickNfDropSub').textContent = 'Preencha o Nº da NF, Fornecedor e Valor abaixo e salve';
 
-        state.quickNfSystems = new Set(tpl.systems);
-        renderQuickNfSystemChips();
-
-        const sourcePdf = customFileName || tpl.fileName;
-        state.quickNfFileName = sourcePdf;
-
-        document.getElementById('quickNfDropTitle').textContent = `✔ Dados importados: ${sourcePdf}`;
-        document.getElementById('quickNfDropSub').textContent = 'Nº NF, Fornecedor, Valor e Sistemas preenchidos com sucesso';
-
-        showToast(`Dados da Nota Fiscal ${tpl.nfNumber} (${formatCurrency(tpl.cost)}) importados com sucesso!`);
+        const nfInput = document.getElementById('quickNfNumber');
+        if (nfInput) nfInput.focus();
+        showToast(`Arquivo "${customFileName}" vinculado.`);
     }
 
     // ─── TRIAGEM INLINE DE NOK NA ABA VEÍCULOS (OPÇÃO C) ───────────────────────
     function getTriageKey(plate, question, dateContext) {
         return `${plate}__${question}__${dateContext || 'compiled'}`;
+    }
+
+    function getSystemForQuestion(question) {
+        const sysId = QUESTION_TO_SYSTEM_MAP[question] || 'preventiva';
+        return { id: sysId, ...getSystemMeta(sysId) };
+    }
+
+    function getLinkedRecordForQuestion(plate, question, monthStr, dateStr) {
+        if (!plate || !question) return null;
+        const sysId = QUESTION_TO_SYSTEM_MAP[question] || 'preventiva';
+        const ym = monthStr || (dateStr ? dateStr.substring(0, 7) : '');
+
+        const exact = state.records.find(r => {
+            if (r.plate !== plate || r.status === 'operacao') return false;
+            if (!r.linkedNok || r.linkedNok.question !== question) return false;
+            if (dateStr) {
+                return (r.linkedNok.date === dateStr) || (dateStr >= (r.start || '') && dateStr <= (r.end || r.start || ''));
+            }
+            if (!ym) return true;
+            const rYmStart = (r.start || '').substring(0, 7);
+            const rYmEnd = (r.end || r.start || '').substring(0, 7);
+            const nokYm = (r.linkedNok.date || '').substring(0, 7);
+            return rYmStart === ym || rYmEnd === ym || nokYm === ym;
+        });
+        if (exact) return exact;
+
+        return state.records.find(r => {
+            if (r.plate !== plate || (r.status !== 'manutencao' && r.status !== 'off')) return false;
+            if (!Array.isArray(r.systems) || !r.systems.includes(sysId)) return false;
+            if (dateStr) {
+                return dateStr >= (r.start || '') && dateStr <= (r.end || r.start || '');
+            }
+            if (ym) {
+                return (r.start || '').substring(0, 7) <= ym && (r.end || r.start || '').substring(0, 7) >= ym;
+            }
+            return true;
+        }) || null;
+    }
+
+    function getQuestionNokTriage(plate, question, monthStr, dateStr) {
+        const linkedRec = getLinkedRecordForQuestion(plate, question, monthStr, dateStr);
+        if (linkedRec) {
+            return { type: 'em_manutencao', record: linkedRec };
+        }
+        const keysToCheck = [];
+        if (dateStr) keysToCheck.push(getTriageKey(plate, question, dateStr));
+        if (monthStr) keysToCheck.push(getTriageKey(plate, question, monthStr));
+        keysToCheck.push(getTriageKey(plate, question, 'compiled'));
+
+        for (const k of keysToCheck) {
+            const entry = state.nokTriage[k];
+            if (entry && entry.type === 'low_priority') {
+                return {
+                    type: 'baixa_prioridade',
+                    reason: entry.reason || 'Baixa prioridade operacional',
+                    updatedAt: entry.updatedAt,
+                    key: k
+                };
+            }
+        }
+        return { type: 'pendente' };
+    }
+
+    function setLowPriorityTriage(plate, question, monthStr, dateStr, reason) {
+        if (!canUserEdit()) {
+            showToast('Modo Visualização: triagem de NOK desabilitada.', 'warning');
+            return false;
+        }
+        const ctxKey = dateStr || monthStr || 'compiled';
+        const key = getTriageKey(plate, question, ctxKey);
+        state.nokTriage[key] = {
+            type: 'low_priority',
+            reason: (reason || '').trim() || 'Monitoramento em rota',
+            updatedAt: new Date().toISOString()
+        };
+        if (dateStr && monthStr) {
+            state.nokTriage[getTriageKey(plate, question, monthStr)] = { ...state.nokTriage[key] };
+        }
+        saveTriageToStorage(state.nokTriage);
+        return true;
+    }
+
+    function clearNokTriage(plate, question, monthStr, dateStr) {
+        if (!canUserEdit()) {
+            showToast('Modo Visualização: triagem de NOK desabilitada.', 'warning');
+            return false;
+        }
+        const keys = [
+            dateStr ? getTriageKey(plate, question, dateStr) : null,
+            monthStr ? getTriageKey(plate, question, monthStr) : null,
+            getTriageKey(plate, question, 'compiled')
+        ].filter(Boolean);
+        keys.forEach(k => delete state.nokTriage[k]);
+        saveTriageToStorage(state.nokTriage);
+        return true;
     }
 
     function getQuestionNokTriageHtml(plate, question, dateContext, nokDisplayLabel) {
@@ -1814,14 +1776,10 @@ const MaintenanceModule = (function () {
                 if (file) {
                     const pdfName = file.name;
                     e.target.value = '';
-                    simulateAiExtraction(pdfName);
+                    attachNfFile(pdfName);
                 }
             });
         }
-
-        document.getElementById('btnSimulateAiNf')?.addEventListener('click', () => {
-            simulateAiExtraction();
-        });
 
         // Modal 2º estágio de NF
         const quickDropzone = document.getElementById('quickNfDropzone');
@@ -1833,14 +1791,10 @@ const MaintenanceModule = (function () {
                 if (file) {
                     const pdfName = file.name;
                     e.target.value = '';
-                    simulateQuickNfAiExtraction(pdfName);
+                    attachQuickNfFile(pdfName);
                 }
             });
         }
-
-        document.getElementById('btnQuickSimulateAiNf')?.addEventListener('click', () => {
-            simulateQuickNfAiExtraction();
-        });
         document.getElementById('btnCloseQuickNfModal')?.addEventListener('click', closeQuickNfModal);
         document.getElementById('btnCancelQuickNf')?.addEventListener('click', closeQuickNfModal);
 
@@ -1864,6 +1818,8 @@ const MaintenanceModule = (function () {
 
             closeQuickNfModal();
             renderAll();
+            if (typeof window.renderTabs === 'function') window.renderTabs();
+            if (typeof window.updateDashboard === 'function') window.updateDashboard();
             showToast(`NF ${rec.nfNumber} (${formatCurrency(rec.cost)}) vinculada ao veículo ${rec.plate}!`);
         });
 
@@ -1917,6 +1873,22 @@ const MaintenanceModule = (function () {
                 showToast(`Status "${STATUS_META[status]?.short || status}" registrado para ${plate}!`);
             }
 
+            if (payload.linkedNok && isMaintOrOff) {
+                const nokDate = payload.linkedNok.date || start;
+                const nokYm = nokDate.substring(0, 7);
+                const triageEntry = {
+                    type: 'maintenance',
+                    recordId: payload.id,
+                    system: payload.linkedNok.system || (payload.systems && payload.systems[0]) || 'preventiva',
+                    updatedAt: new Date().toISOString()
+                };
+                state.nokTriage[getTriageKey(plate, payload.linkedNok.question, nokDate)] = triageEntry;
+                if (nokYm) {
+                    state.nokTriage[getTriageKey(plate, payload.linkedNok.question, nokYm)] = { ...triageEntry };
+                }
+                saveTriageToStorage(state.nokTriage);
+            }
+
             saveRecordsToStorage(state.records);
             if (window.CarVerifySupabase && typeof window.CarVerifySupabase.upsertMaintenanceRecord === 'function') {
                 const savedRow = await window.CarVerifySupabase.upsertMaintenanceRecord(payload);
@@ -1928,6 +1900,8 @@ const MaintenanceModule = (function () {
 
             resetForm(state.selectedVehicleFilter, start);
             renderAll();
+            if (typeof window.renderTabs === 'function') window.renderTabs();
+            if (typeof window.updateDashboard === 'function') window.updateDashboard();
         });
 
         document.getElementById('btnCancelEdit')?.addEventListener('click', () => {
@@ -1997,6 +1971,12 @@ const MaintenanceModule = (function () {
         getQuestionNokTriageHtml,
         bindChecklistNokEvents,
         triggerFromChecklistNok,
+        getQuestionNokTriage,
+        setLowPriorityTriage,
+        clearNokTriage,
+        getLinkedRecordForQuestion,
+        getSystemForQuestion,
+        QUICK_LOW_REASONS,
         SYSTEMS,
         STATUS_META,
         QUESTION_TO_SYSTEM_MAP

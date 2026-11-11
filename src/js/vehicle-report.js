@@ -775,6 +775,15 @@ const VehicleReportModule = (function () {
      * Abre o modal com o relatório gerado
      */
     function openModal() {
+        if (typeof state !== 'undefined' && (state.activeVehicle === null || typeof VEHICLES === 'undefined' || !VEHICLES[state.activeVehicle])) {
+            const toastMsg = 'Selecione uma placa específica na barra superior para gerar o relatório individual do veículo.';
+            if (typeof window.showToast === 'function') {
+                window.showToast(toastMsg, 'warning');
+            } else {
+                alert(toastMsg);
+            }
+            return;
+        }
         const backdrop = document.getElementById('vehicleReportModalBackdrop');
         const container = document.getElementById('printableVehicleReport');
         const subtitle = document.getElementById('vehicleReportSubtitle');
