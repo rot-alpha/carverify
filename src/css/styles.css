@@ -534,6 +534,20 @@ button {
     font-size: 16px;
 }
 
+/* ====== MODO PORTFÓLIO: OCULTAR LOGO E IDENTIFICADORES DA EMPRESA ====== */
+.portfolio-mode-active #headerLogoEfx,
+.portfolio-mode-active .header-logo-wrapper,
+.portfolio-mode-active .header-logo-efx,
+.portfolio-mode-active .report-client-logo,
+.portfolio-mode-active .report-efx-img,
+.portfolio-mode-active img[src*="logo-grupo-efx"],
+.portfolio-mode-active .brand-foot span:first-child {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
 .btn-sync.spinning span {
     animation: spin 1s linear infinite;
 }

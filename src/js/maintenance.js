@@ -1657,7 +1657,7 @@ const MaintenanceModule = (function () {
                     <p>${plate ? `Veículo Filtrado: Placa ${escapeHtml(plate)} (${escapeHtml(getHabitualDriver(plate))})` : 'Consolidado Geral da Frota (10 Veículos)'} · Competência: ${getMonthLabel(ym)}</p>
                 </div>
                 <div style="text-align:right;font-size:11px;color:#475569;">
-                    <strong>GRUPO EFX / ALPHA CANDIES</strong><br>
+                    <strong>${(window.CarVerifyPortfolio && window.CarVerifyPortfolio.isEnabled()) ? 'CAR . VERIFY ENTERPRISE' : 'GRUPO EFX / ALPHA CANDIES'}</strong><br>
                     Emitido em: ${new Date().toLocaleDateString('pt-BR')}
                 </div>
             </div>

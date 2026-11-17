@@ -46,7 +46,7 @@
         'Luiz Gustavo': 'Luiz Gustavo'
     };
 
-    // Mapeamento de Fornecedores / Entidades
+    // Mapeamento de Fornecedores / Entidades / Empresa
     const ENTITY_MAP = {
         'Auto Mecânica & Freios Sorocaba Ltda': 'Centro Automotivo Especializado',
         'Auto Mecânica & Freios Sorocaba': 'Centro Automotivo Especializado',
@@ -55,8 +55,14 @@
         'Iveco Trucão Assistência Técnica': 'Concessionária Pesados Autorizada',
         'Iveco Trucão': 'Concessionária Autorizada',
         'Sorocaba': 'Unidade Central',
+        'GRUPO EFX / ALPHA CANDIES': 'CAR . VERIFY ENTERPRISE',
+        'Grupo EFX · Alpha Candies': 'CAR . VERIFY Enterprise',
+        'Grupo EFX / Alpha Candies': 'CAR . VERIFY Enterprise',
         'Grupo EFX': 'Enterprise Fleet',
-        'Alpha Candies': 'Logística Integrada'
+        'GRUPO EFX': 'ENTERPRISE FLEET',
+        'Alpha Candies': 'Logística Integrada',
+        'ALPHA CANDIES': 'LOGÍSTICA INTEGRADA',
+        'alpha candies': 'logística integrada'
     };
 
     // Primeiro nome isolado para menções rápidas
@@ -240,12 +246,27 @@
         }, 3000);
     }
 
+    function updateCompanyLogos() {
+        const isPort = isEnabled;
+        const efxLogo = document.getElementById('headerLogoEfx');
+        if (efxLogo) {
+            efxLogo.style.display = isPort ? 'none' : '';
+        }
+        document.querySelectorAll('.report-client-logo, .report-efx-img, img[src*="logo-grupo-efx"]').forEach(el => {
+            el.style.display = isPort ? 'none' : '';
+        });
+    }
+
     function updateBanner() {
         const banner = document.getElementById('portfolioBanner');
         if (banner) {
             banner.style.display = isEnabled ? 'flex' : 'none';
         }
         document.documentElement.classList.toggle('portfolio-mode-active', isEnabled);
+        if (document.body) {
+            document.body.classList.toggle('portfolio-mode-active', isEnabled);
+        }
+        updateCompanyLogos();
     }
 
     function triggerAppReRender() {
