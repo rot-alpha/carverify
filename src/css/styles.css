@@ -413,11 +413,11 @@ button {
 }
 
 .btn-sync,
-.btn-theme-toggle,
-.btn-portfolio-toggle {
+.btn-theme-toggle {
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 38px;
     height: 38px;
     border-radius: 11px;
     background: var(--bg-main);
@@ -426,38 +426,12 @@ button {
     transition: all var(--transition-fast);
 }
 
-.btn-portfolio-toggle {
-    padding: 0 11px;
-    gap: 6px;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.01em;
-}
-
-.btn-portfolio-toggle .material-icons-round {
-    font-size: 18px;
-}
-
-.btn-sync,
-.btn-theme-toggle {
-    width: 38px;
-}
-
 .btn-sync:hover,
-.btn-theme-toggle:hover,
-.btn-portfolio-toggle:hover {
+.btn-theme-toggle:hover {
     color: #FFA000;
     border-color: rgba(255, 160, 0, 0.45);
     background: var(--clr-primary-light);
     transform: translateY(-1px);
-}
-
-.btn-portfolio-toggle.active {
-    background: rgba(245, 158, 11, 0.16);
-    border-color: #f59e0b;
-    color: #f59e0b;
-    box-shadow: 0 0 14px rgba(245, 158, 11, 0.28);
 }
 
 /* ====== BANNER FLUTUANTE DO MODO PORTFÓLIO ====== */

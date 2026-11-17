@@ -2,7 +2,7 @@
  * src/js/portfolio-mode.js
  * Modo Portfólio / Vitrine para Exibições Públicas (LinkedIn, Portfólio, Vídeos)
  * Anonimiza placas, nomes de motoristas, fornecedores e observações sensíveis
- * em tempo real sem alterar banco de dados ou regras de negócio.
+ * em tempo real através do atalho [Ctrl + Shift + P] ou parâmetro [?portfolio=true].
  */
 
 (function () {
@@ -70,7 +70,7 @@
 
     let isEnabled = false;
     let observer = null;
-    let isApplyingMask = false;
+    let isObserverWorking = false;
 
     function checkInitialState() {
         try {
@@ -135,7 +135,8 @@
     }
 
     function maskDOMNode(node) {
-        if (!isEnabled || isApplyingMask) return;
+        if (!node || !isEnabled) return;
+
         if (node.nodeType === Node.TEXT_NODE) {
             const val = node.nodeValue;
             if (val && val.trim().length > 1) {
@@ -144,12 +145,14 @@
                     node.nodeValue = masked;
                 }
             }
-        } else if (node.nodeType === Node.ELEMENT_NODE) {
-            // Ignora scripts, styles e o próprio banner
+            return;
+        }
+
+        if (node.nodeType === Node.ELEMENT_NODE) {
             const tag = node.tagName.toLowerCase();
             if (tag === 'script' || tag === 'style' || node.id === 'portfolioBanner') return;
 
-            // Mascara atributos de título/placeholder
+            // Mascara atributos de title e placeholder
             if (node.hasAttribute('title')) {
                 const t = node.getAttribute('title');
                 const mt = maskText(t);
@@ -161,20 +164,20 @@
                 if (mp !== p) node.setAttribute('placeholder', mp);
             }
 
-            for (let i = 0; i < node.childNodes.length; i++) {
-                maskDOMNode(node.childNodes[i]);
+            // Percorre filhos recursivamente
+            const children = node.childNodes;
+            for (let i = 0; i < children.length; i++) {
+                maskDOMNode(children[i]);
             }
         }
     }
 
     function applyMaskToDocument() {
-        if (!isEnabled) return;
-        isApplyingMask = true;
+        if (!isEnabled || !document.body) return;
+        stopObserver();
         try {
-            if (observer) observer.disconnect();
             maskDOMNode(document.body);
         } finally {
-            isApplyingMask = false;
             startObserver();
         }
     }
@@ -182,8 +185,8 @@
     function startObserver() {
         if (!isEnabled || observer) return;
         observer = new MutationObserver((mutations) => {
-            if (isApplyingMask) return;
-            isApplyingMask = true;
+            if (isObserverWorking) return;
+            isObserverWorking = true;
             try {
                 mutations.forEach(m => {
                     if (m.type === 'characterData') {
@@ -197,7 +200,7 @@
                     }
                 });
             } finally {
-                isApplyingMask = false;
+                isObserverWorking = false;
             }
         });
 
@@ -215,41 +218,48 @@
         }
     }
 
-    function updateUIElements() {
-        const toggleBtn = document.getElementById('btnPortfolioToggle');
-        const banner = document.getElementById('portfolioBanner');
-
-        if (toggleBtn) {
-            toggleBtn.classList.toggle('active', isEnabled);
-            toggleBtn.setAttribute('title', isEnabled
-                ? 'Modo Portfólio Ativo: Placas e nomes anonimizados (Clique ou Ctrl+Shift+P para desativar)'
-                : 'Ativar Modo Portfólio / Vitrine (Ctrl+Shift+P)'
-            );
-            const icon = toggleBtn.querySelector('.material-icons-round');
-            if (icon) {
-                icon.textContent = isEnabled ? 'shield' : 'shield_outlined';
-            }
+    function showFeedbackToast(msg, type = 'success') {
+        if (typeof window.showToast === 'function') {
+            window.showToast(msg, type);
+            return;
         }
+        const existing = document.querySelector('.driver-toast');
+        if (existing) existing.remove();
 
+        const toast = document.createElement('div');
+        toast.className = `driver-toast driver-toast-${type}`;
+        toast.innerHTML = `
+            <span class="material-icons-round">${type === 'success' ? 'shield' : 'visibility'}</span>
+            <span>${msg}</span>
+        `;
+        document.body.appendChild(toast);
+        requestAnimationFrame(() => toast.classList.add('show'));
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    function updateBanner() {
+        const banner = document.getElementById('portfolioBanner');
         if (banner) {
             banner.style.display = isEnabled ? 'flex' : 'none';
         }
-
         document.documentElement.classList.toggle('portfolio-mode-active', isEnabled);
     }
 
     function triggerAppReRender() {
-        // Dispara recálculo/renderização dos componentes do app para alternância instantânea
-        if (typeof window.renderTabs === 'function') window.renderTabs();
-        if (typeof window.updateDashboard === 'function') window.updateDashboard();
-        if (window.DriversModule && typeof window.DriversModule.render === 'function') {
-            window.DriversModule.render();
-        }
-        if (window.MaintenanceModule && typeof window.MaintenanceModule.render === 'function') {
-            window.MaintenanceModule.render();
-        }
-        if (typeof window.renderHome === 'function' && window.state && window.state.screen === 'home') {
-            window.renderHome();
+        try {
+            if (typeof window.renderTabs === 'function') window.renderTabs();
+            if (typeof window.updateDashboard === 'function') window.updateDashboard();
+            if (window.DriversModule && typeof window.DriversModule.render === 'function') {
+                window.DriversModule.render();
+            }
+            if (window.MaintenanceModule && typeof window.MaintenanceModule.render === 'function') {
+                window.MaintenanceModule.render();
+            }
+        } catch (e) {
+            console.warn('[PortfolioMode] Re-render aviso:', e);
         }
     }
 
@@ -259,22 +269,25 @@
             localStorage.setItem(STORAGE_KEY, String(isEnabled));
         } catch (e) {}
 
-        updateUIElements();
+        updateBanner();
 
         if (isEnabled) {
             applyMaskToDocument();
             startObserver();
             triggerAppReRender();
             applyMaskToDocument();
-            if (showFeedback && typeof window.showToast === 'function') {
-                window.showToast('🛡️ Modo Portfólio Ativado: Placas, motoristas e empresas foram anonimizados!');
+            if (showFeedback) {
+                showFeedbackToast('🛡️ Modo Portfólio Ativado (Ctrl+Shift+P): Dados anonimizados para prints!');
             }
         } else {
             stopObserver();
-            triggerAppReRender();
-            if (showFeedback && typeof window.showToast === 'function') {
-                window.showToast('🔄 Modo Portfólio Desativado: Dados reais restaurados.');
+            // Ao desativar, recarrega a página para garantir restauração 100% perfeita dos dados reais
+            if (showFeedback) {
+                showFeedbackToast('🔄 Modo Portfólio Desativado: Restaurando dados originais...');
             }
+            setTimeout(() => {
+                window.location.reload();
+            }, 300);
         }
     }
 
@@ -282,27 +295,23 @@
         setPortfolioMode(!isEnabled, true);
     }
 
-    // Inicialização ao carregar o DOM
+    // Inicialização
     function init() {
         isEnabled = checkInitialState();
-        updateUIElements();
+        updateBanner();
 
         if (isEnabled) {
             applyMaskToDocument();
             startObserver();
         }
 
-        // Event listener no botão de alternância
-        const toggleBtn = document.getElementById('btnPortfolioToggle');
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', () => togglePortfolioMode());
-        }
-
-        // Botão de fechar/desativar no banner
+        // Botão de desativar no banner flutuante
         const disableBtn = document.getElementById('btnDisablePortfolio');
         if (disableBtn) {
             disableBtn.addEventListener('click', () => setPortfolioMode(false, true));
         }
+
+        // Botão "x" para fechar apenas o banner na hora do print mantendo o mascaramento ativo
         const dismissBannerBtn = document.getElementById('btnDismissPortfolioBanner');
         if (dismissBannerBtn) {
             dismissBannerBtn.addEventListener('click', () => {
@@ -310,15 +319,18 @@
                 if (banner) banner.style.display = 'none';
             });
         }
-
-        // Atalho de teclado: Ctrl + Shift + P ou Cmd + Shift + P
-        window.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'P' || e.key === 'p')) {
-                e.preventDefault();
-                togglePortfolioMode();
-            }
-        });
     }
+
+    // Listener global de atalho no teclado (Ctrl + Shift + P ou Cmd + Shift + P)
+    // Registrado em fase de captura (true) para não ser interceptado por outros listeners
+    window.addEventListener('keydown', (e) => {
+        const isKeyP = (e.key === 'P' || e.key === 'p' || e.code === 'KeyP' || e.keyCode === 80);
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && isKeyP) {
+            e.preventDefault();
+            e.stopPropagation();
+            togglePortfolioMode();
+        }
+    }, true);
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
