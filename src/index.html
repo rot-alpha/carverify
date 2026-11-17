@@ -516,6 +516,10 @@
                         <span>Sair</span>
                     </button>
                 </div>
+                <button id="btnPortfolioToggle" class="btn-portfolio-toggle" title="Modo Portfólio / Vitrine — Ocultar dados reais (Ctrl+Shift+P)" aria-label="Modo Portfólio">
+                    <span class="material-icons-round">shield_outlined</span>
+                    <span class="portfolio-label">Portfólio</span>
+                </button>
                 <button id="btnThemeToggle" class="btn-theme-toggle" title="Alternar tema claro/escuro" aria-label="Alternar tema">
                     <span class="material-icons-round" id="themeIcon">dark_mode</span>
                 </button>
@@ -1816,10 +1820,28 @@
         </div>
     </div>
 
+    <!-- Banner Discreto do Modo Portfólio / Vitrine -->
+    <div id="portfolioBanner" class="portfolio-banner" style="display:none;">
+        <div class="portfolio-banner-content">
+            <span class="material-icons-round portfolio-banner-icon">shield</span>
+            <div class="portfolio-banner-text">
+                <strong>Modo Portfólio Ativo</strong>
+                <span>Placas, motoristas e empresas foram anonimizados para exibição pública.</span>
+            </div>
+        </div>
+        <div class="portfolio-banner-actions">
+            <button type="button" id="btnDisablePortfolio" class="btn-portfolio-disable" title="Restaurar dados reais">Desativar</button>
+            <button type="button" id="btnDismissPortfolioBanner" class="btn-portfolio-dismiss" title="Ocultar este aviso para tirar prints">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/security-utils.js?v=3.5"></script>
+    <script src="js/portfolio-mode.js?v=3.5"></script>
     <script src="js/supabase-config.js?v=3.5"></script>
     <script src="js/holidays.js?v=3.5"></script>
     <script src="js/calendar.js?v=3.5"></script>

@@ -832,7 +832,7 @@ const MaintenanceModule = (function () {
             chartByVehicle = new Chart(ctxVeh, {
                 type: 'bar',
                 data: {
-                    labels: byDays.length ? byDays.map(v => v.plate) : ['0 paradas'],
+                    labels: byDays.length ? byDays.map(v => (window.CarVerifyPortfolio && window.CarVerifyPortfolio.isEnabled() ? window.CarVerifyPortfolio.maskPlate(v.plate) : v.plate)) : ['0 paradas'],
                     datasets: [{
                         label: 'Dias Parados',
                         data: byDays.length ? byDays.map(v => v.days) : [0],
